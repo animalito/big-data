@@ -1,0 +1,309 @@
+---
+title: "Lecture 1"
+subtitle: "Introducción"
+author: "Adolfo De Unánue T."
+date: "14/10/2014"
+output: 
+  ioslides_presentation:
+    incremental: true
+    widescreen: true
+---
+
+
+# Docker
+
+## Docker {.flexbox .vcenter}
+
+<img src="http://ddf912383141a8d7bbe4-e053e711fc85de3290f121ef0f0e3a1f.r87.cf1.rackcdn.com/docker-whale.png" align="center" />
+
+`docker pull nanounanue/itam-dm`
+
+## Docker: Instrucciones {.flexbox .vcenter}
+
+
+[docker setup](0-docker.Rmd)
+
+# CLI
+
+## CLI {.flexbox .vcenter}
+
+<img src="http://http503.files.wordpress.com/2010/10/terminal_icon.png?w=300&h=300" align="center" />
+
+Un [wallpaper](http://iamhanif.files.wordpress.com/2012/08/linux_cli_commands.jpg) útil.
+
+## CLI: Instrucciones {.flexbox .vcenter}
+
+
+[mi consola y yo](1-cli.Rmd)
+
+
+# Github
+
+## Github {.flexbox .vcenter}
+
+<img src="http://www.escope.cz/images/gr200.png" align="center" /> 
+
+`https://github.com/nanounanue/itam-dm.git`
+
+## Github: Instrucciones {.flexbox .vcenter}
+
+[git: guardando mi trabajo](2-git-tour.Rmd)
+
+
+# Minería de Datos | Generalidades
+
+## Minería de Datos: ¿Qué es?
+
+- No es una herramienta o técnica.
+
+- La extracción de <span class="red2">patrones o modelos útiles</span>  de una gran conjunto de datos.
+
+- Patrones <span class="blue2">No triviales</span>
+
+- Patrones <span class="blue2">Accionables</span>
+
+- Sistemático -> <span class="green2">Proceso</span>.
+
+- Algunas etapas del proceso tienen que ver con la aplicacon de la tecnología.
+
+- Otras (muy importantes) con la creatividad del analista, conocimiento del negocio y sentido común.
+
+
+## Minería de Datos: Predictibilidad {.smaller}
+
+<span class="blue3>“Predictability”, a quantity which is a measure
+of the degree of “reproducibility” of the patterns and regularities within data.
+Thus, by observing patterns and regularities in one data set, we wish to predict
+what patterns and regularities will exist in another, statistically similar data
+set. Predictability varies as a function of a problem’s “features” and “feature
+values”, i.e., the predictor variables in a problem and their values 2 . For instance,
+one might find that income is a weak predictor of car ownership but a strong
+predictor of luxury car ownership.</span>
+
+<span class="left">C. R. Stephens et al, 2001</span>
+
+## Minería de Datos: Saber qué...
+
+- Multi perspectiva
+
+- Ruidoso -> Probabilidad
+
+- Modificar
+
+- CAS
+
+## Minería de Datos: Preguntas 
+
+<span class="green3">¿Quién?</span>
+
+  * ¿Quién es más probable que falle en sus siguientes pagos?
+
+<span class="green3">¿Qué?</span>
+  
+  * ¿Qué costo se está prediciendo para adquirir nuevos clientes?
+
+<span class="green3">¿Dónde?</span>
+  
+  * ¿Dónde hay que abrir la nueva tienda para maximizar ROI?
+  
+<span class="green3">¿Cuándo?</span>
+  
+  * ¿Cuándo nos abandonará un cliente?
+  
+<span class="green3">¿Por qué?</span>
+  
+  * ¿Por qué este conjunto se comporta así?
+  
+## Minería de Datos: Tareas
+
+- <span class="blue2">Clasificación</span>
+  
+  * ¿A qué clase pertenece un individuo?
+  
+- <span class="blue3">Scoring</span> 
+
+  * Asignar una <span class="red">probabilidad</span> de que pertenezca a esa clase.
+
+- <span class="blue2">Regresión</span> 
+  
+  * ¿Qué valor tiene una variable numérica, dado el individuo?
+
+
+## Minería de Datos: Tareas
+
+- <span class="blue">Similitudes</span>
+
+  * <span class="red4">Identificar</span> que individuos similares dados los datos que sabemos de ellos.
+  
+- <span class="blue2">Clustering</span>
+
+  * <span class="red">Agrupar</span> individuos por sus similitudes.
+  
+- <span class="blue3">Agrupamiento por co-ocurrencia</span>
+
+  * Encontrar <span class="red4">asociaciones</span> entre las entidades basado en las transacciones que las involucran.
+  
+
+## Minería de Datos: Tareas
+
+- <span class="blue2">Perfilamiento</span> 
+
+  * Caracterizar el comportamiento de un individuo, grupo o población.
+  
+- <span class="blue">Link Prediction</span>
+
+  * Predecir conexiones entre individuos.
+  
+- <span class="blue3">Reducción de datos / Generación / Transformación de variables</span>
+
+- <span class="blue2">Modelado causal</span>
+
+  * ¿Qué eventos <span class="red2">influyen</span> a otros.
+  
+  
+## Minería de Datos: Tipos de tareas
+
+- Supervisada  --> Muy importante producir una definicipon de la variable <span class="red2">objetivo</span>.
+
+- Sin supervisar
+
+## Minería de Datos: Usos
+
+- Minar datos para construir modelos
+
+- <span class="blue2">Usar</span> los resultados de la minería de datos.
+
+- Ambos son centrales en el concepto de <span class="green2">Ciencia de datos</span>.
+
+
+# Minería de Datos | Metodología
+
+## CRISP-DM {.flexbox .vcenter}
+
+<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/CRISP-DM_Process_Diagram.png/479px-CRISP-DM_Process_Diagram.png" align="center"/>
+
+[Cross Industry Standard Process for Data Mining](http://en.wikipedia.org/wiki/Cross_Industry_Standard_Process_for_Data_Mining)
+
+## CRISP-DM: Business Understanding {.flexbox .vcenter}
+
+-  Los problemas <span class="red">nunca</span> vienen presentados como un problema de minería de datos.
+
+- Replantear el problema, como problema de minería de datos es una de las cosas más importantes del CRISP-DM.
+
+
+## CRISP-DM: Data Understanding {.flexbox .vcenter}
+
+- Entender la limitaciones (y fortalezas) de los datos es vital.
+
+- Rara vez los datos fueron tomados pensando en el problema.
+
+## CRISP-DM: Data Preparation {.flexbox .vcenter}
+
+- <span class="red">80%</span> / <span class="blue"> 20% </span>
+
+- Cuidado con los datos "cruzados"
+
+## CRISP-DM: Modelado {.flexbox .vcenter}
+
+- Le dedicaremos semanas...
+
+## CRISP-DM: Evaluación {.flexbox .vcenter}
+
+- Le dedicaremos semanas...
+
+## CRISP-DM: Deployment {.flexbox .vcenter}
+
+- ¿Cómo impactar?
+
+- ¿Cómo implementar?
+
+- ¿Cómo mantener funcionando?
+
+- <span class="green"> El modelo no es lo que el científico de datos diseña, es lo que el ingeniero construye</span>.
+
+# Minería de datos | Relaciones
+
+## Minería de datos: Relaciones
+
+<div class="columns-2">
+- <span class="green">Estadística</span>: Verifica hipótesis.
+- <span class="blue">ML</span>: Algoritmo.
+- <span class="red">BI</span>: ¿Qué pasó?
+- Bases de datos / DWH
+
+- <span class="blue2">Genera</span> hipótesis.
+- Todo el proceso, aplicaciónes, modificar.
+- ¿Por qué? ¿Qué pasará?
+</div>
+
+
+## Ejercicio
+
+Identifica como resolver las siguientes preguntas y si son de DM o de sus relaciones.
+
+- ¿Cuáles son los clientes que dejan más ganancia?
+
+- ¿Hay una diferencia real entre el cliente que genera más ganancia y el cliente medio?
+
+- ¿Quiénes son estos clientes?¿Podemos generar un profiling?
+
+- ¿Qué clientes se convertirán en los clientes que dejan ganancia? 
+
+- ¿Cuánta ganancia espero los siguientes años?
+
+- ¿Qué puedo hacer para acelerar el proceso d eesos clientes?
+
+# Clase | Temario
+
+## Temario 
+
+- EDA: Exploración inicial
+
+- Removiendo observaciones con valores sospechosos
+
+- Dependencia temporal
+
+- Supervisado, Sin supervisar y semisupervisado
+
+- Medidas de desempeño
+
+- _Outlier_ detection
+
+- Clases no balanceadas
+
+## Temario 
+
+- Feature Engineering
+
+- Modelado
+
+- Minería de grafos
+
+- Series de tiempo
+
+- Reglas de asociación
+
+- Minería de texto
+
+- _Social Network Analysis_
+
+- Caso de estudio
+
+# Clase | ¿Qué vieron?
+
+# Clase | Reposiciones
+
+## Reposiciones {.flexbox .vcenter}
+
+- <span class="red">29 de Octubre, 2014</span>
+- <span class="red">12 de Noviembre, 2014</span>
+
+# Clase | Datasets
+
+## Datasets {.flexbox .vcenter}
+
+- Serán proveídas en clase
+
+- Además, si pueden, bajen sus datos de [Google Takeout](https://www.google.com/settings/takeout)
+  *  Los usaremos más adelante.
+  *  Si no pueden, se proveerán datos parecidos (aunque no tan divertidos).

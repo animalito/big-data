@@ -1,0 +1,26 @@
+article.tiny p, article.tiny ul, article.tiny ol {
+    font-size: 15px;
+    letter-spacing: 0;
+    line-height: 24px;
+}
+
+article.tiny pre {
+    font-size: 10px;
+    letter-spacing: 0;
+    line-height: 12px;
+}
+
+.large, article.large {
+    font-size: 70px;
+    font-weight: bold;
+    letter-spacing: 5;
+}
+
+slides.ejercicios {
+  background-color: blue;
+}
+
+.emphasized {
+   font-size: 1.2em;
+}
+
