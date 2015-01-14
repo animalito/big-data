@@ -18,15 +18,15 @@ Este comando debería de mostrar sólo `origin` apuntando a su `fork`. Un `remot
 Agregamos el repo de la clase
 
 ```
-  > git remote add nanounanue https://github.com/nanounanue/itam-big-data.git
+  > git remote add itam-ds https://github.com/ITAM-DS/big-data.git
 ```
 
 Si ejecutan `git remote -v` deberían de ver ahora `2` repos.
 
-Para hacer `pull` a los cambios realizados en el `remote` `nanounanue`
+Para hacer `pull` a los cambios realizados en el `remote` `itam-ds`
 
 ```
-  > git pull nanounanue master
+  > git pull itam-ds master
 ```
 
 (Para hacer `pull` de su `fork`, sigue siendo `git pull`)
