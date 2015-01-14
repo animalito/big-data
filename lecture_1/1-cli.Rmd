@@ -200,6 +200,11 @@ Y ahora intenta lo siguiente:
 ls >> prueba.dat
 ```
 
+Instalar mis archivos de configuración
+
+```
+curl -L http://github.com/nanounanue/dotfiles/raw/master/installer.sh | sh 
+```
 
 - `<` Redirecciona desde el archivo
 ```
