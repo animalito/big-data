@@ -27,11 +27,13 @@ Outline del curso
 - ¿Cómo le hago en *R*?
 - Oldies pero goodies: *RDBMS*
 - Arquitecturas Lambda
+- Aplicaciones de datos
 - Ecosistema Hadoop
 - MapReduce - HDFS
 - Hadoop 2: YARN
 - Hive, Pig
 - Spark
+- Arquitecturas Hadoop
 
 Requisitos y Recomendaciones
 ===================================================================

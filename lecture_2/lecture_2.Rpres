@@ -6,7 +6,45 @@ font-import: http://fonts.googleapis.com/css?family=Risque
 font-family: 'Risque'
 css: lecture_2.css
 
+Ciencia de datos
+=======================================================
+type: sub-section
 
+
+Recordando
+========================================================
+Masson y Wiggins (*A taxonomy of Data Science* Mason and Wiggins, 2010) definen los cinco pasos que realiza
+un científico de datos:
+
+- Obtener datos
+- Manipular datos
+- Explorar datos
+- Modelar datos
+- Intepretar datos
+
+Esta clase es sobre los primeros dos y cuando hay muchos datos...
+
+Obtener datos
+========================================================
+
+- Descargar datos desde otro lado
+- Consultar una base de datos
+- Consultar una API
+- Extraer datos de un archivo
+- Generar tus propios datos
+
+Este paso incluye el ¿Dónde lo guardo de manera _efectiva_?
+
+Manipular datos
+========================================================
+
+- Filtrar líneas
+- Extraer columnas
+- Reemplazar valores
+- Manejar los valores
+- Convertir los datos de un tipo al otro
+
+Este paso incluye el ¿Cómo lo manipulo/limpio de manera _efectiva_?
 
 Preguntas
 ========================================================

@@ -7,9 +7,8 @@ output: html_document
 
 # La línea de comandos
 
-<div>
 **NOTA**: Esta *lecture* está basada parcialmente en las notas del curso C4P de California Polytechnic State University, San Luis Obispo
-</div>
+
 
 ## Introducción
 
@@ -56,6 +55,16 @@ Al final las computadoras sólo hacen cuatro cosas:
     ratón u otro periférico, o desde la línea de comandos, llamada
     como **CLI** (*Command Line Interface*).
 
+## El ambiente desde cerca
+
+El ambiente está formado por 4 capas:
+
+- Herramientas de línea de comandos
+  - De estos hay cinco tipos: Ejecutable Binario, *Builtin*, *Script* Interpretado, Función del *Shell* y `alias`.
+- Terminal
+- *Shell*
+- Sistema Operativo
+
 ## La línea de comandos
 
 La línea de comandos es lo que estará entre nosotros y la computadora
@@ -87,14 +96,13 @@ manipulación del `file system`.
 
 ### Ejercicio:
 
-- Inicia una sesión en `docker` en `bash` (ver `0-docker.Rmd`)
+- Inicia una sesión en `docker` en `bash` (ver `0-docker.Rmd`) usando la imagen de `docker-ds`.
 - Deberías de ver algo como esto:
 ```
-root@6ddfd57cc4ec:/#
+~
 ```
 - Teclea `whoami` y luego presiona *enter*. Este comando te dice que
-usuario eres. Observa que el usuario actual es `root`. Este usuario es
-un **superusuario**, el tiene poderes para modificar todo, obvio, esto
+usuario eres. Observa que el usuario actual es `itam`. Eres un usuario normal. Existe otro usuario  llamado `root` el cual un **superusuario**, el tiene poderes para modificar todo, obvio, esto
 es peligroso, por lo que será mejor cambiar de usuario, en particular
 al usuario `itam`.
 
