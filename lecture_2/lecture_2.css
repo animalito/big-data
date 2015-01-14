@@ -1,0 +1,21 @@
+.reveal section pre code {
+  display: block;
+  padding: 0.5em;
+  font-size: 1.0em;
+  line-height: 0.9em;
+  background-color: grey;
+  overflow: visible;
+  max-height: none;
+  word-wrap: normal;
+}
+
+.exclaim .reveal .state-background {
+  background: black;
+} 
+
+.exclaim .reveal h1,
+.exclaim .reveal h2,
+.exclaim .reveal h3,
+.exclaim .reveal p {
+  color: white;
+}
