@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2014-12-10" />
+  <meta name="date" content="2015-12-01" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -85,7 +85,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">14/10/2014</p>
+            <p style="margin-top: 6px; margin-left: -2px;">14/01/2015</p>
           </hgroup>
   </slide>
 
@@ -95,7 +95,7 @@
 
 <p><img src="http://ddf912383141a8d7bbe4-e053e711fc85de3290f121ef0f0e3a1f.r87.cf1.rackcdn.com/docker-whale.png" align="center" /></p>
 
-<p><code>docker pull nanounanue/itam-dm</code></p>
+<p><code>docker pull nanounanue/docker-ds</code></p>
 
 </article></slide><slide class=''><hgroup><h2>Docker: Instrucciones</h2></hgroup><article  id="docker-instrucciones" class="flexbox vcenter">
 
@@ -119,287 +119,11 @@
 
 <p><img src="http://www.escope.cz/images/gr200.png" align="center" /></p>
 
-<p><code>https://github.com/nanounanue/itam-dm.git</code></p>
+<p><code>https://github.com/ITAM-DS/big-data.git</code></p>
 
 </article></slide><slide class=''><hgroup><h2>Github: Instrucciones</h2></hgroup><article  id="github-instrucciones" class="flexbox vcenter">
 
-<p><a href='2-git-tour.Rmd' title=''>git: guardando mi trabajo</a></p>
-
-</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Minería de Datos </h2><h3> Generalidades</h3></hgroup><article  id="mineria-de-datos-generalidades">
-
-</article></slide><slide class=''><hgroup><h2>Minería de Datos: ¿Qué es?</h2></hgroup><article  id="mineria-de-datos-que-es">
-
-<ul class = 'build'>
-<li><p>No es una herramienta o técnica.</p></li>
-<li><p>La extracción de <span class="red2">
-patrones o modelos útiles</span> de una gran conjunto de datos.</p></li>
-<li><p>Patrones <span class="blue2">
-No triviales</span></p></li>
-<li><p>Patrones <span class="blue2">
-Accionables</span></p></li>
-<li><p>Sistemático -&gt; <span class="green2">
-Proceso</span>.</p></li>
-<li><p>Algunas etapas del proceso tienen que ver con la aplicacon de la tecnología.</p></li>
-<li><p>Otras (muy importantes) con la creatividad del analista, conocimiento del negocio y sentido común.</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Minería de Datos: Predictibilidad</h2></hgroup><article  id="mineria-de-datos-predictibilidad" class="smaller">
-
-<p><span class="blue3&gt;“Predictability”, a quantity which is a measure of the degree of “reproducibility” of the patterns and regularities within data. Thus, by observing patterns and regularities in one data set, we wish to predict what patterns and regularities will exist in another, statistically similar data set. Predictability varies as a function of a problem’s “features” and “feature values”, i.e., the predictor variables in a problem and their values 2 . For instance, one might find that income is a weak predictor of car ownership but a strong predictor of luxury car ownership.&lt;/span&gt; &lt;span class=">
-“Predictability”, a quantity which is a measure of the degree of “reproducibility” of the patterns and regularities within data. Thus, by observing patterns and regularities in one data set, we wish to predict what patterns and regularities will exist in another, statistically similar data set. Predictability varies as a function of a problem’s “features” and “feature values”, i.e., the predictor variables in a problem and their values 2 . For instance, one might find that income is a weak predictor of car ownership but a strong predictor of luxury car ownership.</span></p>
-
-<p><span class="left">
-C. R. Stephens et al, 2001</span></p>
-
-</article></slide><slide class=''><hgroup><h2>Minería de Datos: Saber qué&#8230;</h2></hgroup><article  id="mineria-de-datos-saber-que...">
-
-<ul class = 'build'>
-<li><p>Multi perspectiva</p></li>
-<li><p>Ruidoso -&gt; Probabilidad</p></li>
-<li><p>Modificar</p></li>
-<li><p>CAS</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Minería de Datos: Preguntas</h2></hgroup><article  id="mineria-de-datos-preguntas">
-
-<p><span class="green3">
-¿Quién?</span></p>
-
-<ul class = 'build'>
-<li>¿Quién es más probable que falle en sus siguientes pagos?</li>
-</ul>
-
-<p><span class="green3">
-¿Qué?</span></p>
-
-<ul class = 'build'>
-<li>¿Qué costo se está prediciendo para adquirir nuevos clientes?</li>
-</ul>
-
-<p><span class="green3">
-¿Dónde?</span></p>
-
-<ul class = 'build'>
-<li>¿Dónde hay que abrir la nueva tienda para maximizar ROI?</li>
-</ul>
-
-<p><span class="green3">
-¿Cuándo?</span></p>
-
-<ul class = 'build'>
-<li>¿Cuándo nos abandonará un cliente?</li>
-</ul>
-
-<p><span class="green3">
-¿Por qué?</span></p>
-
-<ul class = 'build'>
-<li>¿Por qué este conjunto se comporta así?</li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Minería de Datos: Tareas</h2></hgroup><article  id="mineria-de-datos-tareas">
-
-<ul class = 'build'>
-<li><p><span class="blue2">
-Clasificación</span></p></li>
-<li><p>¿A qué clase pertenece un individuo?</p></li>
-<li><p><span class="blue3">
-Scoring</span></p></li>
-<li><p>Asignar una <span class="red">
-probabilidad</span> de que pertenezca a esa clase.</p></li>
-<li><p><span class="blue2">
-Regresión</span></p></li>
-<li><p>¿Qué valor tiene una variable numérica, dado el individuo?</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Minería de Datos: Tareas</h2></hgroup><article  id="mineria-de-datos-tareas-1">
-
-<ul class = 'build'>
-<li><p><span class="blue">
-Similitudes</span></p></li>
-<li><p><span class="red4">
-Identificar</span> que individuos similares dados los datos que sabemos de ellos.</p></li>
-<li><p><span class="blue2">
-Clustering</span></p></li>
-<li><p><span class="red">
-Agrupar</span> individuos por sus similitudes.</p></li>
-<li><p><span class="blue3">
-Agrupamiento por co-ocurrencia</span></p></li>
-<li><p>Encontrar <span class="red4">
-asociaciones</span> entre las entidades basado en las transacciones que las involucran.</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Minería de Datos: Tareas</h2></hgroup><article  id="mineria-de-datos-tareas-2">
-
-<ul class = 'build'>
-<li><p><span class="blue2">
-Perfilamiento</span></p></li>
-<li><p>Caracterizar el comportamiento de un individuo, grupo o población.</p></li>
-<li><p><span class="blue">
-Link Prediction</span></p></li>
-<li><p>Predecir conexiones entre individuos.</p></li>
-<li><p><span class="blue3">
-Reducción de datos / Generación / Transformación de variables</span></p></li>
-<li><p><span class="blue2">
-Modelado causal</span></p></li>
-<li><p>¿Qué eventos <span class="red2">
-influyen</span> a otros.</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Minería de Datos: Tipos de tareas</h2></hgroup><article  id="mineria-de-datos-tipos-de-tareas">
-
-<ul class = 'build'>
-<li><p>Supervisada &#8211;&gt; Muy importante producir una definicipon de la variable <span class="red2">
-objetivo</span>.</p></li>
-<li><p>Sin supervisar</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Minería de Datos: Usos</h2></hgroup><article  id="mineria-de-datos-usos">
-
-<ul class = 'build'>
-<li><p>Minar datos para construir modelos</p></li>
-<li><p><span class="blue2">
-Usar</span> los resultados de la minería de datos.</p></li>
-<li><p>Ambos son centrales en el concepto de <span class="green2">
-Ciencia de datos</span>.</p></li>
-</ul>
-
-</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Minería de Datos </h2><h3> Metodología</h3></hgroup><article  id="mineria-de-datos-metodologia">
-
-</article></slide><slide class=''><hgroup><h2>CRISP-DM</h2></hgroup><article  id="crisp-dm" class="flexbox vcenter">
-
-<p><img src="http://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/CRISP-DM_Process_Diagram.png/479px-CRISP-DM_Process_Diagram.png" align="center"/></p>
-
-<p><a href='http://en.wikipedia.org/wiki/Cross_Industry_Standard_Process_for_Data_Mining' title=''>Cross Industry Standard Process for Data Mining</a></p>
-
-</article></slide><slide class=''><hgroup><h2>CRISP-DM: Business Understanding</h2></hgroup><article  id="crisp-dm-business-understanding" class="flexbox vcenter">
-
-<ul class = 'build'>
-<li><p>Los problemas <span class="red">
-nunca</span> vienen presentados como un problema de minería de datos.</p></li>
-<li><p>Replantear el problema, como problema de minería de datos es una de las cosas más importantes del CRISP-DM.</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>CRISP-DM: Data Understanding</h2></hgroup><article  id="crisp-dm-data-understanding" class="flexbox vcenter">
-
-<ul class = 'build'>
-<li><p>Entender la limitaciones (y fortalezas) de los datos es vital.</p></li>
-<li><p>Rara vez los datos fueron tomados pensando en el problema.</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>CRISP-DM: Data Preparation</h2></hgroup><article  id="crisp-dm-data-preparation" class="flexbox vcenter">
-
-<ul class = 'build'>
-<li><p><span class="red">
-80%</span> / <span class="blue">
- 20% </span></p></li>
-<li><p>Cuidado con los datos &quot;cruzados&quot;</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>CRISP-DM: Modelado</h2></hgroup><article  id="crisp-dm-modelado" class="flexbox vcenter">
-
-<ul class = 'build'>
-<li>Le dedicaremos semanas&#8230;</li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>CRISP-DM: Evaluación</h2></hgroup><article  id="crisp-dm-evaluacion" class="flexbox vcenter">
-
-<ul class = 'build'>
-<li>Le dedicaremos semanas&#8230;</li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>CRISP-DM: Deployment</h2></hgroup><article  id="crisp-dm-deployment" class="flexbox vcenter">
-
-<ul class = 'build'>
-<li><p>¿Cómo impactar?</p></li>
-<li><p>¿Cómo implementar?</p></li>
-<li><p>¿Cómo mantener funcionando?</p></li>
-<li><p><span class="green">
- El modelo no es lo que el científico de datos diseña, es lo que el ingeniero construye</span>.</p></li>
-</ul>
-
-</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Minería de datos </h2><h3> Relaciones</h3></hgroup><article  id="mineria-de-datos-relaciones">
-
-</article></slide><slide class=''><hgroup><h2>Minería de datos: Relaciones</h2></hgroup><article  id="mineria-de-datos-relaciones-1">
-
-<div class="columns-2">
-<ul class = 'build'>
-<li><span class="green">
-Estadística</span>: Verifica hipótesis.</li>
-<li><span class="blue">
-ML</span>: Algoritmo.</li>
-<li><span class="red">
-BI</span>: ¿Qué pasó?</li>
-<li><p>Bases de datos / DWH</p></li>
-<li><span class="blue2">
-Genera</span> hipótesis.</li>
-<li>Todo el proceso, aplicaciónes, modificar.</li>
-<li>¿Por qué? ¿Qué pasará?</li>
-</ul></div>
-
-</article></slide><slide class=''><hgroup><h2>Ejercicio</h2></hgroup><article  id="ejercicio">
-
-<p>Identifica como resolver las siguientes preguntas y si son de DM o de sus relaciones.</p>
-
-<ul class = 'build'>
-<li><p>¿Cuáles son los clientes que dejan más ganancia?</p></li>
-<li><p>¿Hay una diferencia real entre el cliente que genera más ganancia y el cliente medio?</p></li>
-<li><p>¿Quiénes son estos clientes?¿Podemos generar un profiling?</p></li>
-<li><p>¿Qué clientes se convertirán en los clientes que dejan ganancia?</p></li>
-<li><p>¿Cuánta ganancia espero los siguientes años?</p></li>
-<li><p>¿Qué puedo hacer para acelerar el proceso d eesos clientes?</p></li>
-</ul>
-
-</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Clase </h2><h3> Temario</h3></hgroup><article  id="clase-temario">
-
-</article></slide><slide class=''><hgroup><h2>Temario</h2></hgroup><article  id="temario">
-
-<ul class = 'build'>
-<li><p>EDA: Exploración inicial</p></li>
-<li><p>Removiendo observaciones con valores sospechosos</p></li>
-<li><p>Dependencia temporal</p></li>
-<li><p>Supervisado, Sin supervisar y semisupervisado</p></li>
-<li><p>Medidas de desempeño</p></li>
-<li><p><em>Outlier</em> detection</p></li>
-<li><p>Clases no balanceadas</p></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Temario</h2></hgroup><article  id="temario-1">
-
-<ul class = 'build'>
-<li><p>Feature Engineering</p></li>
-<li><p>Modelado</p></li>
-<li><p>Minería de grafos</p></li>
-<li><p>Series de tiempo</p></li>
-<li><p>Reglas de asociación</p></li>
-<li><p>Minería de texto</p></li>
-<li><p><em>Social Network Analysis</em></p></li>
-<li><p>Caso de estudio</p></li>
-</ul>
-
-</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Clase </h2><h3> ¿Qué vieron?</h3></hgroup><article  id="clase-que-vieron">
-
-</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Clase </h2><h3> Reposiciones</h3></hgroup><article  id="clase-reposiciones">
-
-</article></slide><slide class=''><hgroup><h2>Reposiciones</h2></hgroup><article  id="reposiciones" class="flexbox vcenter">
-
-<ul class = 'build'>
-<li><span class="red">
-29 de Octubre, 2014</span></li>
-<li><span class="red">
-12 de Noviembre, 2014</span></li>
-</ul>
-
-</article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>Clase </h2><h3> Datasets</h3></hgroup><article  id="clase-datasets">
-
-</article></slide><slide class=''><hgroup><h2>Datasets</h2></hgroup><article  id="datasets" class="flexbox vcenter">
-
-<ul class = 'build'>
-<li><p>Serán proveídas en clase</p></li>
-<li>Además, si pueden, bajen sus datos de <a href='https://www.google.com/settings/takeout' title=''>Google Takeout</a></li>
-<li>Los usaremos más adelante.</li>
-<li><p>Si no pueden, se proveerán datos parecidos (aunque no tan divertidos).</p></li>
-</ul></article></slide>
+<p><a href='2-git-tour.Rmd' title=''>git: guardando mi trabajo</a></p></article></slide>
 
 
   <slide class="backdrop"></slide>

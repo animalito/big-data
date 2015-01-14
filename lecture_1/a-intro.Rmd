@@ -2,7 +2,7 @@
 title: "Lecture 1"
 subtitle: "Introducción"
 author: "Adolfo De Unánue T."
-date: "14/10/2014"
+date: "14/01/2015"
 output: 
   ioslides_presentation:
     incremental: true
@@ -16,7 +16,7 @@ output:
 
 <img src="http://ddf912383141a8d7bbe4-e053e711fc85de3290f121ef0f0e3a1f.r87.cf1.rackcdn.com/docker-whale.png" align="center" />
 
-`docker pull nanounanue/itam-dm`
+`docker pull nanounanue/docker-ds`
 
 ## Docker: Instrucciones {.flexbox .vcenter}
 
@@ -43,7 +43,7 @@ Un [wallpaper](http://iamhanif.files.wordpress.com/2012/08/linux_cli_commands.jp
 
 <img src="http://www.escope.cz/images/gr200.png" align="center" /> 
 
-`https://github.com/nanounanue/itam-dm.git`
+`https://github.com/ITAM-DS/big-data.git`
 
 ## Github: Instrucciones {.flexbox .vcenter}
 
