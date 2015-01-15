@@ -55,7 +55,7 @@ salida, y que editor por default para resolver conflictos.
 El **repositorio** es la carpeta donde `git` guarda y gestiona todas
 las versiones de los archivos.
 
-Crea una carpeta en tu `$HOME` llamada `data-mining-test`, ingresa a
+Crea una carpeta en tu `$HOME` llamada `big-data-test`, ingresa a
 ella e inicializa el repositorio con `git init`. ¿Notas algún cambio?
 ¿Qué comando usarías? Hay una carpeta ahí ¿no la ves? ¿Cómo puedes ver
 una carpeta oculta?
