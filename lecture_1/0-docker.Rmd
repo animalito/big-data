@@ -42,6 +42,7 @@ Un **contenedor** es creado a partir de una *imagen*. Los contenedores es aquell
    $ boot2docker init
    $ boot2docker start
    $ export DOCKER_HOST=tcp://$(boot2docker ip 2>/dev/null):2375
+   $ echo $DOCKER_HOST
  ```
  
  
@@ -92,7 +93,7 @@ boot2docker ip
 Descargarla
 
 ```
-docker pull nanounanue/docker-ps
+docker pull nanounanue/docker-ds
 ```
 
 Creen un contenedor:
@@ -121,7 +122,13 @@ Para salir de `docker` usen `Ctrl-C`.
 - La siguiente vez que quieras ejecutar `docker` usa el siguiente comando:
 
 ```
-docker start -a -d stoic_hopper
+docker start -a -d stoic_hopper # Esto funciona si ejecutaste la versión de demonio
+```
+
+ó
+
+```
+docker start -a -i stoic_hopper # Esto funciona si ejecutaste la versión de interactiva
 ```
 
 donde debes de cambiar `stoic_hopper` por el nombre del contenedor (la última columna de `docker ps -a`).
