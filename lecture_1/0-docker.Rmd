@@ -165,7 +165,7 @@ Para salir de `docker` usen `Ctrl-C`.
 - La siguiente vez que quieras ejecutar `docker` usa el siguiente comando:
 
 ```
-docker start -a -d stoic_hopper # Esto funciona si ejecutaste la versión de demonio
+docker start stoic_hopper # Esto funciona si ejecutaste la versión de demonio
 ```
 
 ó
