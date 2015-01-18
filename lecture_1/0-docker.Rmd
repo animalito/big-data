@@ -17,6 +17,7 @@ Es una plataforma de virtualización además de un conjunto de comandos para est
 
 - [Mac OS X](http://docs.docker.com/installation/mac/)
   - [Otro lugar](http://blog.javabien.net/2014/03/03/setup-docker-on-osx-the-no-brainer-way/)
+  - [Un lugar más](http://zaiste.net/2014/02/lightweight_docker_experience_on_osx/)
 - [Ubuntu](http://docs.docker.com/installation/ubuntulinux/)
 - [MS Windows](http://docs.docker.com/installation/windows/)
 
