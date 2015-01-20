@@ -1120,6 +1120,7 @@ El `shebang` para `R` sería
 ```{R}
 #!/usr/bin/env Rscript
 ...
+```
 
 
 Python y R, leyendo de stdin
