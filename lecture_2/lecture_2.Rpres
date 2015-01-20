@@ -1,7 +1,7 @@
 Big data :: Lecture 2
 ========================================================
 author: Adolfo De Unánue T.
-date: 14 de Enero, 2015
+date: 21 de Enero, 2015
 font-import: http://fonts.googleapis.com/css?family=Risque
 font-family: 'Risque'
 css: lecture_2.css
@@ -134,6 +134,8 @@ CSV
 \copy (select * from foo) to '/algun_archivo.psv' with header csv delimiter '|'
 ```
 
+Lo veremos luego...
+
 XML
 ========================================================
 - *eXtensible Markup Languague*
@@ -242,7 +244,7 @@ Bash / Zsh
 - En Ubuntu / Debian etc.
 
 ```
-sudo apt-get install zsh`
+sudo apt-get install zsh
 ```
 
 - Instalar `Oh-my-zsh`
@@ -257,6 +259,7 @@ curl -L https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh | 
 chsh -s $(which zsh)
 ```
 
+**Nota:** Ya está instalado en `docker`.
 
 Navegar
 =======================================================
@@ -296,6 +299,7 @@ $ git config --global user.email "correo@buzon.com"
 
 ```
 
+**Nota:** Hacer esto en `docker`
 
 Primero: Fork
 =======================================================
@@ -316,8 +320,8 @@ Ejemplo
 ============================================================
 Luego de hacer el `fork`
 ```
-git clone https://github.com/nanounanue/itam-big-data.git
-cd itam-big-data
+git clone https://github.com/ITAM-DS/big-data.git
+cd big-data
 touch uno.txt
 touch dos.txt
 git add .
@@ -348,12 +352,16 @@ Ejemplo (Continuación)
 
 Por último, para sincronizar con los cambios en el `fork` principal
 ```{bash}
-
 > git remote -v # Vemos que remotes tenemos ligados
+
 # Agregamos el repo de la clase
-> git remote add nanounanue https://github.com/nanounanue/itam-big-data.git
+
+> git remote add clase https://github.com/ITAM-DS/big-data.git
+
 > git remote -v
-> git pull nanounanue master # Para "jalar" los cambios del fork principal
+
+> git pull clase master # Para "jalar" los cambios del fork principal
+
 > git push # Para subir los cambios a su fork
 ```
 
@@ -364,6 +372,7 @@ type: sub-section
 Outline
 ============================================================
 - Pipes y flujos
+- `seq`
 - `wc`
 - `head`, `tail`
 - `split`, `cat`
@@ -371,8 +380,7 @@ Outline
 - `uniq`, `sort`
 - Expresiones regulares `regex`
 - `grep`
-- `awk`
-- `sed`
+- `awk`, `sed`
 - `GNU parallel`
 
 ¿Por qué?
@@ -389,28 +397,85 @@ Lego: Idea poderosa
 ![lego](images/tools.png)
 
 
+
 Datos para jugar
 ==================================================================
-![titanic](data/images/titanic_iceberg.jpg)
+![ufo](images/flying-disk-ufo.jpg)
 
 Datos para jugar
 ==================================================================
 - Para los siguientes ejemplos trabajaremos con los archivos
-encontrados en `data`.
-- Estos datos representan la lista de pasajeros del Titanic y si
-sobrevivieron o no.
-- Se incluyen dos archivos de datos `train.csv` y `test.csv`.
-- La descripci ́on de las variables est ́a en el archivo `descripción.txt`.
+encontrados en **The National UFO Reporting Center Online Database**.
+
+- Estos datos representan los *avistamientos* de OVNIS en EUA.
+
+- Usaremos como ejemplo la descarga el mes de Diciembre de 2014
+  - `http://www.nuforc.org/webreports/ndxe201412.html`
+
+- Se encuentra en la carpeta `data`.
+
+
+seq
+==============================================================
+
+Genera secuencias de números...
+
+```
+~ seq 5
+
+~ seq 3 10
+
+~ seq -s '|' 10
+
+~ seq -w 1 10
+```
+
+tr
+========================================================
+
+Cambia, reemplaza o borra caracteres del `stdin` al `stdout`
+
+```
+~ man tr
+
+~ echo "Hola mi nombre es Adolfo De Unánue"  | tr '[:upper]' '[:lower]'
+
+~ echo "Hola mi nombre es Adolfo De Unánue"  | tr -d ' '
+
+~ echo "Hola mi nombre es Adolfo De Unánue"  | tr -s ' ' '_'
+
+```
 
 Pipes y flujos
 ===============================================================
 
 - `|` (pipe) “Entuba” la salida de un comando al siguiente
+
+```
+echo 'Me gusta estar en la línea de comandos!' | cowsay
+```
+
+```
+# grep "busca y selecciona" cadenas o patrones (lo veremos al rato)
+~ seq 50 | grep 3
+```
+
 - `>`,`>>`, Redirecciona la salida de los comandos a un sumidero.
 
 ```
-ls >> prueba.dat
+~ seq 10 > numeros.txt
 ```
+
+```
+~ ls >> prueba.dat
+```
+
+Ejercicio
+===============================================================
+type: exclaim
+
+Transforma el archivo de `data` de tabuladores a `|`, cambia el nombre con terminación `.psv`.
+
 
 Pipes y flujos
 ===============================================================
@@ -421,12 +486,47 @@ sort < prueba.dat # A la línea de comandos acomoda con sort,
 sort < prueba.dat > prueba_sort.dat # Guardar el sort a un archivo.
 ```
 
+En el siguiente ejemplo redireccionamos al `stdin` el archivo como entrada del `wc -l`
+sin generar un nuevo proceso
+
+```
+< numeros.txt wc -l
+```
+
+Condicionales
+===============================================================
+
 - `&&` es un AND, sólo ejecuta el comando que sigue a `&&` si el
 primero es exitoso.
+
 ```
 > ls && echo "Hola"
 > lss && echo "Hola"
 ```
+
+curl
+===============================================================
+
+- Obtener datos desde el internet...
+
+
+```
+# The Time Machine de H.G. Wells, desde el Proyecto Gutenberg
+~ curl http://www.gutenberg.org/ebooks/35.txt.utf-8
+```
+
+```
+# Sin el progress bar (útil cuando vamos a hacer un pipe a otro comando)
+~ curl -s http://www.gutenberg.org/ebooks/35.txt.utf-8
+```
+
+- La opción `-u` por si lo piden usuario y password
+
+```
+~ curl -u username:password ...
+```
+
+- La opción `-L` por si hay redirecciones, por ejemplo si el `URL` empieza con  `http://bit.ly/...`
 
 wc
 ================================================================
@@ -437,17 +537,23 @@ wc
   - `man wc`
 - En nuestro caso nos interesa la bandera `-l` la cual sirve para contar líneas.
 
+```
+~ seq 30 | grep 3 | wc -l
+```
+
 wc
 ====================================================================
 
 ```
 > cd data
-> wc -l train.csv
-892 train csv
-> wc -l *.csv
-419 test.csv
-892 train.csv
-1311 total
+
+> wc -l UFO-Dic-2014.tsv
+498 UFO-Dic-2014.tsv
+
+> wc -l *
+498 UFO-Dic-2014.tsv
+498 UFO-Dic-2014.psv
+996 total
 ```
 
 head, tail
@@ -459,8 +565,10 @@ respectivamente.
 
 ```
 > cd data
-> head train.csv
-> tail -3 train.csv
+
+> head UFO-Dic-2014.tsv
+
+> tail -3 UFO-Dic-2014.tsv
 ```
 
 
@@ -470,13 +578,20 @@ split, cat
 
 ```
 > echo 'Hola mundo' >> test
+
 > echo 'Adios mundo cruel' >> test
+
 > cat test
+
 ...
+
 > rm test
+
 > cd data
-> cat train.csv test.csv  > titanic.csv
-> wc -l titanic.csv
+
+> cat UFO-Nov-2014.tsv UFO-Dic-2014.tsv  > UFO-Nov-Dic-2014.tsv
+
+> wc -l UFO-Nov-Dic-2014.tsv
 ```
 
 split, cat
@@ -486,8 +601,8 @@ split, cat
 - Puede hacerlo por tamaño (bytes, `-b`) o por líneas (`-l`).
 
 ```
-> split -l 500 titanic.csv
-> wc -l titanic.csv
+> split -l 500 UFO-Nov-Dic-2014.tsv
+> wc -l UFO-Nov-Dic-2014.tsv
 ```
 
 cut
@@ -496,6 +611,8 @@ cut
 - Donde columnas puede estar definido como campo (`-f`), en
 conjunción con (`-d`), carácter (`-c`) o bytes (`-b`).
 - En este curso nos interesa partir por campo.
+
+**NOTA**: Para partir por tabulador usa `-d$'\t'`
 
 ```
 $ echo "Adolfo|1978|Físico" >> prueba.psv
@@ -509,19 +626,20 @@ Pregunta
 ==================================================================
 type: prompt
 
-Pregunta: ¿Qué pasa con los datos de Titanic? Por ejemplo: Quisiera
-las columnas 2, 4, 6 ó si quiero las columnas de sexo, supervivencia, edad
-y clase.
+Pregunta: ¿Qué pasa con los datos de avistamiento? Quisiera
+las columnas 2, 4, 6 ó si quiero las columnas Fecha, Posted, Duración y Tipo (en ese orden).
 
 ```
-> head train.csv | cut -d’,’ -f2,4,6
+> head UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f2,4,6
 ...
-> head train.csv | cut -d’,’ -f4,1,5,2
+> head UFO-Nov-Dic-2014.tsv | cut  -f4,1,5,2  # \t es el default
 ...
-
 ```
-¿Ven el problema? Para resolver esto, necesitamos comandos más
-poderosos... pero antes dos comando más :)
+
+¿Notaste el problema? Para solucionarlo requeriremos comandos más poderosos...
+
+Si checas la documentación (`man cut`), ¿Puedes ver la razón del problema?
+
 
 uniq y sort
 ===============================================================
@@ -529,12 +647,12 @@ uniq y sort
 - `uniq` Identifica aquellos renglones consecutivos que son iguales.
 - `uniq` puede contar (`-c`), eliminar (`-u`), imprimir sólo las duplicadas
 (`-d`), etc.
-- sort Ordena el archivo, es muy poderoso, puede ordenar por
+- `sort` Ordena el archivo, es muy poderoso, puede ordenar por
 columnas (`-k`), usar ordenamiento numérico (`-g`, `-h`, `-n`), mes
 (`-M`), random (`-r`) etc.
 
 ```
-sort -t "," -k 2 -k 1 -n train.csv
+sort -t "," -k 2  UFO-Nov-Dic-2014.tsv
 ```
 
 uniq y sort
@@ -543,17 +661,16 @@ uniq y sort
 - Combinados podemos tener un `group by`:
 
 ```
-> cat train.csv | cut -d, -f1,2 | sort -t "," -k 2 -k 1 -n | uniq -c
+# Group by por timestamp y estado
+ cat UFO-Dic-2014.tsv \
+      | cut -d$'\t' -f1,3 \
+      | sort -t $'\t' -k 2 -k 1 \
+      | uniq -c | head
 ```
 
-Expresiones regulares
-================================================================
+Otro problema ¿Puedes ver cuál es? En lo que se arregla:
 
-- Broma
-
-**Q:** - What did one regular expression say to another?
-
-**A:** `.*`
+**Ejercicio**: ¿Cuál es el top 5 de estados por avistamiento?
 
 
 Expresiones regulares
@@ -630,36 +747,60 @@ a la z.
 - `[:blank:]` Espacio  o TAB únicamente.
 
 
-Regexp: Tarea 1
+Ejercicio
 ========================================================
 type: alert
 
-- ¿Cómo reconocemos el nombre en la fuente de datos de titanic?
-- Traducir la broma
+- ¿Cómo reconocemos los avistamientos en otro país?
+- ¿Cuántos hay?
+
+Regexp: ¿Quieres saber más?
+========================================================
+
+- [Learn Regular Expressions in 20 minutes](http://tutorialzine.com/2014/12/learn-regular-expressions-in-20-minutes/)
+- [The 30 minute regex tutorial](http://www.codeproject.com/Articles/9099/The-Minute-Regex-Tutorial)
+
+
 
 grep
 ========================================================
-type:exclaim
 
 `grep` nos permite buscar líneas que tengan un patrón específico
 
 ```
-> grep "Mrs\." train.csv # ¿Cuántas señoras hay?
-> grep "Miss\." train.csv # ¿Cuántas señoritas?
-> grep "Mr\." train.csv # ¿Hombres?
-> grep -v "Mr\." train.csv # ¿Mujeres?
-#  ¿Coincide si lo hacemos por sexo?
-> grep -E "John|James" train.csv # Mmmm, traemos de más
-> grep -E "John|James" | grep -v -E "Johnston|Johnson"
-> grep -c -o -E "John|James" train.csv #Ejecuta una bandera a la vez
-> grep -o -E "John|James" train.csv | sort | uniq -c
-> grep -o -E "\bJohn\b|\bJames\b" train.csv | sort | uniq -c #Delimitador de palabra
-> grep "^[0-9]\{1,5\}$" numbers.txt # 1 o 6
-> grep "^[0-9]\{5\}$" numbers.txt # Exactamente 5
-> grep "[0-9]\{5,\}" numbers.txt # Más de 5
-> grep "\(aeiou]\).\1" names.txt # Vocal caracter Misma vocal
-> egrep -o "(javier|romina|andrea)" names.txt | sort | uniq -c | sort -r
+> grep "CA" UFO-Nov-Dic-2014.tsv
+> grep "HOAX" UFO-Nov-Dic-2014.tsv
+> grep -v "18:" UFO-Nov-Dic-2014.tsv
+> grep -E "18:|19:|20:" UFO-Nov-Dic-2014.tsv
+> grep -E "[B|b]lue|[O|o]range" UFO-Nov-Dic-2014.tsv \
+        | grep -v "Orangebug"
+> grep -i -E "[blue|orange]" UFO-Dic-2014.tsv
+> grep -c -o -E "[B|b]lue|[O|o]range" UFO-Nov-Dic-2014.tsv  # Ejecuta una bandera a la vez
+> grep -o -E "[B|b]lue|[O|o]range" UFO-Nov-Dic-2014.tsv | sort | uniq -c
+> grep "\/[0-9]\{1,2\}\/" UFO-Dic-2014.tsv # Seleccionamos días
+> grep -v "\/[0-9]\{4\}" UFO-Dic-2014.tsv  # Año mal formateado
+> grep -E "([aeiou]).*\1" names.txt # Vocal caracteres Misma vocal
+> echo "Hola grupo ¿Cómo están?" > grep -oE '\w+'
 ```
+
+
+
+Ejercicio
+===============================================================
+
+Usando los archivos de la carpeta `grep`
+- Selecciona las líneas que tienen exactamente cinco dígitos.
+- Selecciona las que tienen más de 6 dígitos.
+- Cuenta cuantos javier, romina o andrea hay.
+
+
+Ejercicio
+===============================================================
+type:exclaim
+
+Descarga el libro de **The Time Machine** de *H. G. Wells*, convertirlo a minúsculas, extraer las palabras,
+ordenarlas, eliminar duplicados y contarlos, ordenar de mayor a menor y luego mostrar el top 10.
+
 
 awk
 ==========================================================
@@ -700,30 +841,39 @@ awk '/search pattern1/ {Actions}
 awk: Ejemplos
 =========================================================
 ```
-> awk 'END { print NR }'  train.csv # Lo mismo que wc -l
-> awk 'BEGIN{ FS = "|" }; { if(NF != 22){ print >> "train_fixme.csv"} \
-else { print >> "train_fixed.csv" } }' train.csv
+> awk 'END { print NR }'  UFO-Nov-Dic-2014.tsv  # Lo mismo que wc -l
+# Número de columnas
+> awk 'BEGIN{FS = "\t" }; { print NF }' UFO-Nov-Dic-2014.tsv \
+      | sort -n | uniq
+> awk -F"[\t]" '{ print NF }' UFO-Nov-Dic-2014.tsv \
+      | sort -n | uniq
+> awk 'BEGIN{ FS = "\t" }; { if(NF != 7){ print >> "UFO_fixme.csv"} \
+else { print >> "UFO_OK.csv" } }' UFO-Nov-Dic-2014.tsv
 # Limpia el archivo con columnas de más
-> awk '{ print NF ":" $0 }' train.csv
-> awk '{ $2 = ""; print }'
-> awk 'NF > 4' train.csv # Imprime las líneas que tengan más de cuatro campos
-> awk 'BEGIN{ FS = "," }; {sum += $2} END {print sum}' train.csv
+> awk '{ print NF ":" $0 }' UFO-Nov-Dic-2014.tsv
+> awk '{ $2 = ""; print }' UFO-Nov-Dic-2014.tsv
+> awk 'BEGIN{ FS = "," }; {sum += $2} END {print sum}' numbers.dat
 # Suma de una columna (aunque aquí no tiene mucho sentido)
-> awk '{sum7+=$7; sum8+=$8;mul+=$7*$8} END {print sum7/NR,sum8/NR,mul/NR}' train.csv
+> awk -F, '{sum1+=$1; sum2+=$2;mul+=$2*$3} END {print sum1/NR,sum2/NR,mul/NR}' numbers.dat
 # Promedios de varias columnas
-> awk '/Beth/ { n++ }; END { print n+0 }' train.csv
-> awk '$1 > max { max=$1; maxline=$0 }; END { print max, maxline }'train.csv
-# Imprime el máximo del campo $1
-> awk '{ sub(/foo/,"bar"); print }' train.csv
-> awk '{ gsub(/foo/,"bar"); print }' train.csv
-> awk '/baz/ { gsub(/foo/, "bar") }; { print }' train.csv
-> awk '!/baz/ { gsub(/foo/, "bar") }; { print }' train.csv
+```
+
+
+awk: Ejemplos
+=========================================================
+```
+> awk '/CA/ { n++ }; END { print n+0 }' UFO-Nov-Dic-2014.tsv
+> awk -F, '$1 > max { max=$1; maxline=$0 }; END { print max, maxline }' numbers.dat
+> awk '{ sub(/FL/,"Florida"); print }' UFO-Nov-Dic-2014.tsv
+> awk '{ gsub(/foo/,"bar"); print }' UFO-Nov-Dic-2014.tsv
+> awk '/baz/ { gsub(/foo/, "bar") }; { print }' UFO-Nov-Dic-2014.tsv
+> awk '!/baz/ { gsub(/foo/, "bar") }; { print }' UFO-Nov-Dic-2014.tsv
 > awk 'a != $0; { a = $0 }' # Como uniq
 > awk '!a[$0]++' # Remueve duplicados que no sean consecutivos
-> awk '$4 ~/Technology/' employee.txt
-> awk 'BEGIN { count=0;}
-$3 ~ /John/ { count++; }
-END { print "Número de Johns en el Titanic =",count;}' train.csv
+> awk -F"[\t]" '$4 ~/Circle/' UFO-Nov-Dic-2014.tsv
+> awk -F"[\t]" 'BEGIN { conteo=0;} \
+        $4 ~/Circle/ { conteo++; }
+END { print "Número de avistamientos circulares en el dataset =",conteo;}' UFO-Nov-Dic-2014.tsv
 ```
 
 awk: Más sintaxis
@@ -830,14 +980,14 @@ Otros comandos útiles
 - `file -i` Provee información sobre el archivo en cuestion
 
 ```
-> file -i train.csv
-train.csv: text/plain; charset=us-ascii
+> file -i UFO-Nov-Dic-2014.tsv
+UFO-Nov-Dic-2014.tsv : text/plain; charset=utf-8
 ```
 
 - `iconv` Convierte entre encodings, charsets etc.
 
 ```
-> iconv -f iso-8859-1 -t utf-8 train.csv > train_utf8.csv
+> iconv -f iso-8859-1 -t utf-8 UFO-Nov-Dic-2014.tsv  > train_utf8.csv
 ```
 
 Otros comandos útiles
@@ -846,11 +996,11 @@ Otros comandos útiles
 lo muestra en octal seguido con su representación ascii. Esto sirve para identificar separadores raros.
 
 ```
-> od -bc train.csv  | head -4
-0000000 163 165 162 166 151 166 145 144 054 160 143 154 141 163 163 054
-          s   u   r   v   i   v   e   d   ,   p   c   l   a   s   s   ,
-0000020 156 141 155 145 054 163 145 170 054 141 147 145 054 163 151 142
-          n   a   m   e   ,   s   e   x   ,   a   g   e   ,   s   i   b
+> od -bc UFO-Nov-Dic-2014.tsv   | head -4
+0000000 104 141 164 145 040 057 040 124 151 155 145 011 103 151 164 171
+          D   a   t   e       /       T   i   m   e  \t   C   i   t   y
+0000020 011 123 164 141 164 145 011 123 150 141 160 145 011 104 165 162
+         \t   S   t   a   t   e  \t   S   h   a   p   e  \t   D   u   r
 ```
 
 Utilerías
@@ -885,12 +1035,24 @@ done
 `if TEST-COMMANDS; then CONSEQUENT-COMMANDS; fi`
 
 
+
+
 Bash programming
 ========================================================
 - Al final hay que poner esto en un archivo, ponerlo a correr e irnos
   a pensar...
 - Para cualquier programa *script* es importante que la primera línea del archivo le diga a bash que comando usar para ejecutarlo.
-- Esta linea se conoce como *shebang* y se representa por `#!` seguido de la ruta al ejecutable. eg. `#!/usr/bin/python` cambia la ejecución de
+
+- También hay dar permisos de ejecución al archivo
+
+```
+~ chmod u+x ejemplo.py
+```
+
+Bash programming
+========================================================
+
+- A la primera línea se conoce como *shebang* y se representa por `#!` seguido de la ruta al ejecutable. eg. `#!/usr/bin/python` cambia la ejecución de
 
 ```
 > python ejemplo.py
@@ -899,6 +1061,101 @@ a
 ```
 > ./ejemplo.py
 ```
+
+Python programming
+=========================================================
+
+Usando el truco del `shebang` podemos hacer el siguiente programa:
+
+Recursividad:
+
+```{python}
+#!/usr/bin/env python
+
+def fibonacci(x):
+  if n == 0:
+    return 0
+  elif n == 1:
+    return 1
+  else
+    return fibonacci(n-1) + fibonacci(n-2)
+
+
+if __name__ = "__main__":
+  import sys
+  x = int(sys.argv[1]) # Hay maneras mas elegantes
+  print fibonacci(x)
+```
+
+
+Python programming
+=========================================================
+
+Usando el truco del `shebang` podemos hacer el siguiente programa (otro archivo)
+
+Generadores:
+
+```{python}
+#!/usr/bin/env python
+
+def fibonacci(x):
+  a,b = 0,1
+  while True:
+    yield a
+    a, b = b, a + b
+
+
+if __name__ = "__main__":
+  import sys
+  x = int(sys.argv[1]) # Hay maneras mas elegantes
+  print fibonacci(x)
+```
+
+R programming
+=========================================================
+
+El `shebang` para `R` sería
+
+```{R}
+#!/usr/bin/env Rscript
+...
+
+
+Python y R, leyendo de stdin
+========================================================
+
+- **Python**
+
+```{python}
+#!/usr/bin/env python
+
+import re
+import sys
+
+n = int(sys.argv[1]) # Leemos un entero como argumento
+texto = sys.stdin.read()  # Leemos texto desde el stdin
+...
+
+```
+
+- **R**
+
+```{R}
+#!/usr/bin/env Rscript
+n <- as.integer(commandArgs(trailingOnly = TRUE)) # Leemos un entero como argumento
+f <- file("stdin")
+lines <- readLines(f)
+...
+
+```
+
+
+
+Tarea
+==========================================================
+type: exclaim
+
+Reproducir el ejercicio con **Python** y **R** usando redirección y ejecutables.
 
 GNU parallel
 ==========================================================
@@ -911,8 +1168,8 @@ GNU parallel
 ```
 wget http://ftp.jaist.ac.jp/pub/GNU/parallel/parallel-latest.tar.bz2
 tar -xjf parallel-latest.tar.bz2
-cd parallel-20131022/
-./configure --prefix=`pwd` && make && make install
+cd parallel-*/
+./configure --prefix=$HOME && make && make install
 ```
 
 GNU parallel: Ejemplos sencillos
@@ -989,7 +1246,8 @@ GNU parallel: Tutorial
 
 Siempre es bueno tener esto a la mano:
 
-`http://www.gnu.org/software/parallel/parallel_tutorial.html`
+
+[GNU Parallel Tutorial](http://www.gnu.org/software/parallel/parallel_tutorial.html)
 
 
 
@@ -1020,12 +1278,13 @@ then you've lost your way.
 @climagic
 ```
 
-Tarea 2
+Tarea
 ==========================================================
 type: alert
-- ¿Cuántos nombres diferentes hay? ¿Cuál es su frecuencia?
+
 - Modificar los ejemplos de `awk` de promedios, máximo, mínimo y desviación estándar para que se calculen con varias columnas
-- Datos Titanic:
-  - Generar un reporte con estadística univariante de los datos del titanic
-  - Conteos (para categóricas), promedios, máximos, mínimos, faltantes, errores del archivo.
-  - Ejecutar dos reportes en dos máquinas diferentes (usando `GNU parallel`): uno para `test` y otro para `train`
+- UFO dataset:
+  - ¿Cuántos estados, ciudades diferentes hay?
+  - ¿Cuál es el número de avistamientos por mes? ¿Por día de la semana?
+  - Generar un reporte con estadística univariante de las columnas: Conteos (para categóricas), promedios, máximos, mínimos, faltantes, errores del archivo.
+  - Ejecutar dos reportes usando `GNU parallel`: uno para Noviembre y otro para Diciembre.

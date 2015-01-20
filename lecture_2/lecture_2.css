@@ -2,7 +2,7 @@
   display: block;
   padding: 0.5em;
   font-size: 1.0em;
-  line-height: 0.9em;
+  line-height: 1.5em;
   background-color: grey;
   overflow: visible;
   max-height: none;
@@ -11,7 +11,8 @@
 
 .exclaim .reveal .state-background {
   background: black;
-} 
+}
+
 
 .exclaim .reveal h1,
 .exclaim .reveal h2,
