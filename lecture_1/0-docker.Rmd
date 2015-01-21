@@ -189,7 +189,7 @@ docker run  -it --user itam --name r-console -v path_a_carpeta:/home/itam/proyec
 Lanzar la terminal de `python` con las librerías de cómputo científico:
 
 ```
-docker run  -it --user itam --name ipython-console -v path_a_carpeta:/home/itam/proyectos nanounanue/docker-ds /usr/bin/ipython
+docker run  -it --user itam --name ipython-console -v path_a_carpeta:/home/itam/proyectos nanounanue/docker-ds ipython
 ```
 
 O un shell simple (en este caso `zsh`)
