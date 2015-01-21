@@ -1,7 +1,7 @@
 Big data :: Lecture 1
 ========================================================
 author: Adolfo De Unánue T.
-date: 14 de Enero, 2014
+date: 14 de Enero, 2015
 font-import: http://fonts.googleapis.com/css?family=Risque
 font-family: 'Risque'
 
@@ -27,11 +27,13 @@ Outline del curso
 - ¿Cómo le hago en *R*?
 - Oldies pero goodies: *RDBMS*
 - Arquitecturas Lambda
+- Aplicaciones de datos
 - Ecosistema Hadoop
 - MapReduce - HDFS
 - Hadoop 2: YARN
 - Hive, Pig
 - Spark
+- Arquitecturas Hadoop
 
 Requisitos y Recomendaciones
 ===================================================================
