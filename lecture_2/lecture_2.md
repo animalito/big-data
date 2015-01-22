@@ -482,6 +482,7 @@ Pipes y flujos
 ===============================================================
 
 - `<` Redirecciona desde el archivo
+
 ```
 sort < prueba.dat # A la línea de comandos acomoda con sort,
 sort < prueba.dat > prueba_sort.dat # Guardar el sort a un archivo.
