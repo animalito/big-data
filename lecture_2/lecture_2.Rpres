@@ -722,7 +722,7 @@ a `n` veces.
 Regexp: Ejemplos
 =================================================================
 
-- username: `[a-z0-9 -]{3,16}`�
+- username: `[a-z0-9 -]{3,16}`
 - contraseña: `[a-z0-9 -]{6,18}`
 
 - IP address:
@@ -752,8 +752,10 @@ Ejercicio
 ========================================================
 type: alert
 
+
 - ¿Cómo reconocemos los avistamientos en otro país?
 - ¿Cuántos hay?
+- ¿Cuántos avistamientos no tienen forma de esferoide?
 
 Regexp: ¿Quieres saber más?
 ========================================================
@@ -902,25 +904,31 @@ awk: Mediana
 ==========================================================
 
 ```
-$ gawk -v max=128 '
-    function median(c,v,  j) {
-       asort(v,j);
-       if (c % 2) return j[(c+1)/2];
-       else return (j[c/2+1]+j[c/2])/2.0;
+function mediana(c,v,j) {
+    asort(v,j); ## Ordena y asigna enteros a la posición
+    if (c % 2) {
+        return j[(c+1)/2];
+    } else {
+        return (j[c/2+1]+j[c/2])/2.0;
     }
+}
+{
+    print "1st", count
+    count++;
+    print "2nd", count
+    values[count]=$1;
+} END {
+    print  "mediana = " mediana(count,values);
+}
 
-    {
-       count++;
-       values[count]=$1;
-       if (count >= max) {
-         print  median(count,values); count=0;
-       }
-    }
-
-    END {
-       print  "median = " median(count,values);
-    }' data.txt
 ```
+
+**NOTA**: Este archivo se encuentra en `mediana.awk`.
+
+```
+$ < data.txt awk -f mediana.awk
+```
+
 
 awk: Desviación estándar
 =========================================================
@@ -942,6 +950,14 @@ awk -F "|" '
 END { for (i=1; i <= j; ++i) printf "%s ", sum[i]; printf "\n"; }
 ' data2.txt
 ```
+
+awk: RTFM
+=========================================================
+
+
+Para saber más consulta el manual:
+
+- [**GNU awk** _Effective AWK Programming_](https://www.gnu.org/software/gawk/manual/)
 
 sed
 =========================================================
