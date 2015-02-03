@@ -15,3 +15,8 @@
 *.psv
 *.csv
 *.pdf
+*.gz
+*.bz2
+
+
+**/log/*

@@ -514,12 +514,12 @@ curl
 
 ```
 # The Time Machine de H.G. Wells, desde el Proyecto Gutenberg
-~ curl http://www.gutenberg.org/ebooks/35.txt.utf-8
+~ curl http://www.gutenberg.org/cache/epub/35/pg35.txt
 ```
 
 ```
 # Sin el progress bar (útil cuando vamos a hacer un pipe a otro comando)
-~ curl -s http://www.gutenberg.org/ebooks/35.txt.utf-8
+~ curl -s http://www.gutenberg.org/cache/epub/35/pg35.txt
 ```
 
 - La opción `-u` por si lo piden usuario y password
@@ -971,6 +971,7 @@ sed
   - Flujo de salida
 - Entonces, `sed` lee el *flujo de entrada* hasta que encuentra `\n`. Lo copia al *espacio patrón*, y es ahí donde se realizan las operaciones con los datos. El *búfer* está para su uso, pero es opcional, es un búfer, vamos. Y finalmente copia al *flujo de salida*.
 
+
 sed
 ==========================================================
 ```
@@ -991,6 +992,11 @@ sed
 ```
 
 
+Ejercicio
+==========================================================
+type:exclaim
+Elimina los `headers` repetidos con sed en los archivos `UFO`.
+
 
 Otros comandos útiles
 ==========================================================
@@ -1005,7 +1011,7 @@ UFO-Nov-Dic-2014.tsv : text/plain; charset=utf-8
 - `iconv` Convierte entre encodings, charsets etc.
 
 ```
-> iconv -f iso-8859-1 -t utf-8 UFO-Nov-Dic-2014.tsv  > train_utf8.csv
+> iconv -f iso-8859-1 -t utf-8 UFO-Nov-Dic-2014.tsv  > UFO-Nov-Dic_utf8.csv
 ```
 
 Otros comandos útiles
@@ -1033,7 +1039,14 @@ python -m SimpleHTTPServer 8008 &
 # Ejecuto un servidor HTTP
 ```
 
+- `jobs` para saber cuales están ejecutandose.
+
 - `fg` para traerlos a la vida de nuevo.
+
+
+Programando
+=======================================================
+type: sub-section
 
 Bash programming
 ========================================================
@@ -1050,7 +1063,9 @@ done
 
 - Condicionales
 
-`if TEST-COMMANDS; then CONSEQUENT-COMMANDS; fi`
+```
+if TEST-COMMANDS; then CONSEQUENT-COMMANDS; fi
+```
 
 
 
@@ -1097,7 +1112,6 @@ def fibonacci(x):
     return 1
   else
     return fibonacci(n-1) + fibonacci(n-2)
-
 
 if __name__ = "__main__":
   import sys
@@ -1176,6 +1190,62 @@ type: exclaim
 
 Reproducir el ejercicio con **Python** y **R** usando redirección y ejecutables.
 
+Procesando en Serie
+=======================================================
+type: sub-section
+
+Serie
+========================================================
+
+Podemos hacer _loops_ sobre varias cosas:
+
+- Sobre números
+
+```
+for i in (0..100..2)
+do
+echo "$i"
+done
+```
+
+- Sobre líneas
+
+```
+curl -s http://www.gutenberg.org/cache/epub/35/pg35.txt > time_machine.txt
+
+while read line
+do
+echo "Línea: ${line}"
+done < time_machine.txt
+```
+
+Serie
+========================================================
+
+- Y sobre archivos
+
+```
+for archivo in awk_sed\*.txt
+do
+echo "El archivo es ${archivo}"
+done
+```
+
+Esto último tiene muchos problemas (no maneja espacios o caracteres raros, por ejemplo).
+
+Una mejor alternativa es `find`
+
+```
+find awk_sed -name '*.txt' -exec echo "El archivo es {}" \;
+```
+
+Además `find` permite buscar por fecha, tamaño, fecha de acceso, permisos, etc.
+
+
+Procesando en Paralelo
+=======================================================
+type: sub-section
+
 GNU parallel
 ==========================================================
 
@@ -1185,39 +1255,109 @@ GNU parallel
 - Instalación
 
 ```
-wget http://ftp.jaist.ac.jp/pub/GNU/parallel/parallel-latest.tar.bz2
-tar -xjf parallel-latest.tar.bz2
-cd parallel-*/
+curl -s \
+http://ftp.jaist.ac.jp/pub/GNU/parallel/parallel-latest.tar.bz2 \
+        | tar -xjv > extraccion.log
+cd $(head -n 1 extraccion.log)
 ./configure --prefix=$HOME && make && make install
+```
+
+
+GNU parallel
+==========================================================
+
+- Limpiando
+
+```
+cd ..
+rm -R $(head -n 1 extraccion.log)
+rm parallel-latest.tar.bz2 extraccion.log
+```
+
+- Verificando
+
+```
+parallel --version
 ```
 
 GNU parallel: Ejemplos sencillos
 ==========================================================
 - Pasando parámetros
 
-`> parallel echo ::: A B C`
+```
+seq 10 | parallel echo {}
+```
 
 - Si el archivo `archivos_a_procesar` contiene una lista de archivos
 
-`> parallel -a archivos_a_procesar gzip`
+```
+ls *.txt >> archivos.txt
+cat archivos.txt
+parallel -a archivo.txt gzip
+```
+
+
+GNU parallel: Ejemplos sencillos
+==========================================================
 
 - También puede usar el `STDIN`
 
-`> ls *.gz | parallel echo`
+```
+> ls *.gz | parallel echo
+```
+
+- Y reproduciendo el ejemplo de `find`
+
+```
+find awk_sed --name '*.txt' -print0 | \
+      parallel -0 echo "Archivo {}"
+# print0 y -0 son usados por si hay espacios u otros caracteres.
+```
 
 GNU parallel: Ejemplos sencillos
 ==========================================================
 - Vayamos a  la carpeta  `data` y comprimamos los archivos
 
-`> ls *.txt | parallel gzip -1`
+```
+> ls *.txt | parallel gzip -1
+```
 
-(Si quisieras descomprimir `> ls *.gz | parallel gunzip -1`)
+
+**NOTA**: Si quisieras descomprimir
+
+```
+> ls *.gz | parallel gunzip -1
+```
 
 - Convirtamos a `bz2`
 
-`> ls *.gz | parallel -j+0 --eta 'zcat {} | bzip2 -9 > {.}.bz2'`
+```
+> ls *.gz | parallel -j0 --eta 'zcat {} | bzip2 -9 > {.}.bz2'
+```
 
-`-j+0` indica un `job` por `core`
+`-j0` creará cuantos `jobs` en paralelo pueda., `-j1` ejecuta las cosas en serie.
+
+
+GNU parallel: Ejemplos sencillos
+==========================================================
+
+Si tienes dudas sobre tu comando, siempre puedes usar el argumento
+
+```
+--dryrun
+```
+
+El cual, en lugar de ejecutar, imprimirá las líneas sin hacer nada.
+
+GNU parallel: Logging
+==========================================================
+
+- Usa la opción `--results` la cual guarda la salida de cada `job` en un archivo separado.
+
+```
+seq 5 | parallel --results log "echo Soy el número {}"
+```
+
 
 GNU parallel: Progreso
 ==========================================================
@@ -1260,7 +1400,7 @@ GNU parallel: Archivotes
 
 
 
-GNU parallel: Tutorial
+GNU parallel: RTFM
 =========================================================
 
 Siempre es bueno tener esto a la mano:
@@ -1269,13 +1409,51 @@ Siempre es bueno tener esto a la mano:
 [GNU Parallel Tutorial](http://www.gnu.org/software/parallel/parallel_tutorial.html)
 
 
+Distribuido: AWS
+=======================================================
+type: sub-section
+
+
+AWS
+=======================================================
+
+- En su contenedor está instalado el comando `aws`
+
+```
+$ aws
+usage: aws [options] <command> <subcommand> [parameters]
+aws: error: too few arguments
+```
+
+- Obtengan sus llaves de Amazon (creen una cuenta, etc.) y luego configuren su `aws` con
+
+```
+$ aws configure
+AWS Access Key ID [None]:
+...
+```
+
+AWS
+=======================================================
+
+Agrega lo siguiente al final del archivo `~/.ssh/config`
+
+```
+Host *.amazonaws.com
+  IdentityFile ~/.ssh/mi_llave_aws.pem
+  User ubuntu
+```
+
+A modo de cierre
+=======================================================
+type: sub-section
 
 Unos trucos (vía @climagic)
 =========================================================
 type:exclaim
 
 ```
-git log --author=$USER --format="- %B" --since=-7days --reverse | mail -s "What I've done this week" boss@company\.com
+git log --author=$USER --format="- %B" --since=-7days --reverse | mail -s "What I've done this week" adolfo.deunanue@itam.mx
 ```
 
 ```
@@ -1285,6 +1463,7 @@ cat /dev/urandom | hexdump -C | grep "ca fe"
 ```
 for t in "Wake up" "The Matrix has you" "Follow the white rabbit" "Knock, knock";do pv -qL10 <<<$'\e[2J'$'\e[32m'$t$'\e[37m';sleep 5;done
 ```
+
 
 
 Finalmente...
