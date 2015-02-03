@@ -10,3 +10,8 @@
 # RStudio files
 .Rproj.user/
 .Rproj.user
+
+*.tsv
+*.psv
+*.csv
+*.pdf
