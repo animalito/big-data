@@ -6,4 +6,4 @@
 
 # Modificar la mediana para que no necesite usar el asort y que use entonces un sort (no gawk)
 
-
+# Completar el ejercicio que esta en el lecture 2 con ufos
