@@ -994,8 +994,10 @@ sed
 Ejercicio
 ==========================================================
 type:exclaim
-Elimina los `headers` repetidos con sed en los archivos `UFO`.
 
+- Elimina los `headers` repetidos con sed en los archivos `UFO`.
+
+- Describe estadísicamente los tiempos de observación (tendrás que usar: , `cut`,`grep`,`sed`, `awk`, etc.)
 
 Otros comandos útiles
 ==========================================================
@@ -1413,7 +1415,7 @@ Distribuido: AWS
 type: sub-section
 
 
-AWS
+AWS CLI
 =======================================================
 
 - En su contenedor está instalado el comando `aws`
@@ -1432,7 +1434,7 @@ AWS Access Key ID [None]:
 ...
 ```
 
-AWS
+AWS CLI
 =======================================================
 
 Agrega lo siguiente al final del archivo `~/.ssh/config`
@@ -1442,6 +1444,58 @@ Host *.amazonaws.com
   IdentityFile ~/.ssh/mi_llave_aws.pem
   User ubuntu
 ```
+
+- Esto es para que puedas hacer `login` sin que te pida la contraseña.
+
+- El usuario que estamos usando (`ubuntu`) presupone que tus instancias son de tipo **Ubuntu**.
+
+
+AWS CLI
+=======================================================
+
+- Guarda en un archivo llamado `instancias` la dirección de las instancias que tengas corriendo.
+
+- Verifiquemos que podemos conectarnos:
+
+```
+parallel --nonall -slf instancias hostname
+```
+
+- `slf` = `--sshloginfile`
+- `--nonall` significa que se ejecute el mismo comando en todas las máquinas remotas sin parámetros.
+
+
+AWS CLI
+=======================================================
+
+- Para usar todos los `cores` de la máquina remota debes de tener instalado `parallel`
+
+```
+parallel --nonall -slf instancias "sudo apt-get install -y parallel"
+```
+
+
+AWS CLI: Distribuyendo archivos
+=======================================================
+
+Ejemplo de juguete:
+
+```
+seq 50000 | parallel -N5000  --pipe --slf instancias "(hostname; wc -l) | paste -sd:"
+```
+
+¿Cómo lo modificarías para poder usar archivos? (y no una secuencia)
+
+AWS CLI: Archivos remotos
+=======================================================
+
+
+AWS CLI: RTFM
+=======================================================
+
+- [**Interfaz de línea de comandos de AWS**](http://aws.amazon.com/es/cli/)
+
+
 
 A modo de cierre
 =======================================================
@@ -1480,8 +1534,9 @@ Tarea
 type: alert
 
 - Modificar los ejemplos de `awk` de promedios, máximo, mínimo y desviación estándar para que se calculen con varias columnas
+
 - UFO dataset:
   - ¿Cuántos estados, ciudades diferentes hay?
   - ¿Cuál es el número de avistamientos por mes? ¿Por día de la semana?
   - Generar un reporte con estadística univariante de las columnas: Conteos (para categóricas), promedios, máximos, mínimos, faltantes, errores del archivo.
-  - Ejecutar dos reportes usando `GNU parallel`: uno para Noviembre y otro para Diciembre.
+
