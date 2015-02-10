@@ -1,0 +1,1 @@
+grep -v "Mexico" UFO_OK.tsv | cut -d$t -f2,3
