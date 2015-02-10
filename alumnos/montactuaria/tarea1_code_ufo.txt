@@ -1,0 +1,15 @@
+cat UFO-NovDic-2014.tsv 
+| cut -d$'\t' -f3 
+| sort -t $'\t' -k 1 
+| uniq -c 
+| sort -t -$'\t' -k 1 
+| grep -E ".*\("
+| grep -iv "New York City" >> lugares_no_usa
+
+
+cat UFO-NovDic-2014.tsv 
+| cut -d$'\t' -f3 
+| sort -t $'\t' -k 1 
+| uniq -c 
+| sort -t -$'\t' -k 1 
+| egrep -iv "Sphere|Shape" >> avistamiento_no_sphere.txt
