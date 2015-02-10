@@ -728,7 +728,7 @@ Regexp: Ejemplos
 - IP address:
 
 ```
-( 25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?_)3(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)
+(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)
 ```
 
 Regexp: Ejercicios
@@ -748,14 +748,7 @@ a la z.
 - `[:blank:]` Espacio  o TAB únicamente.
 
 
-Ejercicio
-========================================================
-type: alert
 
-
-- ¿Cómo reconocemos los avistamientos en otro país?
-- ¿Cuántos hay?
-- ¿Cuántos avistamientos no tienen forma de esferoide?
 
 Regexp: ¿Quieres saber más?
 ========================================================
@@ -783,7 +776,7 @@ grep
 > grep "\/[0-9]\{1,2\}\/" UFO-Dic-2014.tsv # Seleccionamos días
 > grep -v "\/[0-9]\{4\}" UFO-Dic-2014.tsv  # Año mal formateado
 > grep -E "([aeiou]).*\1" names.txt # Vocal caracteres Misma vocal
-> echo "Hola grupo ¿Cómo están?" > grep -oE '\w+'
+> echo "Hola grupo ¿Cómo están?" | grep -oE '\w+'
 ```
 
 
@@ -797,13 +790,24 @@ Usando los archivos de la carpeta `grep`
 - Cuenta cuantos javier, romina o andrea hay.
 
 
-Ejercicio
+Tarea
 ===============================================================
 type:exclaim
 
 Descarga el libro de **The Time Machine** de *H. G. Wells*, convertirlo a minúsculas, extraer las palabras,
 ordenarlas, eliminar duplicados y contarlos, ordenar de mayor a menor y luego mostrar el top 10.
 
+
+Tarea
+========================================================
+type: exclaim
+
+
+¿Cómo reconocemos los avistamientos en otro país?
+
+¿Cuántos hay?
+
+¿Cuántos avistamientos no tienen forma de esferoide?
 
 awk
 ==========================================================
@@ -850,12 +854,12 @@ awk: Ejemplos
       | sort -n | uniq
 > awk -F"[\t]" '{ print NF }' UFO-Nov-Dic-2014.tsv \
       | sort -n | uniq
-> awk 'BEGIN{ FS = "\t" }; { if(NF != 7){ print >> "UFO_fixme.csv"} \
-else { print >> "UFO_OK.csv" } }' UFO-Nov-Dic-2014.tsv
+> awk 'BEGIN{ FS = "\t" }; { if(NF != 7){ print >> "UFO_fixme.tsv"} \
+else { print >> "UFO_OK.tsv" } }' UFO-Nov-Dic-2014.tsv
 # Limpia el archivo con columnas de más
-> awk '{ print NF ":" $0 }' UFO-Nov-Dic-2014.tsv
-> awk '{ $2 = ""; print }' UFO-Nov-Dic-2014.tsv
-> awk 'BEGIN{ FS = "," }; {sum += $2} END {print sum}' numbers.dat
+> awk -F"[\t]" '{ print NF ":" $0 }' UFO-Nov-Dic-2014.tsv
+> awk -F"[\t]" '{ $2 = ""; print }' UFO-Nov-Dic-2014.tsv
+> awk 'BEGIN{ FS = "," }; {sum += $1} END {print sum}' data.txt
 # Suma de una columna (aunque aquí no tiene mucho sentido)
 > awk -F, '{sum1+=$1; sum2+=$2;mul+=$2*$3} END {print sum1/NR,sum2/NR,mul/NR}' numbers.dat
 # Promedios de varias columnas
@@ -905,7 +909,7 @@ awk: Mediana
 
 ```
 function mediana(c,v,j) {
-    asort(v,j); ## Ordena y asigna enteros a la posición
+    ## Gawk: asort(v,j); ## Ordena y asigna enteros a la posición
     if (c % 2) {
         return j[(c+1)/2];
     } else {
@@ -913,9 +917,7 @@ function mediana(c,v,j) {
     }
 }
 {
-    print "1st", count
     count++;
-    print "2nd", count
     values[count]=$1;
 } END {
     print  "mediana = " mediana(count,values);
@@ -925,8 +927,21 @@ function mediana(c,v,j) {
 
 **NOTA**: Este archivo se encuentra en `mediana.awk`.
 
+awk: Mediana
+==========================================================
+
+- `gawk`
+(En el archivo `mediana.gawk`)
 ```
-$ < data.txt awk -f mediana.awk
+# Con gawk
+$ < data.txt awk -f mediana.gawk
+```
+
+- `awk`
+(En el archivo `mediana.awk`)
+```
+# Con awk
+$ < data.txt sort -n | awk -f mediana.awk
 ```
 
 
@@ -1495,6 +1510,89 @@ AWS CLI: RTFM
 
 - [**Interfaz de línea de comandos de AWS**](http://aws.amazon.com/es/cli/)
 
+
+Scrapping
+=======================================================
+type: sub-section
+
+Webscrapping
+======================================================
+
+Existen varias librerías para hacerlo:
+
+- `BeautifulSoup` de `python` (usar `requests` para `javascript`y sesiones.)
+
+- `rvest` es la nueva librería de `R` de **Hadley Wickham*.
+
+
+Webscrapping
+=======================================================
+
+```{r eval=FALSE}
+install.packages('rvest')
+library(rvest)
+
+base_url <- "http://www.nuforc.org/webreports/"
+
+ufo_reports <- html("http://www.nuforc.org/webreports/ndxevent.html")
+ufo_reports %>% html_nodes(xpath = "//*/td[2]")
+
+pages <- paste0(base_url, ufo_reports %>%
+                          html_nodes(xpath = "//*/td[1]/*/a[contains(@href, 'ndxe')]")  %>%
+                          html_attr("href")
+                          )
+
+# Trae todas las tablas en una lista
+table <- pages[1] %>%
+            html  %>%
+            html_table(fill = TRUE)
+
+is.list(table)
+is.data.frame(table[[1]])
+str(table[[1]])
+```
+
+Webscrapping
+=======================================================
+
+```{r eval=FALSE}
+# Usando Xpath, trae la primera
+table <- pages[1] %>%
+          html %>%
+          html_nodes(xpath = '//*/table[1]') %>%
+          html_table(fill = TRUE)
+
+str(table)
+```
+
+Webscrapping
+=======================================================
+
+```{r eval=FALSE}
+
+summaries_url <- paste0(base_url, pages[1] %>%
+html %>%
+html_nodes(xpath = '//*/td[1]/*/a') %>%
+  html_attr('href'))
+
+
+summary <- summaries[1] %>%
+                   html %>%
+                   html_nodes(xpath='//*/tr[2]') %>% html_text
+
+
+# Faltaría generar un data.frame con el summary del avistamiento
+```
+
+Tarea
+=======================================================
+type: exclaim
+
+El problema: descargar **todos** los avistamientos, _junto_ con sus descripciones.
+
+El reto: Hacerlo de manera eficiente, en paralelo.
+
+El _bonus_: Hacerlo en varias máquinas de `aws`
 
 
 A modo de cierre
