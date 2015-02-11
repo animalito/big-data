@@ -35,3 +35,23 @@ grep -v "uno" data2.txt | awk -F'|' '{ sum += $1; sum2 += $2; mult += $2*$3 } EN
 
 # awk no modifica el archivo sino que modifica el string que de ahi lee.
 
+## Loops
+for word in `cat UFO*.tsv`
+do
+echo $word
+done
+#no esta viendo el enter como una separacion 
+
+## Ejecutemos el find sin el parallel
+
+### Imprimimos linea por linea en stdout
+find ../../../lecture_2/awk_sed --name "*.txt" 
+
+# Ahora si ponemos una bandera cambia el salto de linea por un null, asi el comando que sigue sabe que el separador de la lista es null
+find ../../../lecture_2/awk_sed --name "*.txt" -print0
+
+## Parallel
+# Contemos lineas en un archivote
+cat ../../../lecture_2/parallel/1000000.txt | parallel --pipe wc -l | awk '{ sum += $1 } END {print sum }'
+
+
