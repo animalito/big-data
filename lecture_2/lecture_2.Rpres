@@ -1202,13 +1202,16 @@ Python, leyendo de stdin
 import re
 import sys
 
-n = int(sys.argv[1]) # Leemos un entero como argumento
-texto = sys.stdin.readline()  # Leemos texto desde el stdin
+n = int(sys.argv[1]) # Leemos un entero como argumento (opcional)
 
-while texto:
-  # Hacemos algo con el texto
-  texto = sys.stdin.readline() # Esperamos a la siguiente entrada
+while True:
+  linea = sys.stdin.readline()
 
+  if not linea:
+    break
+  # Hacemos algo con la línea
+  #sys.stdout.write(linea)
+  #sys.stdout.flush()
 ...
 
 ```
@@ -1221,14 +1224,39 @@ R, leyendo de stdin
 
 ```{R}
 #!/usr/bin/env Rscript
-n <- as.integer(commandArgs(trailingOnly = TRUE)) # Leemos un entero como argumento
+
+n <- as.integer(commandArgs(trailingOnly = TRUE)) # Leemos un entero como argumento (opcional)
+
 f <- file("stdin")
-lines <- readLines(f)
+
+open(f)
+
+while(length(lines <- readLines(f, n = 1)) > 0) {
+  # Hacemos algo con la línea
+}
+
+close(f)
 ...
 
 ```
 
+Python y R, leyendo de stdin
+========================================================
 
+Ejemplo de uso:
+
+
+- `R`
+
+```
+cat archivo.txt | ... | script.R | ...
+```
+
+- `python`
+
+```
+cat archivo.txt | ... | script.py | ...
+```
 
 Tarea
 ==========================================================
