@@ -1027,9 +1027,14 @@ Ejercicio
 ==========================================================
 type:exclaim
 
-- Elimina los `headers` repetidos con   `sed` en los archivos `UFO`.
+Elimina los `headers` repetidos con   `sed` en los archivos `UFO`.
 
-- Describe estadísicamente los tiempos de duración de la observación (tendrás que usar: `cut`,`grep`,`sed`, `awk`, etc.)
+Tarea
+==========================================================
+type:exclaim
+
+
+Describe estadísicamente los tiempos de duración de la observación (tendrás que usar: `cut`,`grep`,`sed`, `awk`, etc.)
 
 Otros comandos útiles
 ==========================================================
