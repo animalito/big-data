@@ -1,0 +1,2 @@
+curl -s http://www.gutenberg.org/cache/epub/35/pg35.txt | tr '[:upper:]' '[:lower:]' | grep -oE '\w+' | sort | uniq -c | sort -r -g | head > result2.txt
+

@@ -1,0 +1,11 @@
+curl -s http://www.gutenberg.org/cache/epub/35/pg35.txt | grep -o -E '\w+' | sort | uniq -c | sort -r | head
+2217 the
+1266 I
+1256 of
+1217 and
+ 851 a
+ 756 to
+ 563 in
+ 551 was
+ 434 that
+ 425 my

@@ -1,0 +1,1 @@
+cat time_machine.txt | tr '[:upper:]' '[:lower:]'| grep -oE '\w+'| sort | uniq -c | sort -n -k 1 | tail > tarea1_palabras.txt

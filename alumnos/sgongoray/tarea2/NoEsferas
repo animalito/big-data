@@ -1,0 +1,5 @@
+cat UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f4 | sort | grep -v "Sphere" | wc -l
+
+Resultado:
+954
+
