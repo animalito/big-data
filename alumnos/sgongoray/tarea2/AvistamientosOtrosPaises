@@ -1,0 +1,5 @@
+cat UFO-Nov-Dic-2014.tsv |cut -d$'\t' -f2 | grep -E "?[(]" | sort | wc -l
+
+resultado: 70
+
+explicacion: se seleecciona la columna de "state", se revisa las lineas que tengan un parentesis y se cuentan las lineas

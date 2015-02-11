@@ -1,0 +1,1 @@
+< UFO-Dic-2014.tsv cut -f4 | tr '[A-Z]' '[a-z]' | grep -v 'sphere' | wc -l > num_no_sphere.txt

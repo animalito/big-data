@@ -1,0 +1,1 @@
+thetimemachine.txt | tr '[:A-Z]' '[:a-z]' | grep -oE '\w+' | sort | uniq -c | sort -r -g | head -n 10
