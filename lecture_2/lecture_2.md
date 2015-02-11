@@ -1192,7 +1192,7 @@ El `shebang` para `R` sería
 ```
 
 
-Python y R, leyendo de stdin
+Python, leyendo de stdin
 ========================================================
 
 - **Python**
@@ -1205,9 +1205,18 @@ import sys
 
 n = int(sys.argv[1]) # Leemos un entero como argumento
 texto = sys.stdin.readline()  # Leemos texto desde el stdin
+
+while texto:
+  # Hacemos algo con el texto
+  texto = sys.stdin.readline() # Esperamos a la siguiente entrada
+
 ...
 
 ```
+
+R, leyendo de stdin
+========================================================
+
 
 - **R**
 
