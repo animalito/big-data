@@ -706,7 +706,7 @@ Regexp: Básicos
 - Expresiones básicas
   - `.` Cualquier carácter.
   - `[ ]` Cualquier carácter incluido en los corchetes, e.g. `[xyz]`, `[a-zA-Z0-9-]`.
-  - `[^ ]` Cualquier car ́acter individual que n esté en los corchetes, e.g.
+  - `[^ ]` Cualquier caracter individual que n esté en los corchetes, e.g.
 `[^abc]`. También puede indicar inicio de líınea (fuera de los corchetes.).
 
 Regexp: Básicos
