@@ -1203,7 +1203,7 @@ import re
 import sys
 
 n = int(sys.argv[1]) # Leemos un entero como argumento
-texto = sys.stdin.read()  # Leemos texto desde el stdin
+texto = sys.stdin.readline()  # Leemos texto desde el stdin
 ...
 
 ```
