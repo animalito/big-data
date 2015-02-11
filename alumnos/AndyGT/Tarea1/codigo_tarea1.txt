@@ -1,0 +1,2 @@
+<c
+curl -L -s http://www.gutenberg.org/cache/epub/35/pg35.html | tr '[:upper:]' '[:lower:]'| grep -oE '\w+' | sort | uniq -c | sort -r | head -n 10 > top_10.txt
