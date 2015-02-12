@@ -1,0 +1,14 @@
+¿Cómo reconocemos los avistamientos en otro país?
+La columna de estado esta vacia.
+
+¿Cuántos hay?
+Contamos el número de líneas con estado vacio 
+
+cat UFO-Nov-Dic-2014.tsv | cut -d $'\t' -f3 | grep -cvP '\S'
+
+
+¿Cuántos avistamientos no tienen forma de esferoide?
+
+Elimnias los esferoides y cuentas
+
+cat UFO-Nov-Dic-2014.tsv | cut -d $'\t' -f4 | grep -v "Sphere" | wc
