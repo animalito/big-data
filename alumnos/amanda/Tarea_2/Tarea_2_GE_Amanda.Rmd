@@ -1,0 +1,43 @@
+---
+title: "Métodos de Gran Escala Tarea 2"
+author: "Amanda Balderas M."
+date: "Febrero 2015"
+output: html_document
+---
+
+**¿Cómo reconocemos los avistamientos en otro país?**
+
+Los reconocemos porque los registros tienen indicado entre parentesis en la variable _City_ el país de donde corresponde el avistamiento.
+
+
+Para verificar los casos que tienen información entre paréntesis en la variable _City_ usamos la siguiente expresión:
+
+```
+cat UFO-Nov-Dic-2014.tsv | cut -f2| grep -E "\("
+```
+
+**¿Cuántos hay?**
+
+Aparentemente hay 70 registros que son de otro país.
+
+Para contar los casos que tienen información entre paréntesis usamos la siguiente expresión:
+
+```
+cat UFO-Nov-Dic-2014.tsv | cut -f2| grep -E "\(" | wc -l
+```
+
+**¿Cuántos avistamientos no tienen forma de esferoide?**
+
+Para verificar de avistamientos que no tienen forma de esferoide usamos la siguiente expresión:
+
+```
+cat UFO-Nov-Dic-2014.tsv | cut -f4 | grep -v "Sphere"
+```
+
+Para contar los avistamientos que no tienen forma de esferoide usamos la siguiente expresión:
+
+```
+cat UFO-Nov-Dic-2014.tsv | cut -f4 | grep -v "Sphere" | wc -l
+```
+
+Aparentemente hay 954 resgistros de avistamientos con forma esferoide.
