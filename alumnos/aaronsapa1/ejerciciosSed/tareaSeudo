@@ -1,0 +1,15 @@
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -E "sec"
+
+ grep -oE "[0-9]+"
+ #agarro los segundos (se repite con min )
+
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -vE "sec|ho|min" | grep -E "^[:|0+]:.+" 
+#obtener no formateados
+< UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -vE "sec|ho|min"
+ #saco los segundos de los no formateados
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -vE "sec|ho|min" | sed -nr "/^[:|0+]?:.+/p "
+
+
+
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -E "sec" | sed   's/[0-9][-|\/]//p'
+ #en segundos quitar los guines y quedarme con lo mas alto 334 pero son 289
