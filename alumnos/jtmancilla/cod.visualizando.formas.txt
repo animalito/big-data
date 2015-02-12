@@ -1,0 +1,1 @@
+cat UFO_OK.tsv | cut -d$t -f4 | sort | uniq -c | sort -rk 1
