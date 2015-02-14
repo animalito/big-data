@@ -1,1 +1,0 @@
-< nohead.tsv cut -f5 | grep . | sed -n "1!p" | sort | uniq -c
