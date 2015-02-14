@@ -13,13 +13,12 @@ curl -s http://www.gutenberg.org/cache/epub/35/pg35.txt > time_machine.txt
 
 < $LECTURE/data.txt awk -f utils.gawk
 
-
-# Modificar la mediana para que no necesite usar el asort y que use entonces un sort (no gawk)
-
 # Completar el ejercicio que esta en el lecture 2 con ufos
 
-## ¿Cómo reconocemos los avistamientos en otro país?
+## ¿Cómo reconocemos los avistamientos en otro país? ¿Cuántos hay?
 
-## ¿Cuántos hay?
+< ../ejercicios/UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f2 | egrep "?[(]" | sort | egrep -v 'New York City|Orlando|I\-|Phoenix|U\. S\.|E of Indian|outside of' | wc -l
 
 ## ¿Cuántos avistamientos no tienen forma de esferoide?
+
+< UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f4 | egrep -v 'Sphere' | wc -l
