@@ -13,6 +13,6 @@
           mean = sum/n
           meansq = sumsq/n
           var = meansq - mean*mean
-          print "suma = ", sum, "\nsumsq = ", sumsq, "\nmean = ", mean, "\nmeansq = ", meansq, "\nvar = ", var
+          print "n = ", n, "\nsuma = ", sum, "\nsumsq = ", sumsq, "\nmean = ", mean, "\nmeansq = ", meansq, "\nvar = ", var
           }
     '
