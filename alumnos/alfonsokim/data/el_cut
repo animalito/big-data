@@ -1,1 +1,0 @@
-cut -d$'\t' -f5 UFO-Nov-Dic-2014.tsv

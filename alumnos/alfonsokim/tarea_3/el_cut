@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cut -d$'\t' -f5 ../data/UFO-Nov-Dic-2014.tsv | tr '[:upper:]' '[:lower:]' | grep 'second\|minute\|hour' | sed 's/~//g' 
+
