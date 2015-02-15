@@ -706,7 +706,7 @@ Regexp: Básicos
 - Expresiones básicas
   - `.` Cualquier carácter.
   - `[ ]` Cualquier carácter incluido en los corchetes, e.g. `[xyz]`, `[a-zA-Z0-9-]`.
-  - `[^ ]` Cualquier car ́acter individual que n esté en los corchetes, e.g.
+  - `[^ ]` Cualquier caracter individual que n esté en los corchetes, e.g.
 `[^abc]`. También puede indicar inicio de líınea (fuera de los corchetes.).
 
 Regexp: Básicos
@@ -1027,9 +1027,14 @@ Ejercicio
 ==========================================================
 type:exclaim
 
-- Elimina los `headers` repetidos con sed en los archivos `UFO`.
+Elimina los `headers` repetidos con   `sed` en los archivos `UFO`.
 
-- Describe estadísicamente los tiempos de observación (tendrás que usar: , `cut`,`grep`,`sed`, `awk`, etc.)
+Tarea
+==========================================================
+type:exclaim
+
+
+Describe estadísicamente los tiempos de duración de la observación (tendrás que usar: `cut`,`grep`,`sed`, `awk`, etc.)
 
 Otros comandos útiles
 ==========================================================
@@ -1187,7 +1192,7 @@ El `shebang` para `R` sería
 ```
 
 
-Python y R, leyendo de stdin
+Python, leyendo de stdin
 ========================================================
 
 - **Python**
@@ -1198,24 +1203,61 @@ Python y R, leyendo de stdin
 import re
 import sys
 
-n = int(sys.argv[1]) # Leemos un entero como argumento
-texto = sys.stdin.read()  # Leemos texto desde el stdin
+n = int(sys.argv[1]) # Leemos un entero como argumento (opcional)
+
+while True:
+  linea = sys.stdin.readline()
+
+  if not linea:
+    break
+  # Hacemos algo con la línea
+  #sys.stdout.write(linea)
+  #sys.stdout.flush()
 ...
 
 ```
+
+R, leyendo de stdin
+========================================================
+
 
 - **R**
 
 ```{R}
 #!/usr/bin/env Rscript
-n <- as.integer(commandArgs(trailingOnly = TRUE)) # Leemos un entero como argumento
+
+n <- as.integer(commandArgs(trailingOnly = TRUE)) # Leemos un entero como argumento (opcional)
+
 f <- file("stdin")
-lines <- readLines(f)
+
+open(f)
+
+while(length(lines <- readLines(f, n = 1)) > 0) {
+  # Hacemos algo con la línea
+}
+
+close(f)
 ...
 
 ```
 
+Python y R, leyendo de stdin
+========================================================
 
+Ejemplo de uso:
+
+
+- `R`
+
+```
+cat archivo.txt | ... | script.R | ...
+```
+
+- `python`
+
+```
+cat archivo.txt | ... | script.py | ...
+```
 
 Tarea
 ==========================================================
@@ -1459,10 +1501,18 @@ cat archivote.txt |
     awk '{s+=$1} END {print s}'
 ```
 
+**NOTA** Si te parece horrible los escapes, puedes guardar el comando de `awk` en un archivo e invocarlo.
+Dentro del  archivo no tendrían que haber escapes.
+
+
+GNU parallel y los comandos
+=========================================================
+
+
 - `sed`
 
 ```
-cat archivote.txt | parallel --pipe sed s^una_cosa^nueva_cosa^g
+cat archivote.txt | parallel --pipe sed s/una_cosa/otra_cosa/g
 ```
 
 
@@ -1534,7 +1584,7 @@ Host *.amazonaws.com
 - El usuario que estamos usando (`ubuntu`) presupone que tus instancias son de tipo **Ubuntu**.
 
 
-AWS CLI
+Distribuyendo ejecución
 =======================================================
 
 - Guarda en un archivo llamado `instancias` la dirección de las instancias que tengas corriendo.
@@ -1547,9 +1597,9 @@ parallel --nonall -slf instancias hostname
 
 - `slf` = `--sshloginfile`
 - `--nonall` significa que se ejecute el mismo comando en todas las máquinas remotas sin parámetros.
+- Si no tienes máquinas remotas puedes cambiar `-slf instancias` por `--sshlogin :`.
 
-
-AWS CLI
+Distribuyendo parallel
 =======================================================
 
 - Para usar todos los `cores` de la máquina remota debes de tener instalado `parallel`
@@ -1558,20 +1608,56 @@ AWS CLI
 parallel --nonall -slf instancias "sudo apt-get install -y parallel"
 ```
 
-
-AWS CLI: Distribuyendo archivos
+Distribuyendo archivos
 =======================================================
 
-Ejemplo de juguete:
+```
+# Sin la parte de reduce
+> seq 5000 | ~/bin/parallel  -N500 --pipe --sshlogin : "(hostname; awk '{ sum+=\$1 } END { print sum }') | paste -sd:"
+diderot:125250
+diderot:625250
+...
+diderot:1875250
+diderot:2375250
+```
 
 ```
-seq 50000 | parallel -N5000  --pipe --slf instancias "(hostname; wc -l) | paste -sd:"
+# Con la parte del reduce
+> seq 5000
+  | ~/bin/parallel  -N500 --pipe --sshlogin : "(hostname; awk '{ sum+=\$1 } END { print sum }') | paste -sd:"
+  | awk -F: '{ total += $2 } END { print total }'
+
+12502500
 ```
+
+
 
 ¿Cómo lo modificarías para poder usar archivos? (y no una secuencia)
 
-AWS CLI: Archivos remotos
+
+
+Distribuyendo archivos
 =======================================================
+
+Si tienes un script _local_ (en este ejemplo llamada creativamente `script`) y es lo que quieres distribuir (además de archivos) es posible mandarlo para su ejecución.
+
+```
+ seq 5000
+  | ~/bin/parallel  -N500 --pipe --basefile script --sshlogin : "./script"
+  | ./script
+```
+
+Trayendo archivos
+======================================================
+
+Sicreamos archivos en los nodos remotos, es posible traerlos a tu máquina, usando los comandos
+`--transfer --return --cleanup`
+
+```
+ls *.txt | ~/bin/parallel --transfer --return {.}.transformado --cleanup --sshlogin : cat ">" {}.transformado
+```
+
+También puedes utilizar el _shortcut_ `-trc {.}.transformado`.
 
 
 AWS CLI: RTFM

@@ -1,0 +1,14 @@
+   2408 the
+   1264 of
+   1264 and
+   1176 i
+    856 a
+    747 to
+    591 in
+    536 was
+    435 my
+    419 that
+
+cat pg35.txt | tr [:upper:] [:lower:] | tr [:space:] '\n' | grep -v "^\s*$" | sort | uniq -c | sort -g | tail | sort -bnr
+
+curl -s http://www.gutenberg.org/cache/epub/35/pg35.txt | tr [:upper:] [:lower:] | tr [:space:] '\n' | grep -v "^\s*$" | sort | uniq -c | sort -g | tail | sort -bnr
