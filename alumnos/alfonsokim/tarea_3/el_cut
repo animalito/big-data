@@ -1,6 +1,0 @@
-#!/bin/bash
-
-## grep 'sec\|min\|hour'
-
-cut -d$'\t' -f5 ../data/UFO-Nov-Dic-2014.tsv | tr '[:upper:]' '[:lower:]' | sed 's/few/10/g' | sed 's/~\|+\|<\|>\|\?//g' 
-

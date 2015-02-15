@@ -13,4 +13,4 @@ BEGIN { min = 100000; max = 0; sum = 0; sumsq = 0 }
     sum += $1;
     sumsq += $1*$1
 }
-END { print "MIN:" min ", MAX:" max ", AVG:" sum/NR ", STDDEV:" sqrt(sumsq/NR - (sum/NR)**2) }
+END { print "MIN:" min "s, MAX:" max "s, AVG:" sum/NR "s, STDDEV:" sqrt(sumsq/NR - (sum/NR)**2) "s" }
