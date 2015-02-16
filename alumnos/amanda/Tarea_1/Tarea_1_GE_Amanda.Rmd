@@ -1,0 +1,26 @@
+---
+title: "Métodos de Gran Escala Tarea 1"
+author: "Amanda Balderas M."
+date: "Febrero 2015"
+output: html_document
+---
+
+**Descarga el libro de The Time Machine de H. G. Wells, convertirlo a minúsculas, extraer las palabras, ordenarlas, eliminar duplicados y contarlos, ordenar de mayor a menor y luego mostrar el top 10.**
+
+Bajamos el libro The Time Machine de H.G. Wells desde el Proyecto Gutenberg usando la siguiente expresión:
+
+```
+curl http://www.gutenberg.org/cache/epub/35/pg35.txt > libroTM.txt
+```
+
+Ahora para obtener el top 10 de palabras utilizamos la siguiente expresión:
+
+```
+cat libroTM.txt | tr '[A-Z]' '[a-z]' | grep -oE '\w+' | sort | uniq -c | sort -nr | head -10
+```
+
+Guardamos nuestra consulta en el archivo top10_palabras:
+
+```
+cat libroTM.txt | tr '[A-Z]' '[a-z]' | grep -oE '\w+' | sort | uniq -c | sort -nr | head -10 > top10_palabras.txt
+```
