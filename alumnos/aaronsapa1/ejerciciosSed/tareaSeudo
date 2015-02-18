@@ -1,0 +1,54 @@
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -E "sec"
+
+ grep -oE "[0-9]+"
+ #agarro los segundos (se repite con min )
+
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -vE "sec|ho|m" | grep -E "^[:|0+]:.+" 
+#obtener no formateados
+< UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -vE "sec|ho|min"
+ #saco los segundos de los no formateados
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -vE "sec|ho|min" | sed -nr "/^[:|0+]?:.+/ "
+
+
+
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -E "sec" | sed   's/[0-9][-|\/]//p'
+ #en segundos quitar los guines y quedarme con lo mas alto 334 pero son 289
+
+
+ ###Obtengo la columna con los datos y unicamente obtengo los datos tengan algun nuemero. Todos los demas tienen una cantidad ambigua
+ UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+"
+ ##separo por seg, min y horas
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -E "sec" >> seconds.txt
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -E "m" >> minutes.txt
+ < UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" | grep -E "ho" >> hours.txt
+
+#Va de nuevo
+< UFO-Nov-Dic-2014.tsv| cut  -f5 | sort | grep -E "[0-9]+" > Duration.txt
+
+sed  -i  's/[0-9][-|\/]//' Duration.txt
+
+
+< Duration.txt | grep -E "sec" | grep -oE "[0-9]+" > seconds.txt
+< Duration.txt | grep -E "m" | grep -oE "[0-9]+"> minutes.txt
+< Duration.txt | grep -E "ho" | grep -oE "[0-9]+"> hours.txt
+
+awk '{$1=$1*60; print}' minutes.txt >> seconds.txt 
+awk '{$1=$1*360; print}' hours.txt >> seconds.txt 
+
+
+
+
+sed  -i  's/[0-9][-|\/]//' Duration.txt 
+sed  -i  's/[0-9][-|\/]//' minutes.txt 
+sed  -i  's/[0-9][-|\/]//' hours.txt 
+
+awk '{FS="|"}{if(min==""){min=max=$1}; if($1>max) {max=$1};if($1<min) {min=$1}; count+=1; sum+=$1; sumsq+=$1*$1} END {print "mean = " sum/NR,"min = " min, "max = " max, "stdev = " sqrt(sumsq/NR - (sum/NR)*(sum/NR))}' seconds.txt
+
+
+mean = 444.394 min = 1 max = 13500 stdev = 971.697
+
+
+
+awk '{match($0, "([0-9][0-9]?):([0-9]+):([0-9]+)", grp) print grp[1]' Prueba.txt
+print ">" ((grp[1] * 60 * 60) + (grp[2] * 60) + grp[3]) " seconds"
+}' Prueba.txt
