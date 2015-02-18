@@ -1,0 +1,1 @@
+media = 596 minimo = 0 maximo = 18000

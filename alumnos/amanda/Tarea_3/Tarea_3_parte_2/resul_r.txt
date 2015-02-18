@@ -1,0 +1,6 @@
+[1] "Media =  596"
+[1] "Maximo =  18000"
+[1] "Minimo =  0"
+[1] "Mediana =  180"
+[1] "Desviacion estandar =  1449"
+[1] "Varianza =  2098702"
