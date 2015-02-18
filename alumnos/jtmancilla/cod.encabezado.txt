@@ -1,0 +1,1 @@
+sed 's/.Date//' UFO-Nov-Dic-2014.tsv

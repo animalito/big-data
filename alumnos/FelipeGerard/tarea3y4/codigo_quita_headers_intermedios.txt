@@ -1,0 +1,1 @@
+< UFO-Nov-Dic-2014.tsv sed "/.Date/s/Date.*Posted//" > UFO-Nov-Dic-2014-clean-headers.tsv

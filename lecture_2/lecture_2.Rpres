@@ -1532,6 +1532,87 @@ ls *.gz |  time /usr/local/bin/parallel -j+0 --eta -S192.168.0.101,: --transfer 
 - `--cleanup` eliminar los archivos generados de las máquinas remotas.
 
 
+GNU parallel: Un último ejemplo
+========================================================
+
+- Adaptado de este [trabajo](http://aadrake.com/command-line-tools-can-be-235x-faster-than-your-hadoop-cluster.html).
+
+- Descargamos archivos de eventos de [`GDELT`](http://gdeltproject.org/)
+    - Como hacerlo se encargará de tarea... (jojojojo)
+
+```
+# Peso los archivos comprimidos
+> du -h .
+12G .
+
+# Número de archivos
+> ls *.zip | wc -l
+605
+```
+- Descomprimimos en paralelo
+    - Como hacerlo se encargará de tarea ... (jojojojo)
+
+GNU parallel: Un último ejemplo
+========================================================
+
+Procesando en serie
+
+```
+for gdelt_file in *.zip
+do
+unzip -p $gdelt_file | \
+cut -f3,27,31 | \
+awk '{$2 = substr($2,0,2); print $0 }' | \
+awk '{
+  evento[$1,$2]++;
+  goldstein_scale[$1,$2]+=$3
+} END { for (i in evento) print i "\t" evento[i]"\t"goldstein_scale[i]}'
+done | \
+awk  '{
+  evento[$1]+=$2;
+  goldstein_scale[$1]+=$3
+} END {
+  for (i in evento)
+    print substr(i, 0, 4) "\t" substr(i,5,2) "\t" substr(i,8,2) "\t" evento[i] "\t" goldstein_scale[i]/evento[i]
+}' | \
+sort -k1 -k2
+```
+
+GNU parallel: Un último ejemplo
+========================================================
+
+ Paralelo
+
+```
+find . -type f -name '*.zip' -print0 | \
+parallel -0 -j100%
+"unzip -p {} | \
+cut -f3,27,31 | \
+awk '{\$2 = substr(\$2,0,2); print \$0 }' | \
+awk '{
+  evento[\$1,\$2]++;
+  goldstein_scale[\$1,\$2]+=\$3
+} END { for (i in evento) print i FS evento[i] FS goldstein_scale[i]}'" | \
+awk  '{
+  evento[$1]+=$2;
+  goldstein_scale[$1]+=$3
+} END { for (i in evento) print substr(i, 0, 4) "\t" substr(i,5,2) "\t" substr(i,8,2) "\t" evento[i] "\t" goldstein_scale[i]/evento[i]}' | sort -k1 -k2
+```
+
+GNU parallel: Un último ejemplo
+========================================================
+
+Ejercicio
+
+1. Cambia las ejecuciones con lo siguiente:
+    a. Eliminar el bloque de `cut` ¿Cómo lo harías con `awk`?
+
+2. Para mejorar aún más el rendimiento, se podría sustituir `awk` por `mawk`. ¿Es posible? ¿Qué dificultades se presentan?
+
+3. ¿Cómo resuelves la dificultad?
+
+4. ¿Cuánto tiempo tarda cada una de las cuatro opciones?
+
 GNU parallel: RTFM
 =========================================================
 
@@ -1649,8 +1730,13 @@ Si tienes un script _local_ (en este ejemplo llamada creativamente `script`) y e
 Trayendo archivos
 ======================================================
 
-Sicreamos archivos en los nodos remotos, es posible traerlos a tu máquina, usando los comandos
-`--transfer --return --cleanup`
+Si creamos archivos en los nodos remotos, es posible traerlos a tu máquina, usando las banderas
+
+```
+--transfer --return --cleanup`
+```
+
+Ejemplo:
 
 ```
 ls *.txt | ~/bin/parallel --transfer --return {.}.transformado --cleanup --sshlogin : cat ">" {}.transformado
@@ -1750,24 +1836,73 @@ report <- summaries[1] %>%
 # Faltaría generar un data.frame con el summary del avistamiento
 ```
 
+Ejercicio
+=======================================================
+type: exclaim
+
+Realiza el _script_ que genera la lista de `urls` para descargar la base de datos de **GDELT**.
+
+
 Tarea
 =======================================================
 type: exclaim
+
+
+Modificar los ejemplos de `awk` de promedios, máximo, mínimo y desviación estándar para que se calculen con varias columnas
+
+
+Primer proyecto
+=======================================================
+
+
+**Individual**
+
+**Fecha de entrega**: 25 de febrero, 2015
+
+**Detalles:**
 
 El _problema_: descargar **todos** los avistamientos, _junto_ con sus descripciones.
 
-El _reto_: Hacerlo de manera eficiente, en paralelo.
+El _reto_: Hacerlo de manera eficiente, en paralelo, hacerlo en varias máquinas de `aws`.
 
-El _bonus_: Hacerlo en varias máquinas de `aws`.
-
-
-**Entregable**: _script_ de `R` para el scrapping, la línea de código para la distribución, estadística de tiempo contra hacerlo en serie, análisis estadístico de las columnas.
-
-Tarea
+Primer proyecto
 =======================================================
-type: exclaim
 
-Modificar los ejemplos de `awk` de promedios, máximo, mínimo y desviación estándar para que se calculen con varias columnas
+
+**Entregable**:
+
+- _script_ de `R` para el scrapping,
+
+- La línea de código para la distribución en las máquinas de amazon.
+
+- Presentación en RStudio u `org-mode`.
+
+- _script_ de `R` o `python` que lea del `stdin` y vaya generando un `data.frame` y grafique la serie de tiempo total, y si recibe el estado como parámetro dibuja la serie de tiempo de ese estado.
+
+Primer proyecto
+=======================================================
+
+**Entregable**:
+
+¿Cuántas observaciones totales?
+
+¿Cuál es el top 5 de estados?
+
+¿Cuál es el top 5 de estados por año?
+
+¿Cuál es la racha más larga en días de avistamientos en un estado?
+
+¿Cuál es la racha más larga en días de avistamientos en el país?
+
+¿Cuál es el mes con más avistamientos? ¿El día de la semana?
+
+Primer proyecto
+=======================================================
+
+**Bonus**:
+
+Modifica el _script_ para que te haga la serie espacio-temporal de Estados Unidos.
+
 
 
 A modo de cierre

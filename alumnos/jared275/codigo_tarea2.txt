@@ -1,0 +1,2 @@
+jared@jared-Inspiron-3437:~/Dropbox/Maestría CD/big-data/lecture_2/data$ cut -d$'\t' -f5 UFO-Nov-Dic-2014.tsv | grep -E "[1-9].*[min|sec|hou]" |awk '{gsub(/[+|~|>|<|?|(|)|@|,]/,""); print}' | sed 's/-/./' | awk '{gsub(/minutes|minute|min|minutea/,"0000060"); print }' |awk '{gsub(/hour|hours/,"000003600"); print}'|awk '{gsub(/seconds|second|seconts/,"000001"); print}'|awk '{gsub(/[a-zA-Z]/,""); print}'| sort | uniq -c| cut -d$'\t' -f1,3>tarea2.txt
+
