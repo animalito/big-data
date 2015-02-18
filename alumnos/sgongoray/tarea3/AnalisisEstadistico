@@ -1,0 +1,10 @@
+➜  data git:(master) ✗ cat UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f5 | grep "[0-9]" | sed 's/~//' | sed -r 's/-[0-9]+//' | grep -E ".*[minute|second|hour].*" | awk '{aux=0; if($2=="hour"||$2=="hours"){aux=60}; if($2=="minute"||$2=="minutes"){aux=1};if($2=="second"||$2=="seconds"){aux=0.016667};num=aux*$1;sal+=num;contador+=1; mul+=$1*$1}END{print "salida: " sal/contador "minutes"; print "desviacion estandar: " sqrt(mul/NR - (sal/NR)*(sal/NR));}' > salida.tsv
+
+➜  data git:(master) ✗ cat salida.tsv
+salida: 9.48782minutes
+desviacion estandar: 16.5626
+
+
+
+
+
