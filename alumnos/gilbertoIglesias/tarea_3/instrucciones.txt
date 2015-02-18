@@ -1,0 +1,8 @@
+1) Describe estadisticamente los tiempos de duracion de la observacion
+  (tendras que usar cut,grep,sed,awk,etc)
+./estadisticas_awk.sh
+
+2)Reproducir el ejercicio con python y R,usando redireccion y ejecutables
+./estadisticas_py.sh
+
+./estadisticas_r.sh
