@@ -1610,7 +1610,9 @@ Ejercicio
 
 2. Para mejorar aún más el rendimiento, se podría sustituir `awk` por `mawk`. ¿Es posible? ¿Qué dificultades se presentan?
 
-3. ¿Cómo resuelves este dilema?
+3. ¿Cómo resuelves la dificultad?
+
+4. ¿Cuánto tiempo tarda cada una de las cuatro opciones?
 
 GNU parallel: RTFM
 =========================================================
@@ -1838,6 +1840,12 @@ report <- summaries[1] %>%
 
 # Faltaría generar un data.frame con el summary del avistamiento
 ```
+
+Ejercicio
+=======================================================
+type: exclaim
+
+Realiza el _script_ que genera la lista de `urls` para descargar la base de datos de **GDELT**.
 
 
 Tarea
