@@ -1,14 +1,12 @@
-function mediana(c,v,j) {
-    asort(v,j); ## Ordena y asigna enteros a la posición
-    if (c % 2) {
-        return j[(c+1)/2];
-    } else {
-        return (j[c/2+1]+j[c/2])/2.0;
-    }
-}
+## Obtenido de http://stackoverflow.com/questions/6166375/median-of-column-with-awk
+
 {
-    count++;
-    values[count]=$1;
-} END {
-    print  "mediana = " mediana(count,values);
+    count[NR] = $1;
+}
+END {
+    if (NR % 2) {
+        print "mediana = " count[(NR + 1) / 2];
+    } else {
+        print "mediana = " (count[(NR / 2)] + count[(NR / 2) + 1]) / 2.0;
+    }
 }
