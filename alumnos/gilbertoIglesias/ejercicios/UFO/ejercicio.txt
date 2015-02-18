@@ -1,0 +1,5 @@
+1. Unir los dos archivos de UFO
+cat UFO-Nov-2014.tsv UFO-Dic-2014.tsv > UFO-Nov-Dic-2014.tsv
+2. Eliminar los headers repetidos con sed en los archivos UFO
+sed 's/\/[0-9].*Date.*//' data/UFO-Nov-Dic-2014.tsv > data/UFO-Nov-Dic-2014-limpio.tsv
+3. Describe estadisticamente los tiempos de observacion (usar grep, cut, sed, awk, etc)

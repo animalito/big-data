@@ -1,0 +1,20 @@
+
+# Separamos solo la columna duracion
+$ cat UFO_OK.tsv | cut -d$'\t' -f5 > duration.txt
+
+# Revisamos los elementos unicos
+$ cat duration.txt |  sort | uniq -c | sort -rk 1
+
+# Empezamos a limpiar, el objetivo es convertir los datos de la columna en minutos. y crear un archivo nuevo con el resultado.
+$ grep 'min' duration.txt | sed 's/minutes|minute|min//' | sed 's/~//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"<" -f1 | cut -d ">" -f1 | cut -d"(" -f1| cut -d"/" -f1 | cut -d" " -f1 | sed 's/^.*[a-zA-Z]/1/' > minutes.txt
+$ grep 'sec' duration.txt | sed 's/second|seconds|s//' | sed 's/~//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"<" -f1 | cut -d ">" -f1 | cut -d"(" -f1| cut -d"/" -f1 | cut -d" " -f1 | sed 's/^.*[a-zA-Z]/1/' | awk ' { print $1/60}' > sectomin.txt
+$ grep 'h' duration.txt  | sed 's/~//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"<" -f1 | cut -d ">" -f1 | cut -d"(" -f1| cut -d"/" -f1 | cut -d" " -f1 | cut -d"," -f1 | sed 's/^.*[a-zA-Z]/1/'| awk ' { print $1*60}' > hourtomin.txt
+$ grep -v 'sec' duration.txt | grep -v 'min' | grep -v 'h' | sed 's/~//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"<" -f1 | cut -d ">" -f1 | cut -d"(" -f1| cut -d"/" -f1 | cut -d" " -f1 | cut -d"," -f1 | cut -d":" -f1 | cut -d"." -f1 | sed 's/^.*[a-zA-Z]/1/' | cut -d"?" -f1 > restotomin.txt
+
+# Juntamos los archivos en uno solo
+$ cat minutes.txt > duration_ok.txt
+$ cat sectomin.txt >> duration_ok.txt
+$ cat hourtomin.txt >> duration_ok.txt
+$ cat restotomin.txt >> duration_ok.txt
+
+# Obteniendo estadisticos.
