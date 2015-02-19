@@ -1,0 +1,3 @@
+cat UFO-Nov-Dic-2014.tsv | cut -d $'\t' -f5 | grep -v “^\s*$” | tr '[:upper:]' '[:lower:]' | sed 's/minutes/minute/' | sed 's/seconds/second/' | sed 's/hours/hour/' | grep -E “minute|second|hour” | sort | uniq -c | sort -bnr | head -20
+
+No pude lograr limpiar los datos de tal forma que se pudieran describir estadísticamente los tiempos
