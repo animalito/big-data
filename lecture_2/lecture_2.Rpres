@@ -705,7 +705,7 @@ Regexp: Básicos
 - Expresiones básicas
   - `.` Cualquier carácter.
   - `[ ]` Cualquier carácter incluido en los corchetes, e.g. `[xyz]`, `[a-zA-Z0-9-]`.
-  - `[^ ]` Cualquier car ́acter individual que n esté en los corchetes, e.g.
+  - `[^ ]` Cualquier caracter individual que n esté en los corchetes, e.g.
 `[^abc]`. También puede indicar inicio de líınea (fuera de los corchetes.).
 
 Regexp: Básicos
@@ -959,12 +959,28 @@ awk
 
 ¿Qué pasa cuando hay muchas columnas?
 
-```
+```{awk}
 awk -F "|" '
-{ for (i=1; i<=NF; ++i) sum[i] += $i; j=NF }
-END { for (i=1; i <= j; ++i) printf "%s ", sum[i]; printf "\n"; }
+{
+  for (i=1; i<=NF; ++i) sum[i] += $i; j=NF
+} END {
+  for (i=1; i <= j; ++i) printf "%s ", sum[i]; printf "\n";
+}
 ' data2.txt
 ```
+
+
+awk: Varios sabores
+=========================================================
+
+Existe 3 implementaciones de `awk`:
+
+- **POSIX** `awk`. El estándar
+
+- `gawk`, **GNU awk** lleno de funcionalidad, más potente y soporta archivos gigantes.
+
+- `mawk`, **Minimal awk** tiene el mínimo de funcionalidad pero es más rápido.
+
 
 awk: RTFM
 =========================================================
@@ -1010,9 +1026,14 @@ Ejercicio
 ==========================================================
 type:exclaim
 
-- Elimina los `headers` repetidos con sed en los archivos `UFO`.
+Elimina los `headers` repetidos con   `sed` en los archivos `UFO`.
 
-- Describe estadísicamente los tiempos de observación (tendrás que usar: , `cut`,`grep`,`sed`, `awk`, etc.)
+Tarea
+==========================================================
+type:exclaim
+
+
+Describe estadísicamente los tiempos de duración de la observación (tendrás que usar: `cut`,`grep`,`sed`, `awk`, etc.)
 
 Otros comandos útiles
 ==========================================================
@@ -1170,7 +1191,7 @@ El `shebang` para `R` sería
 ```
 
 
-Python y R, leyendo de stdin
+Python, leyendo de stdin
 ========================================================
 
 - **Python**
@@ -1181,24 +1202,61 @@ Python y R, leyendo de stdin
 import re
 import sys
 
-n = int(sys.argv[1]) # Leemos un entero como argumento
-texto = sys.stdin.read()  # Leemos texto desde el stdin
+n = int(sys.argv[1]) # Leemos un entero como argumento (opcional)
+
+while True:
+  linea = sys.stdin.readline()
+
+  if not linea:
+    break
+  # Hacemos algo con la línea
+  #sys.stdout.write(linea)
+  #sys.stdout.flush()
 ...
 
 ```
+
+R, leyendo de stdin
+========================================================
+
 
 - **R**
 
 ```{R}
 #!/usr/bin/env Rscript
-n <- as.integer(commandArgs(trailingOnly = TRUE)) # Leemos un entero como argumento
+
+n <- as.integer(commandArgs(trailingOnly = TRUE)) # Leemos un entero como argumento (opcional)
+
 f <- file("stdin")
-lines <- readLines(f)
+
+open(f)
+
+while(length(lines <- readLines(f, n = 1)) > 0) {
+  # Hacemos algo con la línea
+}
+
+close(f)
 ...
 
 ```
 
+Python y R, leyendo de stdin
+========================================================
 
+Ejemplo de uso:
+
+
+- `R`
+
+```
+cat archivo.txt | ... | script.R | ...
+```
+
+- `python`
+
+```
+cat archivo.txt | ... | script.py | ...
+```
 
 Tarea
 ==========================================================
@@ -1287,7 +1345,7 @@ GNU parallel
 ```
 cd ..
 rm -R $(head -n 1 extraccion.log)
-rm parallel-latest.tar.bz2 extraccion.log
+rm extraccion.log
 ```
 
 - Verificando
@@ -1378,9 +1436,83 @@ seq 5 | parallel --results log "echo Soy el número {}"
 GNU parallel: Progreso
 ==========================================================
 
-`> parallel --progress sleep ::: 10 3 2 2 1 3 3 2 10`
+```
 
-`> parallel --eta sleep ::: 10 3 2 2 1 3 3 2 10`
+> parallel --progress sleep ::: 10 3 2 2 1 3 3 2 10
+
+> parallel --eta sleep ::: 10 3 2 2 1 3 3 2 10
+```
+
+Para que no colisione, el progreso se manda al `stderr`.
+
+GNU parallel: Archivotes
+========================================================
+- Carpeta `parallel`, el archivo `1000000.txt` tiene
+
+```
+cat 1000000.txt | wc -l
+```
+líneas.
+
+- Podemos procesarlo por pedazos (será muy útil a la hora de cargar en PostgreSQL)
+
+```
+> cat 1000000.txt | parallel --pipe wc -l
+```
+
+- Podemos cambiar el `blocksize`
+
+```
+> cat 1000000.txt | parallel --pipe --block 3M wc -l
+```
+
+(por default corta los bloques en `\n`)
+
+
+GNU parallel y los comandos
+=========================================================
+
+- Ya vimos como usarlo con `bzip2`
+
+- `wc`
+
+```
+cat archivote.txt | parallel --pipe wc -l | awk '{s+=$1} END {print s}'
+```
+
+- `grep`
+
+```
+cat archivote.txt | parallel --pipe grep 'algo'
+```
+
+GNU parallel y los comandos
+=========================================================
+
+
+- `awk`
+
+```
+## Nota el escape en el primer awk
+## ¿Para que crees que sea el segundo awk?
+cat archivote.txt |
+  parallel --pipe awk \' {s++} END {print s}\' |
+    awk '{s+=$1} END {print s}'
+```
+
+**NOTA** Si te parece horrible los escapes, puedes guardar el comando de `awk` en un archivo e invocarlo.
+Dentro del  archivo no tendrían que haber escapes.
+
+
+GNU parallel y los comandos
+=========================================================
+
+
+- `sed`
+
+```
+cat archivote.txt | parallel --pipe sed s/una_cosa/otra_cosa/g
+```
 
 
 GNU parallel: Controlando la red
@@ -1399,21 +1531,85 @@ ls *.gz |  time /usr/local/bin/parallel -j+0 --eta -S192.168.0.101,: --transfer 
 
 - `--cleanup` eliminar los archivos generados de las máquinas remotas.
 
-GNU parallel: Archivotes
+
+GNU parallel: Un último ejemplo
 ========================================================
-- Carpeta `parallel`, el archivo `1000000.txt` tiene `cat 1000000.txt | wc -l` líneas.
 
-- Podemos procesarlo por pedazos (será muy útil a la hora de cargar en PostgreSQL)
+- Adaptado de este [trabajo](http://aadrake.com/command-line-tools-can-be-235x-faster-than-your-hadoop-cluster.html).
 
-`> cat 1000000.txt | parallel --pipe wc -l`
+- Descargamos archivos de eventos de [`GDELT`](http://gdeltproject.org/)
+    - Como hacerlo se encargará de tarea... (jojojojo)
 
-- Podemos cambiar el `blocksize`
+```
+# Peso los archivos comprimidos
+> du -h .
+12G .
 
-`> cat 1000000.txt | parallel --pipe --block 3M wc -l`
+# Número de archivos
+> ls *.zip | wc -l
+605
+```
+- Descomprimimos en paralelo
+    - Como hacerlo se encargará de tarea ... (jojojojo)
 
-(por default corta los bloques en `\n`)
+GNU parallel: Un último ejemplo
+========================================================
 
+Procesando en serie
 
+```
+for gdelt_file in *.zip
+do
+unzip -p $gdelt_file | \
+cut -f3,27,31 | \
+awk '{$2 = substr($2,0,2); print $0 }' | \
+awk '{
+  evento[$1,$2]++;
+  goldstein_scale[$1,$2]+=$3
+} END { for (i in evento) print i "\t" evento[i]"\t"goldstein_scale[i]}'
+done | \
+awk  '{
+  evento[$1]+=$2;
+  goldstein_scale[$1]+=$3
+} END {
+  for (i in evento)
+    print substr(i, 0, 4) "\t" substr(i,5,2) "\t" substr(i,8,2) "\t" evento[i] "\t" goldstein_scale[i]/evento[i]
+}' | \
+sort -k1 -k2
+```
+
+GNU parallel: Un último ejemplo
+========================================================
+
+ Paralelo
+
+```
+find . -type f -name '*.zip' -print0 | \
+parallel -0 -j100% \
+"unzip -p {} | \
+cut -f3,27,31 | \
+awk '{\$2 = substr(\$2,0,2); print \$0 }' | \
+awk '{
+  evento[\$1,\$2]++;
+  goldstein_scale[\$1,\$2]+=\$3
+} END { for (i in evento) print i FS evento[i] FS goldstein_scale[i]}'" | \
+awk  '{
+  evento[$1]+=$2;
+  goldstein_scale[$1]+=$3
+} END { for (i in evento) print substr(i, 0, 4) "\t" substr(i,5,2) "\t" substr(i,8,2) "\t" evento[i] "\t" goldstein_scale[i]/evento[i]}' | sort -k1 -k2
+```
+
+GNU parallel: Un último ejemplo
+========================================================
+
+Ejercicio
+
+1. Cambia las ejecuciones con lo siguiente:
+    a. Eliminar el bloque de `cut` ¿Cómo lo harías con `awk`?
+
+2. Para mejorar aún más el rendimiento, se podría sustituir `awk` por `mawk`. ¿Es posible? ¿Qué dificultades se presentan?
+
+3. ¿Cómo resuelves la dificultad?
 
 
 GNU parallel: RTFM
@@ -1424,6 +1620,8 @@ Siempre es bueno tener esto a la mano:
 
 [GNU Parallel Tutorial](http://www.gnu.org/software/parallel/parallel_tutorial.html)
 
+
+**NOTA:** Con este comando es súper importante, ya que tiene más de 100 banderas...
 
 Distribuido: AWS
 =======================================================
@@ -1465,7 +1663,7 @@ Host *.amazonaws.com
 - El usuario que estamos usando (`ubuntu`) presupone que tus instancias son de tipo **Ubuntu**.
 
 
-AWS CLI
+Distribuyendo ejecución
 =======================================================
 
 - Guarda en un archivo llamado `instancias` la dirección de las instancias que tengas corriendo.
@@ -1478,9 +1676,9 @@ parallel --nonall -slf instancias hostname
 
 - `slf` = `--sshloginfile`
 - `--nonall` significa que se ejecute el mismo comando en todas las máquinas remotas sin parámetros.
+- Si no tienes máquinas remotas puedes cambiar `-slf instancias` por `--sshlogin :`.
 
-
-AWS CLI
+Distribuyendo parallel
 =======================================================
 
 - Para usar todos los `cores` de la máquina remota debes de tener instalado `parallel`
@@ -1489,20 +1687,61 @@ AWS CLI
 parallel --nonall -slf instancias "sudo apt-get install -y parallel"
 ```
 
-
-AWS CLI: Distribuyendo archivos
+Distribuyendo archivos
 =======================================================
 
-Ejemplo de juguete:
+```
+# Sin la parte de reduce
+> seq 5000 | ~/bin/parallel  -N500 --pipe --sshlogin : "(hostname; awk '{ sum+=\$1 } END { print sum }') | paste -sd:"
+diderot:125250
+diderot:625250
+...
+diderot:1875250
+diderot:2375250
+```
 
 ```
-seq 50000 | parallel -N5000  --pipe --slf instancias "(hostname; wc -l) | paste -sd:"
+# Con la parte del reduce
+> seq 5000
+  | ~/bin/parallel  -N500 --pipe --sshlogin : "(hostname; awk '{ sum+=\$1 } END { print sum }') | paste -sd:"
+  | awk -F: '{ total += $2 } END { print total }'
+
+12502500
 ```
+
+
 
 ¿Cómo lo modificarías para poder usar archivos? (y no una secuencia)
 
-AWS CLI: Archivos remotos
+
+
+Distribuyendo archivos
 =======================================================
+
+Si tienes un script _local_ (en este ejemplo llamada creativamente `script`) y es lo que quieres distribuir (además de archivos) es posible mandarlo para su ejecución.
+
+```
+ seq 5000
+  | ~/bin/parallel  -N500 --pipe --basefile script --sshlogin : "./script"
+  | ./script
+```
+
+Trayendo archivos
+======================================================
+
+Si creamos archivos en los nodos remotos, es posible traerlos a tu máquina, usando las banderas
+
+```
+--transfer --return --cleanup`
+```
+
+Ejemplo:
+
+```
+ls *.txt | ~/bin/parallel --transfer --return {.}.transformado --cleanup --sshlogin : cat ">" {}.transformado
+```
+
+También puedes utilizar el _shortcut_ `-trc {.}.transformado`.
 
 
 AWS CLI: RTFM
@@ -1521,46 +1760,56 @@ Webscrapping
 Existen varias librerías para hacerlo:
 
 - `BeautifulSoup` de `python` (usar `requests` para `javascript`y sesiones.)
+  - Para un ejemplo de esto, es posible ver mi `repo` de `proceso`.
 
-- `rvest` es la nueva librería de `R` de **Hadley Wickham*.
+- `rvest` es la nueva librería de `R` de **Hadley Wickham**.
+  - Es la que usaremos en los ejemplos siguientes.
 
 
 Webscrapping
 =======================================================
 
 ```{r eval=FALSE}
-install.packages('rvest')
+# install.packages('rvest')
 library(rvest)
 
 base_url <- "http://www.nuforc.org/webreports/"
 
-ufo_reports <- html("http://www.nuforc.org/webreports/ndxevent.html")
-ufo_reports %>% html_nodes(xpath = "//*/td[2]")
+# Para obtener una página (en este caso el index)
+ufo_reports_index <- html(paste0(base_url, "ndxevent.html"))
 
-pages <- paste0(base_url, ufo_reports %>%
-                          html_nodes(xpath = "//*/td[1]/*/a[contains(@href, 'ndxe')]")  %>%
-                          html_attr("href")
-                          )
+# Puedo utilizar Xpath para navegar por el árbol
+# En este caso en particular obtengo la seguna columna (el conteo de observaciones)
+ufo_reports_index %>%
+  html_nodes(xpath = "//*/td[2]")
 
-# Trae todas las tablas en una lista
-table <- pages[1] %>%
-            html  %>%
-            html_table(fill = TRUE)
+# Obtenemos las URLs de las páginas por día
+daily_urls <- paste0(base_url, ufo_reports %>%
+      html_nodes(xpath = "//*/td[1]/*/a[contains(@href, 'ndxe')]")  %>%
+      html_attr("href")
+    )
+```
+
+Webscrapping
+=======================================================
+```{r eval=FALSE}
+# Trae todas las tablas de la página en una lista
+table <- daily_urls[1] %>%
+                html  %>%
+                html_table(fill = TRUE)
+
 
 is.list(table)
 is.data.frame(table[[1]])
 str(table[[1]])
 ```
 
-Webscrapping
-=======================================================
-
 ```{r eval=FALSE}
-# Usando Xpath, trae la primera
-table <- pages[1] %>%
-          html %>%
-          html_nodes(xpath = '//*/table[1]') %>%
-          html_table(fill = TRUE)
+# Usando Xpath, trae la primera tabla de la página
+table  <-  daily_urls[1] %>%
+           html %>%
+           html_nodes(xpath = '//*/table[1]') %>%
+           html_table(fill = TRUE)
 
 str(table)
 ```
@@ -1569,30 +1818,91 @@ Webscrapping
 =======================================================
 
 ```{r eval=FALSE}
+# Queremos los reportes del avistamiento, no sólo los metadatos
+reports_url <- paste0(base_url, daily_urls[1] %>%
+                        html %>%
+                        html_nodes(xpath = '//*/td[1]/*/a') %>%
+                        html_attr('href')
+                  )
 
-summaries_url <- paste0(base_url, pages[1] %>%
-html %>%
-html_nodes(xpath = '//*/td[1]/*/a') %>%
-  html_attr('href'))
-
-
-summary <- summaries[1] %>%
-                   html %>%
-                   html_nodes(xpath='//*/tr[2]') %>% html_text
+# Finalmente el reporte
+report <- summaries[1] %>%
+              html %>%
+              html_nodes(xpath='//*/tr[2]') %>%
+              html_text
 
 
 # Faltaría generar un data.frame con el summary del avistamiento
 ```
 
+Ejercicio
+=======================================================
+type: exclaim
+
+Realiza el _script_ que genera la lista de `urls` para descargar la base de datos de **GDELT**.
+
 Tarea
 =======================================================
 type: exclaim
 
-El problema: descargar **todos** los avistamientos, _junto_ con sus descripciones.
 
-El reto: Hacerlo de manera eficiente, en paralelo.
+Modificar los ejemplos de `awk` de promedios, máximo, mínimo y desviación estándar para que se calculen con varias columnas
 
-El _bonus_: Hacerlo en varias máquinas de `aws`
+
+¿Cuánto tiempo tarda cada una de las cuatro opciones?
+
+Primer proyecto
+=======================================================
+
+
+**Individual**
+
+**Fecha de entrega**: 4 de marzo, 2015
+
+**Detalles:**
+
+El _problema_: descargar **todos** los avistamientos, _junto_ con sus descripciones.
+
+El _reto_: Hacerlo de manera eficiente, en paralelo, hacerlo en varias máquinas de `aws`.
+
+Primer proyecto
+=======================================================
+
+
+**Entregable**:
+
+- _script_ de `R` para el scrapping,
+
+- La línea de código para la distribución en las máquinas de amazon.
+
+- Presentación en RStudio u `org-mode`.
+
+- _script_ de `R` o `python` que lea del `stdin` y vaya generando un `data.frame` y grafique la serie de tiempo total, y si recibe el estado como parámetro dibuja la serie de tiempo de ese estado.
+
+Primer proyecto
+=======================================================
+
+**Entregable**:
+
+¿Cuántas observaciones totales?
+
+¿Cuál es el top 5 de estados?
+
+¿Cuál es el top 5 de estados por año?
+
+¿Cuál es la racha más larga en días de avistamientos en un estado?
+
+¿Cuál es la racha más larga en días de avistamientos en el país?
+
+¿Cuál es el mes con más avistamientos? ¿El día de la semana?
+
+Primer proyecto
+=======================================================
+
+**Bonus**:
+
+Modifica el _script_ para que te haga la serie espacio-temporal de Estados Unidos.
+
 
 
 A modo de cierre
@@ -1626,15 +1936,3 @@ then you've lost your way.
 
 @climagic
 ```
-
-Tarea
-==========================================================
-type: alert
-
-- Modificar los ejemplos de `awk` de promedios, máximo, mínimo y desviación estándar para que se calculen con varias columnas
-
-- UFO dataset:
-  - ¿Cuántos estados, ciudades diferentes hay?
-  - ¿Cuál es el número de avistamientos por mes? ¿Por día de la semana?
-  - Generar un reporte con estadística univariante de las columnas: Conteos (para categóricas), promedios, máximos, mínimos, faltantes, errores del archivo.
-

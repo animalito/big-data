@@ -1,0 +1,21 @@
+      4	Cone
+      4	Cross
+      5	Egg
+      6	Teardrop
+     12	Cylinder
+     12	Rectangle
+     14	Diamond
+     16	Flash
+     20	Cigar
+     22	Chevron
+     26	Changing
+     29	
+     34	Disk
+     39	Oval
+     54	Formation
+     65	Unknown
+     67	Other
+     85	Triangle
+    116	Circle
+    128	Fireball
+    195	Light
