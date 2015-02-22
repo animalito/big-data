@@ -1,6 +1,6 @@
 #! /bin/zsh
 
-for gdelt_file in 2015010*.zip
+for gdelt_file in *.zip
 do
   unzip -p $gdelt_file \
     | cut -f3,27,31 \
