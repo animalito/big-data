@@ -1,0 +1,14 @@
+# Separamos solo la columna Duration
+$ cat UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f5 > Duration.txt
+
+#limpiamos y creamos una nueva columna
+grep 'min' Duration.txt | sed 's/minutes|minute|min//' | sed 's/~//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"<" -f1 | cut -d ">" -f1 | cut -d"(" -f1| cut -d"/" -f1 | cut -d" " -f1 | sed 's/^.*[a-zA-Z]/1/' > minutes.txt
+grep 'sec' Duration.txt | sed 's/second|seconds|s//' | sed 's/~//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"<" -f1 | cut -d ">" -f1 | cut -d"(" -f1| cut -d"/" -f1 | cut -d" " -f1 | sed 's/^.*[a-zA-Z]/1/' | awk ' { print $1/60}' >> minutes.txt
+grep 'h' Duration.txt  | sed 's/~//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"<" -f1 | cut -d ">" -f1 | cut -d"(" -f1| cut -d"/" -f1 | cut -d" " -f1 | cut -d"," -f1 | sed 's/^.*[a-zA-Z]/1/'| awk ' { print $1*60}' >> minutes.txt
+grep -v 'sec' Duration.txt | grep -v 'min' | grep -v 'h' | sed 's/~//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"<" -f1 | cut -d ">" -f1 | cut -d"(" -f1| cut -d"/" -f1 | cut -d" " -f1 | cut -d"," -f1 | cut -d":" -f1 | cut -d"." -f1 | sed 's/^.*[a-zA-Z]/1/' | cut -d"?" -f1 >> minutes.txt
+
+#eliminamos lineas vacias
+sed -i '/^$/d' minutes.txt 
+
+#calculamos estadisticas
+cat minutes.txt | perl -e 'use List::Util qw(max min sum); @a=();while(<>){$sqsum+=$_*$_; push(@a,$_)}; $n=@a;$s=sum(@a);$a=$s/@a;$m=max(@a);$mm=min(@a);$std=sqrt($sqsum/$n-($s/$n)*($s/$n));$mid=int @a/2;@srtd=sort @a;if(@a%2){$med=$srtd[$mid];}else{$med=($srtd[$mid-1]+$srtd[$mid])/2;};print "records:$n\nsum:$s\navg:$a\nstd:$std\nmed:$med\max:$m\min:$mm";'

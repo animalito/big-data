@@ -1,0 +1,66 @@
+---
+title: "Métodos de Gran Escala Tarea 3 parte 1"
+author: "Amanda Balderas M."
+date: "Febrero 2015"
+output: html_document
+---
+
+**Describe estadísticamente los tiempos de duración de la observación (tendrás que usar: `cut`, `grep`, `sed`, `awk`, etc.)**
+
+* Unimos los datos de noviembre y diciembre 
+
+```
+cat UFO-Nov-2014.tsv UFO-Dic-2014.tsv > UFO-Nov-Dic-2014.tsv
+```
+
+* Eliminamos los `headers` repetidos usando la siguiente expresión:
+
+```
+sed -i '2,/-Fin/s/Date.*//' UFO-Nov-Dic-2014.tsv
+```
+
+* Verificando la información de la variable _Duration_, se observa que los datos vienen dados en diferentes medidas y con diferentes formatos, por lo que será necesario arreglar la información para poder hacer la descripción estadística.
+
+Para lo cual se realizan los siguientes pasos de limpieza:
+ 
+1. Eliminamos los simbolos $\sim$
+2. Eliminamos los simbolos $+$
+3. Seleccionamos las que tienen números
+4. Eliminamos el texto antes de los números
+5. Eliminamos los vacíos
+6. Eliminamos el guión para rangos
+7. Eliminamos la diagonal para rangos
+8. Seleccionamos las que tienen medida
+9. Promediamos los rangos para obtener un valor único
+10. Los casos de milisegundos los covetimos a segundos
+11. Los casos de segundos se conservan
+12. Los casos de minutos se convierten a segundos
+13. Los caos de horas se convierten a segundos
+
+La expresión utilizada para la limpieza nos queda:
+
+```
+cat UFO-Nov-Dic-2014.tsv | cut -f5 | sed 's/~//' | sed 's/+//' | grep [0-9] |  sed 's/[^0-9]*//' | sed '/./!d' | sed 's/-/ /' | sed 's/\// /' | grep "[sec|min|hour]" | awk '$2 ~ /[0-9]/ {$1 = int(($1+$2)/2); $2 = $3; $3 = ""} $2 ~ /mil/ {$3 = int($1/1000); print $3} $2 ~ /sec/ {$3 = int($1); print $3} $2 ~ /min/ {$3 = int($1*60); print $3} $2 ~ /h/ {$3 = int($1*60*60); print $3}' > datos-limpios.txt
+```
+
+Con lo anterior ya obtenemos los datos de duración de avistamiento en segundos.
+
+* Finalmente para tener la descripción estadística utilizamos las siguientes expresiones:
+
+**Media, Máximo y Mínimo**
+
+```
+cat datos-limpios.txt | awk '{FS="|"} {if(min==""){min=max=$1}; if($1>max){max=$1}; if($1<min){min=$1}; total+=$1; count++} END {print "media = " int(total/count), "minimo = " min, "maximo = " max}' > media-max-min.txt
+```
+
+**Mediana**
+
+```
+cat datos-limpios.txt | sort -n | awk '{FS="|"} {count[NR] = $1} END {if(NR % 2){print "mediana = " count[(NR + 1)/2]} else{print "mediana = " int((count[NR/2] + count[(NR/2) + 1])/2)}}' > mediana.txt
+```
+
+**Desviación estándar y varianza**
+
+```
+cat datos-limpios.txt | awk '{sum+=$1; sumsq+=$1*$1} END{print "desviacion estandar = " int(sqrt(sumsq/NR - (sum/NR)**2)) "varianza = " int((sumsq/NR - (sum/NR)))}' > des-var.txt 
+```

@@ -1,0 +1,2 @@
+sed -e 's/ .*Date.*/,""/ ' UFO-Nov-Dic-2014.tsv | grep "Date"
+

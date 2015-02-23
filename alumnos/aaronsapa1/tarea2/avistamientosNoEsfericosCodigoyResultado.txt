@@ -1,0 +1,7 @@
+awk -F"[\t]" 'BEGIN { conteo=0;} \
+        $4 !~/Circle|Sphere/ { conteo++; }
+END { print "¿Cuántos avistamientos no tienen forma de esferoide? ",conteo;}' UFO-Nov-Dic-2014.tsv
+
+#Resultado 838
+
+
