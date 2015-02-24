@@ -1,0 +1,7 @@
+awk -F"[\t]" 'BEGIN { conteo=-1;} \
+        $3 !~ /[A-Z][A-Z]/ { conteo++; }
+END { print "total =",conteo;}' UFO_OK.tsv
+
+#La columna estado tiene el codigo de cada estado en dos letras, los renglones que no cumplan con
+#ese codigo, se encuentran en otro pais. Por lo tanto se cuentan los renglones menos el header.
+#Resultado 33

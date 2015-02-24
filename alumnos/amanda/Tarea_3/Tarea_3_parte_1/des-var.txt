@@ -1,0 +1,1 @@
+desviacion estandar = 1447varianza = 2451201

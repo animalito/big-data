@@ -1,0 +1,9 @@
+#Solución ejercicio "Eliminar el segundo header que se pega al concatenar los dos archivos UFO"
+
+
+
+#primero veo el patron
+sed  -n '/Date.*Posted$/p' UFO-Nov-Dic-2014.tsv 
+
+#después sustitutyo
+sed -i '/^12/s/Date.*Posted$//g' UFO-Nov-Dic-2014.tsv 
