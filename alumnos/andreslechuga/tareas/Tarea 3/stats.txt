@@ -1,0 +1,41 @@
+# nos fijamos en la columna de duración y vemos como esta conformada
+cut -d$'\t' -f5 UFO_OK.tsv | sort |uniq -c | sort -rk 1 | uniq > duracion.txt
+
+#Abrimos duración.txt, dividimos y limpiamos por minutos y pasamos a segundos 
+grep 'min' duracion.txt | sed 's/minutes//' | sed 's/minute//' | sed 's/min//'| sed 's/^.*[a-zA-Z]/1/'| sed 's/~//' |sed 's/>//' | sed 's/<//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"." -f1 | awk ' { print $1, $2*60}' > minutos.txt
+
+#Abrimos duración.txt, dividimos, limpiamos por segundos
+grep 'sec' duracion.txt | sed 's/seconds//' | sed 's/second//' | sed 's/seconts//'| sed 's/^.*[a-zA-Z]/1/'| sed 's/~//' |sed 's/>//' | sed 's/<//' | sed 's/)//' | cut -d"-" -f1 | cut -d"+" -f1 | cut -d"." -f1 | cut -d"/" -f1 | awk ' { print $1, $2}' > segundos.txt
+
+#Abrimos duración.txt, dividimos, limpiamos por horas y pasamos a segundos
+grep 'hour' duracion.txt | sed 's/hour//' | sed 's/s//' | sed 's/~//' | cut -d"-" -f1 | cut -d"+" -f1| cut -d"." -f1| cut -d"," -f1 | sed 's/^.*[a-zA-Z]/1/' | awk ' { print $1, $2*(60**2)}' > horas.txt
+
+#Abrimos duración.txt, dividimos, limpiamos el resto del tiempo de duración definido de otra manera y pasamos a segundos
+grep -v 'sec' duracion.txt | grep -v 'min' | grep -v 'hour' | sed 's/~//'| cut -d"-" -f1 | cut -d"+" -f1 | cut -d"/" -f1| cut -d"," -f1| cut -d":" -f1| sed 's/^.*[a-zA-Z]/1/'| cut -d"?" -f1 | cut -d"." -f1 | awk ' { print $1, $2*60}' > extras.txt
+
+#los juntamos en un solo archivo “tiempos.txt”
+
+cat minutos.txt > tiempos.txt
+cat segundos.txt >> tiempos.txt
+cat horas.txt >> tiempos.txt
+cat extras.txt >> tiempos.txt
+
+
+#modificamos el archivo para que lea la segunda columna
+open -e mediana.awk
+#copiamos la función en la carpeta en donde están los datos
+cp -r ‘/Users/AVL/data-mining-test/proyectos/big-data/lecture_2/awk_sed/mediana.awk’ ‘/Users/AVL/data-mining-test/proyectos/big-data/lecture_2/data’
+#calculamos la mediana
+< tiempos.txt sort -n | awk -f mediana.awk
+#Calculamos la desviación estándar 
+awk '{sum+=$2; array[NR]=$2} END {for(x=1;x<=NR;x++){print "stdev = "sumsq+=((array[x]-(sum/NR))**2);}print sqrt(sumsq/NR)}' tiempos.txt
+
+#con R
+chmod +x stats_r.R
+cat tiempos.txt | ./stats_r.R 
+#con python
+chmod +x stats.py
+cat tiempos.txt | ./stats.py 
+
+
+
