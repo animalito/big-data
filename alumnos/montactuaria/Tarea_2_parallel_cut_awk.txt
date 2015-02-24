@@ -1,0 +1,48 @@
+library(rvest)
+
+base_url <- "http://data.gdeltproject.org/events/"
+
+gdelt.files <- html(paste0(base_url,"index.html"))
+
+files.names <- gdelt.files %>% 
+    html_nodes("a") %>%
+    html_text()
+
+for (i in files.names[4:801]){
+    url <- paste0(base_url,i)
+    destfile <- paste0("~/CGM/gdelt_file",i)
+    download.file(url,destfile)
+}
+
+
+➜  gdelt_file  du -h 
+13G	.
+
+➜  gdelt_file  ls *.zip | wc -l
+798
+
+Ejercicio 1 (tiempo)
+
+for gdelt_file in *.zip; do; unzip -p $gdelt_file | cut -f3,27,31 | awk  | aw  870.82s user 33.27s system 201% cpu 7:27.81 total
+awk   0.02s user 0.00s system 0% cpu 7:27.81 total
+sort -k1 -k2  0.01s user 0.00s system 0% cpu 7:27.84 total
+
+
+Ejercicio 2-parallel (tiempo)
+
+
+find . -type f -name '*.zip' -print0  0.00s user 0.00s system 4% cpu 0.081 total
+parallel -0 -j100%   121.44s user 4.77s system 53% cpu 3:56.01 total
+awk   0.01s user 0.01s system 0% cpu 3:56.01 total
+sort -k1 -k2  0.00s user 0.01s system 0% cpu 3:56.08 total
+
+
+Ejercicio 3-parallel (tiempo)  cambio de cut por awk
+
+awk -F':' '{ print $3, $27, $31}' | \
+
+for gdelt_file in *.zip; do; unzip -p $gdelt_file | awk  | awk  | awk ; done  975.65s user 36.08s system 215% cpu 7:48.43 total
+awk   0.12s user 0.00s system 0% cpu 7:48.45 total
+sort -k1 -k2  0.06s user 0.16s system 0% cpu 7:49.68 total
+
+
