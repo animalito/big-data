@@ -1,0 +1,21 @@
+Reporte
+Parallel
+peso: 2.5 G
+files: 49
+
+
+awk
+real    2m35.230s
+user    19m47.090s
+sys 0m11.676s
+
+sin parallel
+real    7m16.086s
+user    11m42.685s
+sys 0m15.714s
+
+con mawk
+real	2m7.428s
+user	16m15.216s
+sys	0m11.533s
+
