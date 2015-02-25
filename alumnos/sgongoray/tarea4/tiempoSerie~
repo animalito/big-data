@@ -55,13 +55,3 @@ real	0m39.167s
 user	1m11.008s
 sys	0m3.220s
 
-
-para eliminar el "cut", se remplaza por la linea:
-
-awk -F':' '{ print $3, $27, $31}'
-
-el tiempo resultado fue:
-
-real    0m43.707s
-user    1m04.647s
-sys    0m3.978s

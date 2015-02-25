@@ -1586,7 +1586,7 @@ GNU parallel: Un último ejemplo
 
 ```
 find . -type f -name '*.zip' -print0 | \
-parallel -0 -j100%
+parallel -0 -j100% \
 "unzip -p {} | \
 cut -f3,27,31 | \
 awk '{\$2 = substr(\$2,0,2); print \$0 }' | \
@@ -1612,7 +1612,6 @@ Ejercicio
 
 3. ¿Cómo resuelves la dificultad?
 
-4. ¿Cuánto tiempo tarda cada una de las cuatro opciones?
 
 GNU parallel: RTFM
 =========================================================
@@ -1847,7 +1846,6 @@ type: exclaim
 
 Realiza el _script_ que genera la lista de `urls` para descargar la base de datos de **GDELT**.
 
-
 Tarea
 =======================================================
 type: exclaim
@@ -1856,13 +1854,15 @@ type: exclaim
 Modificar los ejemplos de `awk` de promedios, máximo, mínimo y desviación estándar para que se calculen con varias columnas
 
 
+¿Cuánto tiempo tarda cada una de las cuatro opciones?
+
 Primer proyecto
 =======================================================
 
 
 **Individual**
 
-**Fecha de entrega**: 25 de febrero, 2015
+**Fecha de entrega**: 4 de marzo, 2015
 
 **Detalles:**
 

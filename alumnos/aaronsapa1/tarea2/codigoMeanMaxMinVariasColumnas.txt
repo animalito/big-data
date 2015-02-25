@@ -1,0 +1,7 @@
+awk -F "|" '{for(i=1; i<=NF; ++i){
+if(min[i]==""){min[i]=max[i]=$i}; 
+if($i>max[i]) {max[i]=$i}; 
+if($i<min[i]) {min[i]=$i}; 
+sum[i] += $i; k =NR-1; j=NF }}
+END {for (i=1; i <= j; ++i){ printf "mean = %s ", sum[i]/k; print " min = " min[i], "max = " max[i]; printf "\n"}}' data2.txt
+
