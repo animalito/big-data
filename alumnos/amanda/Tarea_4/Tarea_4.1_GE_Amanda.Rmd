@@ -1,0 +1,114 @@
+---
+title: "Métodos de Gran Escala Tarea 4"
+author: "Amanda Balderas M."
+date: "Febrero 2015"
+output: html_document
+---
+
+**1. Cambia las ejecuciones con lo siguiente: a. Eliminar el bloque de `cut` ¿Cómo lo harí­as con `awk`?**
+
+Procesando en serie
+
+```
+for gdelt_file in *.zip
+do
+unzip -p $gdelt_file | \
+# Se cambia cut
+# cut -f3,27,31 | \ 
+awk -F' ' '{print $3, $27, $31}' | \
+awk '{$2 = substr($2,0,2); print $0 }' | \
+awk '{
+  evento[$1,$2]++;
+  goldstein_scale[$1,$2]+=$3
+} END { for (i in evento) print i "\t" evento[i]"\t"goldstein_scale[i]}'
+done | \
+awk  '{
+  evento[$1]+=$2;
+  goldstein_scale[$1]+=$3
+} END {
+  for (i in evento)
+    print substr(i, 0, 4) "\t" substr(i,5,2) "\t" substr(i,8,2) "\t" evento[i] "\t" goldstein_scale[i]/evento[i]
+}' | \
+sort -k1 -k2
+```
+
+Paralelo
+
+```
+find . -type f -name '*.zip' -print0 | \
+parallel -0 -j100% \
+"unzip -p {} | \
+# Se cambia cut
+# cut -f3,27,31 | \
+awk -F' ' '{print \$3, \$27, \$31}' | \ 
+awk '{\$2 = substr(\$2,0,2); print \$0 }' | \
+awk '{
+  evento[\$1,\$2]++;
+  goldstein_scale[\$1,\$2]+=\$3
+} END { for (i in evento) print i FS evento[i] FS goldstein_scale[i]}'" | \
+awk  '{
+  evento[$1]+=$2;
+  goldstein_scale[$1]+=$3
+} END { for (i in evento) print substr(i, 0, 4) "\t" substr(i,5,2) "\t" substr(i,8,2) "\t" evento[i] "\t" goldstein_scale[i]/evento[i]}' | sort -k1 -k2
+```
+
+**2. Para mejorar aún más el rendimiento, se podríaa sustituir `awk` por `mawk`. ¿Es posible? ¿Qué dificultades se presentan?**
+
+Si es posible hacer el cambio, sin embargo deben hacerse cambios al código para que funcione correctamente y se obtengan los resultados deseados, particularmente en este caso tenemos que modificar los parámetros de la función `substr`.
+
+* En `awk` la función `substr` funciona así:
+
+`substr(string, start, length)` Returns a length-character-long substring of string, starting at character number start. The first character of a string is character number one. If length is not present, this function returns the whole suffix of string that begins at character number start.
+
+* En `mawk` la función `substr` funciona así:
+
+`substr(s, i, n)` Returns the characters of s in the intersection of the closed interval [1, length(s)] and the half-open interval [i, i + n). When this intersection is empty, the empty string is returned.
+
+**3. ¿Cómo resuelves la dificultad?**
+
+Considerando como funcionan los parámetros de la función `substr`, en el caso de usar `mawk` el código debe quedar de la siguiente manera:
+
+Procesando en serie
+
+```
+for gdelt_file in *.zip
+do
+unzip -p $gdelt_file | \
+# Se cambia cut
+# cut -f3,27,31 | \
+mawk -F' ' '{print $3, $27, $31}' | \
+mawk '{$2 = substr($2,1,3); print $0 }' | \
+mawk '{
+  evento[$1,$2]++;
+  goldstein_scale[$1,$2]+=$3
+} END { for (i in evento) print i "\t" evento[i]"\t"goldstein_scale[i]}'
+done | \
+mawk  '{
+  evento[$1]+=$2;
+  goldstein_scale[$1]+=$3
+} END {
+  for (i in evento)
+    print substr(i, 1, 5) "\t" substr(i,6,8) "\t" substr(i,9,11) "\t" evento[i] "\t" goldstein_scale[i]/evento[i]
+}' | \
+sort -k1 -k2
+```
+
+Paralelo
+
+```
+find . -type f -name '*.zip' -print0 | \
+parallel -0 -j100% \
+"unzip -p {} | \
+# Se cambia cut
+# cut -f3,27,31 | \
+mawk -F' ' '{print \$3, \$27, \$31}' | \ 
+mawk '{\$2 = substr(\$2,1,3); print \$0 }' | \
+mawk '{
+  evento[\$1,\$2]++;
+  goldstein_scale[\$1,\$2]+=\$3
+} END { for (i in evento) print i FS evento[i] FS goldstein_scale[i]}'" | \
+mawk  '{
+  evento[$1]+=$2;
+  goldstein_scale[$1]+=$3
+} END { for (i in evento) print substr(i, 1, 5) "\t" substr(i,6,8) "\t" substr(i,9,11) "\t" evento[i] "\t" goldstein_scale[i]/evento[i]}' | sort -k1 -k2
+```
