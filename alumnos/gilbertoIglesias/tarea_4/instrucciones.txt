@@ -1,0 +1,11 @@
+Perdon por usar php!!!!! pero queria hacer la prueba con un lenguaje que uso regularmente!!!!!
+
+Para la proxima uso python
+
+Ejecutar ./control.sh
+
+Baja las direcciones
+1) php adquirir_urls.php
+Baja los archivos
+2) lee el archivo, filtra posibles lineas que no sean zip, 
+   y baja los archivos a una carpeta especifica fuera de la carpeta de github
