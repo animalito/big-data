@@ -3,7 +3,7 @@
 find . -type f -name '*.zip' -print0 | \
 parallel -0 -j100% \
 "unzip -p {} | \
-cut -f3,27,31 | \
+awk -F'\t' '{print \$3, \$27, \$31}' | \
 awk '{\$2 = substr(\$2,0,2); print \$0 }' | \
 awk '{
   evento[\$1,\$2]++;
