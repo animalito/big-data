@@ -1,5 +1,7 @@
-cat UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f2 | sort | uniq | grep -E "\(*\)" > tarea3.txt  # ¿Cómo reconocemos los avistamientos en otro país?
-Ahmedabad (India)
+
+# ¿Cómo reconocemos los avistamientos en otro país?
+
+cat UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f2 | sort | uniq | grep -E "\(*\)" > tarea3.txt  Ahmedabad (India)
 Albuquerque (Kirtland AFB)
 Astoria (Queens)
 Bangalore (India)
@@ -68,9 +70,11 @@ Treasure Cay (Bahamas)
 Whitecourt (Canada)
 Yokohama (Japan)
 
-cat UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f2 | sort | uniq | grep -E "\(*\)" | wc -l # ¿Cuántos hay?
+# ¿Cuántos hay?
+cat UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f2 | sort | uniq | grep -E "\(*\)" | wc -l 
 68
 
-cat UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f4 | sort | grep -v "sphere" | wc -l #¿Cuántos avistamientos no tienen forma de esferoide?
+#¿Cuántos avistamientos no tienen forma de esferoide?
+cat UFO-Nov-Dic-2014.tsv | cut -d$'\t' -f4 | sort | grep -v "sphere" | wc -l 
 1028
 
