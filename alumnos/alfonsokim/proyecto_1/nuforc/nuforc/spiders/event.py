@@ -23,29 +23,25 @@ class EventSpider(scrapy.Spider):
 
 
     def parse_reports(self, response): 
+        item_props = 'date_time,city,state,shape,duration,summary,posted'.split(',')
         for report in response.xpath('//table/tbody/tr'):
+            #print '%s\n%s\n%s' % ('='*20, report.extract(), '*'*20)
             item = NuforcItem()
             data = report.xpath('.//td')
             try:
                 link = data[0].xpath('.//a/@href').extract()[0]
-                item['date_time'] = data[0].xpath('.//text()').extract()[0]
-                item['city'] = data[1].xpath('.//text()').extract()[0]
-                item['state'] = data[2].xpath('.//text()').extract()[0]
-                item['shape'] = data[3].xpath('.//text()').extract()[0]
-                item['duration'] = data[4].xpath('.//text()').extract()[0]
-                item['summary'] = data[5].xpath('.//text()').extract()[0]
-                item['posted'] = data[6].xpath('.//text()').extract()[0]
-                yield Request(urlparse.urljoin(response.url, link), meta={'item':item}, callback=self.parse_description)
+                for idx, prop in enumerate(item_props):
+                    value = data[idx].xpath('.//text()').extract()
+                    item[prop] = value[0] if len(value) > 0 else 'NA'
             except Exception, err:
-                print 'AARRGG %s' % err.message
-            return
+                print 'AARRGG %s' % err
+            yield Request(urlparse.urljoin(response.url, link), meta={'item':item}, callback=self.parse_description)
 
 
     def parse_description(self, response):
-        #print respose.body
         table_cells = response.xpath('//table/tbody/tr[2]/td//text()').extract()
-        ##print 'el td: %s' % table_cells[1]
         item = response.request.meta['item']
         item['report'] = ''.join(table_cells)
+        print 'listo'
         yield item
 

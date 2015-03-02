@@ -13,5 +13,7 @@ BOT_NAME = 'nuforc'
 SPIDER_MODULES = ['nuforc.spiders']
 NEWSPIDER_MODULE = 'nuforc.spiders'
 
+LOG_LEVEL = 'INFO'
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'nuforc (+http://www.yourdomain.com)'
