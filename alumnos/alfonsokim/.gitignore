@@ -2,6 +2,7 @@
 *.zip
 *.csv
 
+*.txt
 *.pyc
 
 filesizes
