@@ -70,7 +70,7 @@ img {
 <p>En este proyecto analizaremos la base de avistamientos de UFOs de la NUFORC (National UFO Reporting Center).</p>
 <div id="bajar-la-informacion-en-maquinas-de-aws-usando-parallel" class="section level3">
 <h3>Bajar la información en máquinas de AWS usando <code>parallel</code></h3>
-<p>Antes que nada, hacemos un scrapping en R del índice de la base para obtener las URLs de cada parte:</p>
+<p>Antes que nada, hacemos un scrapping en R del índice de la base para obtener las URLs de cada parte con <code>get_urls.R</code>:</p>
 <pre class="r"><code>library(rvest)
 setwd('/Users/Felipe/big-data/alumnos/FelipeGerard/proyecto1')
 
@@ -106,8 +106,9 @@ parallel --nonall --basefile instala_rvest.R --slf instancias_aws \
 &quot;</code></pre>
 <p>Donde <code>instala_rvest.R</code> es lo siguiente:</p>
 <pre class="r"><code>install.packages('rvest', repos=&quot;http://cran.us.r-project.org&quot;, dependencies=TRUE)</code></pre>
-<p>Ahora sí podemos bajar la información en paralelo con el script</p>
-<pre class="{shell}"><code>sed -n 6,10p data_urls \
+<p>Ahora sí podemos bajar la información en paralelo con el script <code>get_data_aws.sh</code>:</p>
+<pre class="{shell}"><code>#! /bin/zsh
+sed -n 6,10p data_urls \
 | sed &quot;s/.*\///&quot; \
 | parallel --progress --basefile get_data.R --slf instancias_aws \
    &quot;echo {} \
@@ -200,7 +201,6 @@ parallel --nonall --progress --slf instancias_aws \
 | awk '/[A-Z][A-Z]/ {if(NR == 1){ print &quot;Estado\tNR\tRacha\tInicio\tFin&quot;; print }else{ print }}'</code></pre>
 <p>La estructura anterior consiste en tres etapas. La primera, <code>info_racha_por_estado.sh</code> utiliza parallel para hacer un query básico a las máquinas de AWS, que contiene únicamente la información que necesitaremos. El resultado es una tabla con dos campos: estado (a dos letras) y fecha (AAAA-MM-DD). Para ello tuvimos que agregar los primeros dos términos de año y limpiar bastante la información. El punto de pasarla a este formato es el manejo fácil de fechas en R (paso dos).</p>
 <pre class="{shell}"><code>#! /bin/zsh
-
 parallel --nonall --progress --slf instancias_aws \
     &quot;for file in \$(find ufo_data/*); \
       do \
@@ -226,7 +226,7 @@ parallel --nonall --progress --slf instancias_aws \
       done&quot; \
 | grep -E '[A-Z]{2}.[0-9]{4}-[0-9]{2}-[0-9]{2}' \
 | sort -k1 -k2</code></pre>
-<p>Ya con la información ordenada podemos pasar al segundo paso: el cálculo de las rachas. La dificultad en este punto es que tenemos un conflicto entre usar R y <code>awk</code>, debido a que R tiene un manejo de fechas muy fácil de usar, pero usar <code>for</code>s en R es <strong>increíblemente</strong> lento. Lo que decidimos hacer fue calcular las diferencias de días entre una y otra observación (por estado) pero de manera vectorizada, que es razonablemente rápida, para posteriormente calcular las rachas en <code>awk</code> (paso tres):</p>
+<p>Ya con la información ordenada podemos pasar al segundo paso: el cálculo de las rachas. La dificultad en este punto es que tenemos un conflicto entre usar R y <code>awk</code>, debido a que R tiene un manejo de fechas muy fácil de usar, pero usar <code>for</code>s en R es <em>increíblemente</em> lento. Lo que decidimos hacer fue calcular las diferencias de días entre una y otra observación (por estado) con <code>info_racha_por_estado.R</code> pero de manera vectorizada, que es razonablemente rápida, para posteriormente calcular las rachas en <code>awk</code> (paso tres):</p>
 <pre class="r"><code>#! /usr/bin/env Rscript
 require(dplyr, quietly = TRUE, warn.conflicts = FALSE)
 f &lt;- file('stdin')
@@ -250,7 +250,6 @@ write.csv(df[c('state', 'date', 'dif', 'racha', 'inicio', 'fin')], file=stdout()
 close(f)</code></pre>
 <p>Y calculamos las rachas:</p>
 <pre class="{shell}"><code>#! /bin/zsh
-
 sed 's/&quot;//g' \
 | awk -F',' '
   {
@@ -359,7 +358,6 @@ x</code></pre>
 | ./sumariza_racha_pais.sh</code></pre>
 <p>Bajamos la información de AWS y la preparamos para leerla en R con <code>info_racha_pais.sh</code>:</p>
 <pre class="{shell}"><code>#! /bin/zsh
-
 parallel --nonall --progress --slf instancias_aws \
     &quot;for file in \$(find ufo_data/*); \
       do \
@@ -410,7 +408,6 @@ write.csv(df[c('date', 'dif', 'racha', 'inicio', 'fin')], file=stdout())
 close(f)</code></pre>
 <p>Y finalmente calculamos las rachas con <code>sumariza_racha_pais.sh</code>. En este caso, regresamos un ranking de las rachas en lugar de solamente regresar la más larga.</p>
 <pre class="{shell}"><code>#! /bin/zsh
-
 sed '1d;s/&quot;//g' \
 | awk -F',' '
   {
@@ -439,24 +436,40 @@ sed '1d;s/&quot;//g' \
 ' \
 | sort -k 2nr,2 -k 3r,3 \
 | awk 'BEGIN { OFS=&quot;\t&quot; } {if(NR == 1){ print &quot;NR&quot;, &quot;Racha&quot;, &quot;Inicio&quot;, &quot;Fin&quot;; print }else{ print }}'</code></pre>
-<pre class="r"><code>read.table('rachas_pais.result', header = T, nrows = 10) %&gt;% arrange(Racha, desc(Inicio), desc(Fin))</code></pre>
+<pre class="r"><code>read.table('rachas_pais.result', header = T) %&gt;%
+  arrange(desc(Racha), desc(Inicio), desc(Fin)) %&gt;%
+  head(25)</code></pre>
 <pre><code>##       NR Racha     Inicio        Fin
-## 1  10171   295 2013-12-10 2014-09-30
-## 2   9833   295 2012-12-10 2013-09-30
-## 3   9156   295 2010-12-10 2011-09-30
-## 4   8818   295 2009-12-10 2010-09-30
-## 5   8480   295 2008-12-10 2009-09-30
-## 6   7803   295 2006-12-10 2007-09-30
-## 7   7465   295 2005-12-10 2006-09-30
-## 8   9495   296 2011-12-10 2012-09-30
-## 9   8142   296 2007-12-10 2008-09-30
-## 10  6789   296 2003-12-10 2004-09-30</code></pre>
+## 1   9495   296 2011-12-10 2012-09-30
+## 2   8142   296 2007-12-10 2008-09-30
+## 3   6789   296 2003-12-10 2004-09-30
+## 4  10171   295 2013-12-10 2014-09-30
+## 5   9833   295 2012-12-10 2013-09-30
+## 6   9156   295 2010-12-10 2011-09-30
+## 7   8818   295 2009-12-10 2010-09-30
+## 8   8480   295 2008-12-10 2009-09-30
+## 9   7803   295 2006-12-10 2007-09-30
+## 10  7465   295 2005-12-10 2006-09-30
+## 11  7127   295 2004-12-10 2005-09-30
+## 12  5725   238 2000-12-10 2001-08-04
+## 13  5444   210 2000-03-05 2000-09-30
+## 14  6115   182 2002-04-02 2002-09-30
+## 15  6423   165 2003-03-22 2003-09-02
+## 16  4958   143 1998-12-10 1999-05-01
+## 17  5926   104 2001-12-10 2002-03-23
+## 18  6258    98 2002-12-13 2003-03-20
+## 19  5227    77 1999-12-10 2000-02-24
+## 20  5049    60 1999-06-04 1999-08-02
+## 21  5107    58 1999-08-04 1999-09-30
+## 22  4772    57 1998-08-05 1998-09-30
+## 23  3892    52 1995-08-05 1995-09-25
+## 24  5774    49 2001-08-06 2001-09-23
+## 25  4588    41 1998-02-04 1998-03-16</code></pre>
 </div>
 <div id="meses-y-dias-con-mas-avistamientos" class="section level3">
 <h3>Meses y días con más avistamientos</h3>
 <p>Calcular el mes con más avistamientos fue relativamente sencillo y lo podemos hacer puramente en shell (<code>top_meses.sh</code>). Lo único que hay que hacer es extraer el mes de cada avistamiento y usar un <code>sort | uniq -c</code>:</p>
 <pre class="{shell}"><code>#! /bin/zsh
-
 parallel --nonall --progress --slf instancias_aws \
     &quot;for file in \$(find ufo_data/*); \
       do \
@@ -497,9 +510,8 @@ paste temp002.temp temp001.temp | tr ' ' '\t' | sort -k3nr \
 ## 10      10 feb      2          5865
 ## 11      11 nov     11          5539
 ## 12      12 dic     12          4831</code></pre>
-<p>En realidad checar lo anterior para los días de la semana es prácticamente lo mismo (<code>dia_semana.sh</code>). La única diferencia consiste en que usaremos R (<code>dia_semana.R</code>) para extraer el día de la semana de una fecha dada:</p>
+<p>En realidad checar lo anterior para los días de la semana es prácticamente lo mismo (<code>top_dias_semana.sh</code>). La única diferencia consiste en que usaremos R (<code>dia_semana.R</code>) para extraer el día de la semana de una fecha dada:</p>
 <pre class="{shell}"><code>#! /bin/zsh
-
 parallel --nonall --progress --slf instancias_aws \
     &quot;for file in \$(find ufo_data/*); \
       do \
@@ -550,7 +562,7 @@ close(f)</code></pre>
 </div>
 <div id="graficas-de-series-de-tiempo" class="section level3">
 <h3>Gráficas de series de tiempo</h3>
-<p>Adicionalmente, hicimos un script en R (basado en <code>dplyr</code> y <code>txtplot</code>) para graficar la serie de tiempo de avistamientos anuales en un estado o en el país completo. Para ello, generamos la información mediante <code>info_plot.sh &gt; plot.data</code>, donde <code>info_plot.sh</code> es idéntico a <code>info_racha_por_estado.sh</code>. Posteriormente usamos el siguiente script para graficar y luego ilustramos cómo funciona:</p>
+<p>Adicionalmente, hicimos un script en R (basado en <code>dplyr</code> y <code>txtplot</code>) para graficar la serie de tiempo de avistamientos anuales en un estado o en el país completo. Para ello, generamos la información mediante <code>info_plot.sh &gt; plot.data</code>, donde <code>info_plot.sh</code> es idéntico a <code>info_racha_por_estado.sh</code> y posteriormente usamos el script <code>plot_ufo.R</code> para graficar:</p>
 <pre class="r"><code>require(txtplot, warn.conflicts = F, quietly = T)
 require(dplyr, warn.conflicts = F, quietly = T)
 
@@ -582,7 +594,7 @@ if(state == &quot;&quot; || state == 'EUA' || state == 'todo'){
   head(df2)
   txtplot(df2$Anio, df2$Avistamientos, xlab='Anio', ylab=paste('# en', state))
 }</code></pre>
-<p>Podemos mandar el estado al script por medio de un pipe o bien esperar a que el programa nos pida un estado. Para graficar todo podemos simplemente dar <Enter> cuando nos pregunta qué estado queremos, o introducir ‘EUA’ o ‘todo’.</p>
+<p>Podemos mandar el estado al script por medio de un pipe o bien esperar a que el programa nos pida un estado. Para graficar todo podemos simplemente dar <Enter> cuando nos pregunta qué estado queremos, o introducir ‘EUA’ o ‘todo’. Elegimos graficar en ASCII usando el paquete <code>txtplot</code> con el fin de poder correr el código sin salir de la consola. Si quisiéramos graficar en <code>ggplot2</code> o con <code>base</code> en R sería muy fácil cambiar el código, pero habría que correrlo desde R, no como <code>Rscript</code>.</p>
 <pre class="r"><code>cat(paste(system('echo &quot;TX&quot; | ./plot_ufo.R', intern=T), collapse='\n'))</code></pre>
 <pre><code>## Proporciona un estado...
 ## Graficando informacion de TX...
