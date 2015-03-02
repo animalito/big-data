@@ -2,7 +2,7 @@
 
 # Leemos parametros 
 args <- commandArgs()
-#print(args)
+print(args)
 
 name <- args[grep('.html$', args)]
 nname <- args[grep('.csv$', args)]

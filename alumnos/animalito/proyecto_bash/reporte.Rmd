@@ -36,7 +36,10 @@ chmod 0400 .ssh/animalito.pem
 
 7. Vas a necesitar mucha informacion de las cosas que ya creaste:
 
-- __--image-id__ : La obtienes en la _consola de amazon> EC2>Instances>Launch Instance_. Dependiendo el tipo de maquina, eliges su id. Por ejemplo, para prender una Linux, lo que quiero es _ami-dfc39aef_.
+- __--image-id__ : La obtienes en la _consola de amazon> EC2>Instances>Launch Instance_. Dependiendo el tipo de maquina, eliges su id. Por ejemplo, para prender una ec2, lo que quiero es _ami-dfc39aef_
+
+![](img/instances_types.png)
+
 - __count ##__: numero de instancias que quieres prender (rellena ## con el numero de maquinas que quieres)
 - __instance-type__: tipo de instancia de la maquina de amazon que levantaras, por ejemplo _t2.micro_
 - __--key-name__: ya hiciste una llave _.pem_, usala!
@@ -58,10 +61,14 @@ Para eso, escribes en tu consola
 
 ```
 aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicDnsName' --output text \
-    | sed 's/\t/\n/g' > data/instancias.txt
+    | sed 's/\t/\n/g' | sed 's/ec2/ec2-user@ec2/g' > data/instancias.txt
 ```
 
 Y listo! Tienes un archivin con los _Public DNS_ de las maquinas que prendiste.
+
+__Nota__ Obviamente si elegiste una maquina que no sea _ec2_ tienes que poner en el sed el cambio. Por ejemplo, si pusiste un image-id de ubuntu, pones _sed 's/ec2/ubuntu@ec2/g'_.
+
+Hay otras maneras de comunicarse con tus maquinas, esa es la que me gusto por ahora.
 
 8. Por ultimo, configuramos las contrasenas para que no nos la pida 
 
@@ -73,9 +80,18 @@ Host *
      IdentityFile ~/.ssh/animalito.pem
 ```
 
+__Nota__ El user en este caso le hace caso a una image-id de ubuntu. Tienes que poner la apropiada.
+
 __Opcion 2__: Pones en tu consola
 
 ```
 ssh-add ~/.ssh/animalito.pem
 ```
 
+9. Matamos las maquinas para que no nos cobren (eso hace que se pierda todo! Si quieres mantener la maquina prendida, puedes simplemente darle stop.)
+
+```
+aws ec2 terminate-instances
+```
+
+Si prefieres verificar manual, siempre te puedes meter a la consola de amazon > EC2 > Instances. Ahi seleccionas las maquinas y le das en Actions>Instance State>comando (stop, start, terminate). No dejes prendidas maquinas, acuerdate que amazon no temera en usar los datos de tu tarjeta.

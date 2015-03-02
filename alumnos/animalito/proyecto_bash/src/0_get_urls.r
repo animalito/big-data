@@ -14,4 +14,4 @@ daily_urls <- paste0(base_url, ufo_reports_index %>%
 # eliminamos el ultimo que no tiene fecha especificada
 daily_urls <- daily_urls[which(daily_urls!="http://www.nuforc.org/webreports/ndxe.html")]
 
-write(daily_urls, file='data/urls.txt')
+write(daily_urls, file='../data/urls.txt')
