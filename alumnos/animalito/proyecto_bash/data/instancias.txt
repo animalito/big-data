@@ -1,0 +1,10 @@
+ec2-user@ec2-52-11-16-190.us-west-2.compute.amazonaws.com
+ec2-user@ec2-52-11-102-209.us-west-2.compute.amazonaws.com
+ec2-user@ec2-52-11-75-205.us-west-2.compute.amazonaws.com
+ec2-user@ec2-52-10-13-68.us-west-2.compute.amazonaws.com
+ec2-user@ec2-52-11-108-154.us-west-2.compute.amazonaws.com
+ec2-user@ec2-52-11-90-87.us-west-2.compute.amazonaws.com
+ec2-user@ec2-52-11-67-131.us-west-2.compute.amazonaws.com
+ec2-user@ec2-52-11-94-75.us-west-2.compute.amazonaws.com
+ec2-user@ec2-52-11-102-129.us-west-2.compute.amazonaws.com
+ec2-user@ec2-52-11-31-26.us-west-2.compute.amazonaws.com
