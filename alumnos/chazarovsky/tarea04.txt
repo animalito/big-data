@@ -1,0 +1,7 @@
+#calculo promedio, máximo y minimo y desviación estándar para la columna que uno quiera
+bash variascol.sh 
+de qué archivo quieres estadisticos?
+prueba.txt
+de qué columna quieres estadisticos?
+1
+mean = 10.5 min = 1,1 max = 20 stdev = 5.76628
