@@ -2,14 +2,15 @@
 import sys
 from datetime import datetime
 
+# ==================================================================
 MONTHS = ',Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dic'.split(',')
-DOWS = 'Mon,Tue,Wed,Thu,Fri,Sat,Sun'.split(',')
+DOWS = 'Mon,Tue,Wed,Thu,Fri,Sat,Sun'.split(',') # Monday is 0 and Sunday is 6
 
 TIME_UNITS = {
     'year': (lambda d: d.year, lambda v: str(v)),
     'month': (lambda d: d.month, lambda v: MONTHS[v]),
     'day': (lambda d: d.month, lambda v: str(v)),
-    'dow': (lambda d: d.weekday(), lambda v: DOWS[v]), # Monday is 0 and Sunday is 6
+    'dow': (lambda d: d.weekday(), lambda v: DOWS[v]), 
     'hour': (lambda d: d.hour, lambda v: str(v)),
     'minute': (lambda d: d.minute, lambda v: str(v))
 }
@@ -19,6 +20,7 @@ def safe_parse_date(date_str):
     """ Intenta convertir un string a fecha usando 2 formatos,
         si no puede devuelve None en lugar de tronar
         :param date_str: La fecha en string
+        :return: La fecha si se pudo parsear, None si no
     """
     try:
         return datetime.strptime(date_str, '%m/%d/%y %H:%M')
@@ -31,6 +33,10 @@ def safe_parse_date(date_str):
 
 # ==================================================================
 def count(time_unit, header=True):
+    """ Agrupa los avistamientos por una unidad de tiempo
+        :param time_unit: La unidad de tiempo a agrupar
+        :param header: Si los datos tienen encabezado
+    """
     if header: sys.stdin.readline() 
     line = sys.stdin.readline()
     unit_counter = {}
@@ -50,7 +56,11 @@ def count(time_unit, header=True):
 
 # ==================================================================
 if __name__ == '__main__':
+    """ Punto de entrada a la consola. Puede recibir de argumento 
+        la unidad de tiempo para agrupar el conteo de avistamientos
+    """
     unit = sys.argv[1] if len(sys.argv) > 1 else 'month'
     if unit not in TIME_UNITS:
         print >> sys.stderr, 'Available units: %s' % ','.join(k for k in TIME_UNITS.keys())
+        sys.exit(1)
     count(unit)

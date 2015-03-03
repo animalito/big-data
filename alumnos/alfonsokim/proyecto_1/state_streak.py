@@ -24,6 +24,7 @@ def build_streaks(dates):
     """
     dates.sort()
     streaks = []
+    if len(dates) == 0: return []
     begin = dates[0]
     end = dates[0]
     for current in dates[1:]:

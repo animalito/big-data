@@ -1,6 +1,7 @@
 
+## Este script encuentra la fecha y el estado del avistamiento y lo escribe en la salida
+## para el procesamiento posterior
 ## Las fechas estan en formato mes/dia/anio =S
-##
 
 m = 0; 
 match($0, /([0-9][0-9]?)\/([0-9][0-9]?)\/([0-9][0-9])( *)([0-9:]*)\|([A-Z]{2})/, grp){

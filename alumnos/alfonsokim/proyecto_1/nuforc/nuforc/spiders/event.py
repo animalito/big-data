@@ -16,6 +16,8 @@ class EventSpider(scrapy.Spider):
 
 
     def parse(self, response):
+        """ Parsea el indice de avistamientos por mes
+        """
         reports_urls = response.xpath('//*/td[1]/*/a[contains(@href, "ndxe")]')
         for link_selector in reports_urls:
             link = link_selector.xpath('@href').extract()[0]
@@ -23,6 +25,8 @@ class EventSpider(scrapy.Spider):
 
 
     def parse_reports(self, response): 
+        """ Parsea la tabla de avistamientos por mes
+        """
         item_props = 'date_time,city,state,shape,duration,summary,posted'.split(',')
         for report in response.xpath('//table/tbody/tr'):
             #print '%s\n%s\n%s' % ('='*20, report.extract(), '*'*20)
@@ -39,6 +43,8 @@ class EventSpider(scrapy.Spider):
 
 
     def parse_description(self, response):
+        """ Parsea el detalle completo del reporte para encontrar la descripcion completa
+        """
         table_cells = response.xpath('//table/tbody/tr[2]/td//text()').extract()
         item = response.request.meta['item']
         item['report'] = ''.join(table_cells)
