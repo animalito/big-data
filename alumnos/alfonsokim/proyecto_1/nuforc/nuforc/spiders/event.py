@@ -42,6 +42,5 @@ class EventSpider(scrapy.Spider):
         table_cells = response.xpath('//table/tbody/tr[2]/td//text()').extract()
         item = response.request.meta['item']
         item['report'] = ''.join(table_cells)
-        print 'listo'
         yield item
 

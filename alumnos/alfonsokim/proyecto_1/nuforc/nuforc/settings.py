@@ -15,5 +15,11 @@ NEWSPIDER_MODULE = 'nuforc.spiders'
 
 LOG_LEVEL = 'INFO'
 
+FEED_EXPORTERS = {
+    'csv': 'nuforc.exporters.DelimiterItemExporter',
+}
+
+CSV_DELIMITER = "|"
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'nuforc (+http://www.yourdomain.com)'
