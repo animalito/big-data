@@ -30,6 +30,8 @@ Amazon EC2
 
 - _aws_setup.sh_ Aprovisiona las instancias de AWS con los paquetes necesarios para bajar los datos
 
+- _setup_aws_instances.sh_ Levanta el flujo de creación y aprovisionamiento de instancias AWS
+
 Adquisición de Datos
 ========================================================
 type: sub-section
