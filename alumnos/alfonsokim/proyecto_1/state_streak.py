@@ -39,14 +39,16 @@ def build_streaks(dates):
 def parse_streak(state, header=True):
     """
     """
+    #print 'Max streaks for state %s' % (state or 'all')
     if header: sys.stdin.readline() 
     line = sys.stdin.readline()
     dates = []
     while line:
         data = line.strip().split('|')
         if len(data) > 2:
+            filter_state = state if state else data[2]
             date = safe_parse_date(data[0])
-            if date:
+            if date and data[2] == filter_state:
                 dates.append(date)
         line = sys.stdin.readline()
     for streak in build_streaks(dates):
@@ -58,4 +60,4 @@ def parse_streak(state, header=True):
 if __name__ == '__main__':
     """ Punto de entrada a la consola
     """
-    parse_streak(sys.argv[1] if len(sys.argv) > 1 else None)
+    parse_streak(sys.argv[1] if len(sys.argv) > 1 else False)
