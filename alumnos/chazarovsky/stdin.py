@@ -1,0 +1,1 @@
+#!/usr/bin/env pythonimport reimport sysimport numpya=[]entrada=open(sys.argv[1])for linea in entrada:    a.append(float(linea))    print "el promedio es %f" %numpy.mean(a)print "la desviacion estandar es %f" %numpy.std(a)print "el valor maximo es %f" %numpy.max(a)print "el valor minimo es %f" %numpy.min(a)entrada.close()

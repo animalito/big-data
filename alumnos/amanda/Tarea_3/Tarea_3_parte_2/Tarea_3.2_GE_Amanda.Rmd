@@ -1,0 +1,26 @@
+---
+title: "Métodos de Gran Escala Tarea 3 parte 2"
+author: "Amanda Balderas M."
+date: "Febrero 2015"
+output: html_document
+---
+
+Reproducir el ejercicio con **Phyton** o **R** usando redirección y ejecutables: Describe estadísticamente los tiempos de duración de la observación **
+
+Para obtener las estadísticas de *Media*, *Máximo*, *Mínimo*, *Mediana*, *Desviación estandar* y *Varianza*.
+
+### Con R
+
+Utilizamos la siguiente expresión:
+
+```
+cat datos-limpios.txt | ./des_esta.r > resul_r.txt
+```
+
+### Con Phyton
+
+Utilizamos la siguiente expresión:
+
+```
+cat datos-limpios.txt | ./des_esta.py > resul_phyton.txt
+```
