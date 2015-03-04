@@ -65,6 +65,7 @@ type: exclaim
 * Subqqueries en cualquier cláusula.
 * Subqueries anidados.
 * Windowing functions
+* Geoespacial
 
 ¿Por qué PostgreSQL?
 ========================================================
@@ -75,6 +76,10 @@ type: exclaim
     - Bibliotecas externas
     - Lenguajes externos
     - Puedes crear tipos de datos, funciones, agregadores, operadores, etc.
+* Foreign Data Wrappers (FDW)
+* Creación concurrente de índices
+* Listen/Notify
+* NOSQL dentro de SQL
 
 
 ¿Dónde está PostgreSQL según el CAP?
@@ -83,6 +88,12 @@ type: exclaim
 
 - Tomado de una página de **IBM**
   - perdí el `URL` :( ...
+
+========================================================
+type: exclaim
+
+## PostgreSQL
+### Instalación
 
 
 Instalación
@@ -93,11 +104,9 @@ Instalación
 ```
 > sudo apt-get update
 > sudo apt-get -y install python-software-properties
-> wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-> sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" >> /etc/apt/sources.list.d/postgresql.list'
-> sudo apt-get update
-> sudo apt-get install postgresql-9.3 libpq5 postgresql-contrib
+> sudo apt-get install postgresql-9.4 libpq5 postgresql-contrib
 ```
+
 - Accesando a la base
 
 ```
@@ -111,16 +120,14 @@ Instalación
 - Por omisión, guardará todo en `/`, detenemos y destruimos:
 
 ```
-sudo pg_dropcluster --stop 9.3 main
+> sudo pg_dropcluster --stop 9.4 main
 ```
 
 - Creamos uno nuevo
 
 ```
-sudo pg_createcluster -d /data 9.3 main
+> sudo pg_createcluster -d ~/data 9.4 main
 ```
-
-
 
 Instalación
 =======================================================
@@ -128,29 +135,84 @@ Instalación
 - Ahora PostGIS `:)`
 
 ```
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" >> /etc/apt/sources.list.d/postgresql.list'
-sudo apt-get update
-sudo apt-get install postgresql-9.3-postgis-2.1 -f
-createdb -E UTF8 template_postgis2.1
-psql -d postgres -c "UPDATE pg_database SET datistemplate='true' WHERE datname='template_postgis2.1"
-psql -d template_postgis2.1 -f /usr/share/postgresql/9.3/extension/postgis--2.1.1.sql
-psql -d template_postgis2.1 -c "GRANT ALL ON geometry_columns TO PUBLIC;"
-psql -d template_postgis2.1 -c "GRANT ALL ON geography_columns TO PUBLIC;"
-psql -d template_postgis2.1 -c "GRANT ALL ON spatial_ref_sys TO PUBLIC;"
-createdb test_db -T template_postgis2.1
+> sudo apt-get update
+> sudo apt-get install postgis
 ```
 
 - Dentro de `psql` (un poco más adelante)
 
 ```
+# \dx+
+# create extension postgis;
+# create extension postgis_topology;
+# create extension fuzzystrmatch;
+# create extension postgis_tiger_geocoder;
+# \dx+
 # select postgis_version();
 ```
 
-- Habilitarlo en una base de datos ya existente
+========================================================
+type: exclaim
 
+## PostgreSQL
+### Tipos de datos
+
+Tipos de datos
+========================================================
+- `smallint`, `integer`, `bigint`, `numeric`, `float`
+  - Nunca usen `money`
+
+- `uuid`
+
+- `boolean`, `char`, `varchar`, `text` ...
+
+- `inet`, `cidr`, `macaddr`
+
+- `date`, `timestamp`, `time`
+
+- Más los que agregan las extensiones
+
+Arreglos
+=======================================================
+
+```{sql}
+create table cosas (
+  id serial not null,
+  nombre varchar,
+  etiquetas varchar [],
+  created_at timestamp,
+  updated_at timestamp
+);
 ```
-psql -d your_db_name -f /usr/share/postgresql/9.3/extension/postgis--2.1.1.sql
+
+* Insertamos de la siguiente manera:
+
+```{sql}
+insert into cosas
+values (1, 'Cosa 1', '{"Algo", "Otra cosa"}', now(), now());
+```
+
+* Seleccionamos
+
+```{sql}
+select unnest(etiquetas) from cosas;
+```
+
+Rangos
+=======================================================
+
+```{sql}
+create table clases (
+  salon varchar,
+  periodo tsrange
+);
+```
+
+* Insertamos de la siguiente manera:
+
+```{sql}
+insert into clases
+values ('Sala de video 2', '[2015-03-04 08:00, 2015-03-04 11:00]');
 ```
 
 ========================================================
@@ -261,7 +323,7 @@ psql
 ```
 
 -  Obviamente pueden agregarlo a su **`.psqlrc`**
-  - ¿Recuerdan la segunda clase?
+
 
 ========================================================
 type: exclaim
@@ -350,14 +412,21 @@ Administración básica
 - Crear una base de datos:
 
 ```{sql}
-create database rita;
+create database ufo;
+
+-- Pueden agregar OWNER dueño y TABLESPACE table_space
 ```
 
 - Esquemas (para organizar la base de datos)
 
 ```{sql}
 create schema dirty;
+
+-- Podemos agregar un dueño con AUTHORIZATION dueño
 ```
+
+Administración básica
+=======================================================
 
    **Ejercicio:** Crea los esquemas:
       `"$user", dirty, clean, shameful, playground, output, mining, ml`
@@ -365,7 +434,7 @@ create schema dirty;
 - Modifica el `path` de búsqueda
 
 ```{sql}
-alter databse rita set search_path="$user", dirty, clean, shameful, playground, output, mining, ml;
+alter database ufo set search_path="$user", dirty, clean, shameful, playground, output, mining, ml;
 ```
 
 Administración básica
@@ -393,6 +462,10 @@ grant usage on types
   to public;
 ```
 
+Administración básica
+=======================================================
+
+
 - Si el esquema ya está poblado:
 
 ```{sql}
@@ -411,12 +484,14 @@ Extensiones
 
 - Listar las disponibles
 
-```{sql}
+```
 select *
 from pg_available_extensions
 where comment like '%string%' or installed_version is not null
 order by name
 ```
+
+- Es equivalente a `\dx` en `psql`.
 
 - En `psql`: `\dx+ fuzzystrmatch` para obtener más información.
 
@@ -634,6 +709,10 @@ GROUP BY
     user_id,
     type_of_place
 ```
+
+Estadísticas muy loca
+========================================================
+
 - Hora en la que más realiza transacciones
 
 ```{sql}
@@ -651,7 +730,7 @@ Estadísticas muy loca
 ```{sql}
 SELECT
     ...
-    (array_agg(place ORDER BY money_earned DESC))[1:5] AS top5_places  -- Add this expression
+    (array_agg(place ORDER BY money_earned DESC))[1:5] AS top5_places
 FROM
     ...
 ```
@@ -853,6 +932,9 @@ cube_distance(genre, '(0,7,0,0,0,0,0,0,0,7,0,0,0,0,10,0,0,0)') dist
 FROM movies
 ORDER BY dist;
 ```
+
+Ejercicio: Un poco de Text Mining
+========================================================
 
 - Dentro del cubo
 
@@ -1244,29 +1326,29 @@ Partitioning
 Partitioning
 ========================================================
 ```{sql}
-CREATE TABLE rita_2001 (
+CREATE TABLE ufo_2001 (
 CONSTRAINT partition_date_range
-CHECK (flight_date >=   '2001-01-01'
-AND flight_date <= '2001-12-31 23:59:59')
-) INHERITS ( rita );
+CHECK (report_date >=   '2001-01-01'
+AND report_date <= '2001-12-31 23:59:59')
+) INHERITS ( ufo );
 ```
 
 
 Partitioning
 ========================================================
 ```{sql}
-CREATE FUNCTION rita_insert ()
+CREATE FUNCTION ufo_insert ()
 RETURNS trigger
 LANGUAGE plpgsql AS $f$
 BEGIN
-CASE WHEN NEW.flight_date < '1989-01-01'
-THEN INSERT INTO rita_1988 VALUES (NEW.*);
-WHEN flight_date < '1990-01-01'
-THEN INSERT INTO rita_1989 VALUES (NEW.*);
+CASE WHEN NEW.report_date < '1989-01-01'
+THEN INSERT INTO ufo_1988 VALUES (NEW.*);
+WHEN ufo_date < '1990-01-01'
+THEN INSERT INTO ufo_1989 VALUES (NEW.*);
 ...
 ...
 ELSE
-INSERT INTO rita_overflow VALUES (NEW.*);
+INSERT INTO ufo_overflow VALUES (NEW.*);
 END CASE;
 RETURN NULL;
 END;$f$;
@@ -1277,8 +1359,8 @@ END;$f$;
 Partitioning
 ========================================================
 ```{sql}
-CREATE TRIGGER rita_insert BEFORE INSERT ON rita
-FOR EACH ROW EXECUTE PROCEDURE rita_insert();
+CREATE TRIGGER ufo_insert BEFORE INSERT ON ufo
+FOR EACH ROW EXECUTE PROCEDURE ufo_insert();
 ```
 
 
@@ -1308,6 +1390,32 @@ select * from ...
 * Es un  árbol invertido -> Hay que buscar en el nivel más profundo para ver donde ocurre el problema.
 
 * Leerlo es una arte...
+
+Queries: EXPLAIN ANALYZE
+========================================================
+
+```{sql}
+postgres=# explain select * from clases;
+                        QUERY PLAN
+----------------------------------------------------------
+ Seq Scan on clases  (cost=0.00..18.60 rows=860 width=64)
+(1 row)
+```
+
+```
+postgres=# explain analyze select * from clases;
+                                             QUERY PLAN
+----------------------------------------------------------------------------------------------------
+ Seq Scan on clases  (cost=0.00..18.60 rows=860 width=64) (actual time=0.005..0.006 rows=1 loops=1)
+ Planning time: 0.026 ms
+ Execution time: 0.018 ms
+(3 rows)
+```
+
+
+Queries: EXPLAIN ANALYZE
+========================================================
+
 
 * Buscar malos conteos, escaneos secuenciales, loops enormes, etc.
 
@@ -1488,7 +1596,6 @@ Esta versión no usa archivos temporales , todo pasa por los *pipes* (memoria).
 ========================================================
 * Soporta: Oracle, MySQL, ODBC, NoSQL, Archivos, twitter, ldap, www, etc.
     - [Docs](http://wiki.postgresql.org/wiki/Foreign_data_wrappers)
-    - En el banco hago queries desde PostgreSQL a archivos, SQL Server y ORACLE...
 
 ```{sql}
 CREATE EXTENSION file_fdw;  -- Habilitamos la extensión
@@ -1613,20 +1720,16 @@ sql -n --list-tables pg://user:pass@host/db  | parallel -j0 -r --colsep '\|' sql
 
 Tarea
 ========================================================
-* Cargar RITA de manera sucia
+* Cargar los archivos ufo de manera sucia
 * Configurar su `postgres.conf`
-* Crear un particionado para RITA por año.
+* Crear un particionado para ufo por año.
 * Cargar  todas las tablas auxiliares como fdw.
-* Limpiar RITA en la BD.
-* Sustituir los campos categóricos por valores numéricos en Rita.
+* Limpiar ufo en la BD.
 * Exportar a archivo CSV (con `copy`).
-* Cargarla en `R` con `biganalytics`.
-
-
 
 ¿Cómo cargar masivamente?
 ========================================================
-* Dentro del archivo `cargar_rita.sh`
+* Dentro del archivo `cargar_ufo.sh`
 
 ```{shell}
 # Dividimos el archivo rita.csv
