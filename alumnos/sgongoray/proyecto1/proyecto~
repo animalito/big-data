@@ -179,17 +179,9 @@ sergio@sergio-ThinkCentre-M73:~/proyecto1$ cat dias.csv | grep -E "[a-z]+[a-z]+[
 
 //---------------------------Serie Temporal-----
 sergio@sergio-ThinkCentre-M73:~/proyecto1$ cat años.csv | sort | uniq -c > años2.csv
-f <- file("stdin")
 
-open(f)
 
-while(length(lines <- readLines(f, n = 1)) > 0) {
-  write(paste0(lines, collapse=','), file ='auxiliar.csv',append=T)
-}
-
-close(f)
-
-myData2 <- read.csv("auxiliar.csv",quote = "", header=F, sep="\t")
+myData2 <- read.csv("años2.csv",quote = "", header=F, sep="\t")
 
   ggplot(myData2,aes(x=V2,y=V1))+geom_line()
 
