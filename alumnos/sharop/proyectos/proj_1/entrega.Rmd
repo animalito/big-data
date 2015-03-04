@@ -1,0 +1,55 @@
+---
+title: "Proyecto 1"
+author: "Sergio Haro Perez"
+date: "02/03/2015"
+output: html_document
+---
+
+Primer proyecto
+
+Entregable:
+
+    script de R para el scrapping,
+    
+        R. El script DailyURLS.r extrae los links de las paginas de avistamiento
+
+    La línea de código para la distribución en las máquinas de amazon.
+        R.
+        Se realiza el paso de daily urls como parametros, en este caso 50 por cada maquina
+        al script getDataFrame.r
+        Luego se realiza la union de todos los data frames.
+```       
+          cat daily_urls.txt |  parallel --will-cite -N50 --slf instancias.azure './getDataFrame.r {}'
+./ttfile.sh join_files.r
+parallel --nonall --slf instancias.azure   ' cat ~/out/part_frame*  > totfram.tsv
+```
+    Presentación en RStudio u org-mode.
+        R. Es esta
+
+    script de R o python que lea del stdin y vaya generando un data.frame y grafique la serie de tiempo total, y si recibe el estado como parámetro dibuja la serie de tiempo de ese estado.
+        R. por_mes.r
+
+Primer proyecto
+
+Entregable:
+
+ R. Se incluye un script quest.sh que puede reproducir los resultados.
+
+¿Cuántas observaciones totales?
+96387  
+¿Cuál es el top 5 de estados?
+```
+cat noc.tsv | cut -f3 |sed 's/\//g'|sed '/^$/d' |sort  -k 1 |uniq -c | sort -rg | head -5
+```
+¿Cuál es el top 5 de estados por año?
+```
+cat noc.tsv | cut -d$'\t' -f1,3 |tr '[:lower:]' '[:upper:]' | awk -F/ '{ print $3 }' | sed 's/\t/ /g' |awk '{ print $1 "\t " $3 }'|sed '/  *$/d'|sort -b -k 2 | uniq -c | sort -rg | head -5
+```
+¿Cuál es la racha más larga en días de avistamientos en un estado?
+script racha.r
+¿Cuál es la racha más larga en días de avistamientos en el país?
+
+¿Cuál es el mes con más avistamientos? ¿El día de la semana?
+```
+cat noc.tsv | cut -d$'  ' -f1,3 |tr '[:lower:]' '[:upper:]' |  sed 's/	/ /g' |awk '{ print  t   }'|sed '/  *$/d'|sort -b -k 2 | uniq -c | sort -rg | head -10 |date   +'%A' --date
+```
