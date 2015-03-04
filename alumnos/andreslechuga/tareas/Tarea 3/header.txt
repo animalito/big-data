@@ -1,0 +1,6 @@
+#checamos cuantos hay
+grep "Date" UFO-Nov-Dic-2014.tsv 
+
+# Aplicamos sed y vemos que ya solo hay uno
+sed 's/.Date//' UFO-Nov-Dic-2014.tsv | grep "Date"
+
