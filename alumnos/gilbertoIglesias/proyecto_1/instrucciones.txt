@@ -1,0 +1,12 @@
+Instrucciones
+
+1) Verificar en la siguiente liga la presentación que explica el trabajo realizado
+https://docs.google.com/presentation/d/1rPxQpN9Rgswz6z124cNQMzlpHQhjHZUKdceZSlVkgwQ/edit?usp=sharing
+
+2) Ejemplo de llamada 
+./controler.sh ca 2014
+
+      -  El primer parametro es el codigo del estado del cual se sacarian las estadisticas
+      - El segundo parametro es el año del cual se va a obtener las estadisticas
+
+3) Se incluye copia de la base de datos en mongo

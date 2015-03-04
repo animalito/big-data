@@ -1,0 +1,46 @@
+Observaciones totales:83899
+Top 5 estados:
+  10515 ca
+   5381 tx
+   4139 wa
+   3478 mi
+   3416 fl
+Top 5 estados en el año 2014:
+    654 la
+    171 va
+     27 ak
+      6 ca
+      5 wa
+Racha mas larga de avistamientos en ca:
+La racha mas larga es de 3 dias
+Consecutivo menor: 368481
+Consecutivo mayor: 368483
+
+Racha mas larga de avistamientos en el pais:
+La racha mas larga es de 13 dias
+Consecutivo menor: 369545
+Consecutivo mayor: 369557
+
+Mes con mas avistamientos:
+  10031 7
+   9280 6
+   8947 8
+   7856 9
+   7717 10
+   7484 11
+   5819 1
+   5786 5
+   5718 4
+   5289 12
+   5063 3
+   4655 2
+Dia con mas avistamientos:
+  12489 5
+  12164 4
+  12119 1
+  12020 2
+  11706 6
+  11613 3
+  11534 0
+Inicio serie espacio temporal:
+Inicio serie espacio temporal del estado ca:
