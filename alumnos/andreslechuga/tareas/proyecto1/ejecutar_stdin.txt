@@ -1,0 +1,4 @@
+Instrucciones para ejecutar “stdin_script.r”
+
+
+cat tabla.txt | cut -d$'\t' -f2,4 | ./stdin_script.r 

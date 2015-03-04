@@ -1,0 +1,13 @@
+warning [GDELT.MASTERREDUCEDV2.1979-2013.zip]:  76 extra bytes at beginning or within zipfile
+  (attempting to process anyway)
+error [GDELT.MASTERREDUCEDV2.1979-2013.zip]:  reported length of central directory is
+  -76 bytes too long (Atari STZip zipfile?  J.H.Holm ZIPSPLIT 1.1
+  zipfile?).  Compensating...
+
+note:  didn't find end-of-central-dir signature at end of central dir.
+  (please check that you have transferred or created the zipfile in the
+  appropriate BINARY mode and that you have compiled UnZip properly)
+
+real	32m24.057s
+user	53m47.368s
+sys	1m10.613s

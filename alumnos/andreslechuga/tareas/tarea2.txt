@@ -1,0 +1,15 @@
+¿Cómo reconocemos los avistamientos en otro país?
+
+cat UFO-Nov-Dic-2014.tsv | cut -f2,3 |grep -Ev [A-Z]{2} | grep -Ev "Miami"
+
+¿Cuántos hay?
+
+cat UFO-Nov-Dic-2014.tsv | cut -f2,3 |grep -Ev [A-Z]{2} | grep -Ev "Miami" | uniq | awk 'END { print NR }'
+
+
+¿Cuántos avistamientos no tienen forma de esferoide?
+
+cat UFO-Nov-Dic-2014.tsv | cut -f4 | grep -i -E "[S|s]phere" | uniq -c
+
+
+

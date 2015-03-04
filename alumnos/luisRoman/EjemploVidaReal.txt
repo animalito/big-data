@@ -1,0 +1,36 @@
+##Ejemplo de la vida real:
+#La semana pasada tuve una oportunidad en el trabajo para utilizar herramientas de la terminal. 
+#La tarea era muy simple, me iban a dar un conjunto de coordenadas y yo tenía que graficarlas en un mapa.
+#El problema: Las coordenadas estaban contenidas en 60 archivos distintos (echos para variar en Excel).
+#La primera dificultad con la que me enfrente fue tratar de explorar los archivos desde la terminal pues
+#el comando cat me devolvía una única fila y era obvio que el archivo contenía múltiples. El problema es que 
+#el salto de línea en windows es '\n\r' y no \n. 
+
+#Mi primer acercamiento al problema fue el siguiente:
+
+# cat *.csv | tr -s '\n\r' '\n' >> global.csv
+
+# Después de literalmente 40min de ejecución comencé a sospechar de que algo andaba mal. cuando ejecute
+# du -sh global.csv me di cuenta que el archivo pesaba 24G!!!! lo que pasa es que el comando entro en un ciclo 
+# y autodirigía global.csv >> global.csv
+
+#Mi segundo intento fue el siguiente
+
+# cat *.csv | tr -s '\n\r' '\n' >> global.txt
+
+#Dio resultado pero como la última línea de los archivos no tenía salto de línea, acabe con algunas
+#filas pegadas.
+#Después de intentar varias alternativas con awk y sed me di cuenta que lo más fácil era hacer una
+#solución simple con bash:
+
+for i in *.csv
+do
+ cat $i | tr -s '\n\r' '\n' >> file.csv
+ echo '\n' >> file.csv
+ done
+
+#No muy elegante pero dio resultado!
+
+
+
+

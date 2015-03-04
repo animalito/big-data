@@ -1,0 +1,3 @@
+Para ejecutar en paralelo hay que correr (en paralelo) el script “parallelufo.r”
+
+parallel --nonall Rscript parallelufo.r --slf instancias "	./parallelufo.r"
