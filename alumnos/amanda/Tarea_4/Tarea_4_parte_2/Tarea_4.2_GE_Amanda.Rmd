@@ -1,0 +1,22 @@
+---
+title: "Métodos de Gran Escala Tarea 4 parte 2"
+author: "Amanda Balderas M."
+date: "Febrero 2015"
+output: html_document
+---
+
+**Realiza el _script_ que genera la lista de `urls` para descargar la base de datos de _GDELT_**.
+
+* Ejecutamos el script `lista_urls_gdelt.r`en R para generar la lista y la guardamos en un archivo de texto.
+
+* Arreglamos la lista de urls para poder descargar los archivos desde línea de comandos.
+
+```
+cat lista_urls_gdelt.txt | sed '1d'| sed 's/ / url=/' | cut -d' ' -f2 > urls_gdelt.txt
+```
+
+* Para descargar los datos usamos la siguiente expresión en la lí­nea de comandos:
+
+```
+parallel -j0 curl --config 'urls_gdelt.txt' --remote-name
+```
