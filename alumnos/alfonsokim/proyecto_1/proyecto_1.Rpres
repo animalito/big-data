@@ -195,6 +195,45 @@ Sat: 16931
 Jul: 11540
 ```
 
+Series de Tiempo
+========================================================
+type: sub-section
+
+Series de tiempo
+========================================================
+Las series de tiempo se calcularon casi igual que las rachas, se procesan 
+los datos de la entrada estándar y se fue formando el diccionario de
+avistamientos identificado por la fecha.
+
+Hay avistamientos con fecha en el futuro, esos no se contemplaron
+para la generación de la serie.
+
+
+Series de tiempo
+========================================================
+
+Se usó la librería matplotlib.pyplot para graficar una serie de tiempo
+simple:
+
+![sample](USA.png)
+
+
+Siguientes Pasos
+========================================================
+type: sub-section
+
+Siguientes Pasos
+========================================================
+
+Hay muchas mejoras que se pueden hacer en el estado actual del proyecto:
+
+- Ordenar los scripts, está todo revuelto en la misma carpeta
+
+- En los scripts de python hay muchos métodos duplicados, se puede hacer un script estilo librería para que se use en los demás scripts
+
+- O mejor, los scripts de python se pueden reemplazar por gawk puro
+
+
 Conclusiones
 ========================================================
 type: sub-section
