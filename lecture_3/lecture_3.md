@@ -151,69 +151,6 @@ Instalación
 # select postgis_version();
 ```
 
-========================================================
-type: exclaim
-
-## PostgreSQL
-### Tipos de datos
-
-Tipos de datos
-========================================================
-- `smallint`, `integer`, `bigint`, `numeric`, `float`
-  - Nunca usen `money`
-
-- `uuid`
-
-- `boolean`, `char`, `varchar`, `text` ...
-
-- `inet`, `cidr`, `macaddr`
-
-- `date`, `timestamp`, `time`
-
-- Más los que agregan las extensiones
-
-Arreglos
-=======================================================
-
-```{sql}
-create table cosas (
-  id serial not null,
-  nombre varchar,
-  etiquetas varchar [],
-  created_at timestamp,
-  updated_at timestamp
-);
-```
-
-* Insertamos de la siguiente manera:
-
-```{sql}
-insert into cosas
-values (1, 'Cosa 1', '{"Algo", "Otra cosa"}', now(), now());
-```
-
-* Seleccionamos
-
-```{sql}
-select unnest(etiquetas) from cosas;
-```
-
-Rangos
-=======================================================
-
-```{sql}
-create table clases (
-  salon varchar,
-  periodo tsrange
-);
-```
-
-* Insertamos de la siguiente manera:
-
-```{sql}
-insert into clases
-values ('Sala de video 2', '[2015-03-04 08:00, 2015-03-04 11:00]');
-```
 
 ========================================================
 type: exclaim
@@ -247,7 +184,7 @@ psql
 ### Modo interactivo
 
 - Definir un *alias*
-  - `\set eav 'EXPLAIN ANALYZE VERBOSE`
+  - `\set eav 'EXPLAIN ANALYZE VERBOSE'`
 
 - Otro alias interesante:
 
@@ -297,14 +234,19 @@ psql -f script.sql
 
 ```
 psql -d base_de_datos -c "SELECT * from pg_tables limit 1;"
+
+## Aquí es un caso donde el infierno de las comillas (quotes) puede aparecer.
 ```
+
+psql
+=======================================================
 
 - **Ejercicio**: Averigua que hace la famosa bandera **axe cutie**: `-Ax -qt` ¿En que circunstancia lo usarías? ¿Y la bandera `-e`?
 
 psql
 =======================================================
 
-### Modo no interactivo
+### Modo interactivo
 
 - Algunas mejoras (ejecuta un `select * from pg_tables` entre cada uno de los siguientes.)
 
@@ -314,15 +256,192 @@ psql
 \pset border 2  -- Borde a 2 px
 
 \pset pager off  -- Deshabilita el pager
+
+\pset null '[NULL]' -- Qué imprimir cuando NULL
 ```
+
+psql
+=======================================================
+
+### Modo interactivo
 
 - Mejorar el **[`PROMPT1`](http://www.postgresql.org/docs/9.3/static/app-psql.html#APP-PSQL-PROMPTING)**
 
 ```
 \set PROMPT1 '%[%033[33;1m%]%x%[%033[0m%]%[%033[1m%]%/%[%033[0m%]%R%# '
+-- PROMPT2 es lo que imprime cuando está esperando más input
+\set PROMPT2 '[más] %R > '
 ```
 
--  Obviamente pueden agregarlo a su **`.psqlrc`**
+-  Obviamente pueden agregar todo  a su **`.psqlrc`**, sólo recuerden desactivar cuando ejecuten un comando de forma no interactiva.
+    - con `-X`, por si les dió flojera leer el `man`.
+
+
+========================================================
+type: exclaim
+
+## PostgreSQL
+### Tipos de datos
+
+Tipos de datos
+========================================================
+- `smallint`, `integer`, `bigint`, `numeric`, `float`
+  - Nunca usen `money`
+
+- `uuid`
+  - Ver [esta extensión](http://www.postgresql.org/docs/9.4/static/uuid-ossp.html).
+
+- `boolean`, `char`, `varchar`, `text` ...
+
+- `inet`, `cidr`, `macaddr`
+
+- `date`, `timestamp`, `time`
+
+- Más los que agregan las extensiones
+
+
+Arreglos
+=======================================================
+
+- [Documentación](http://www.postgresql.org/docs/9.4/static/arrays.html)
+
+- ¿Cuándo usarlos?
+  - En cualquier caso donde tus relaciones acaben siendo
+
+  ```
+
+  | ... | campo1 | campo2 | campo3 | ... |
+
+  ```
+
+Arreglos
+=======================================================
+
+- Es importante que no son estructuras de datos como en otros lenguajes
+    - PostgreSQL  accesa los elementos del arreglo de manera secuencial, ya que los guarda como un arreglo de valores, no de apuntadores.
+    - Esto ocurre con arreglos variables como `hstore`, `json`, `varchar`, `text`, etc.
+
+- Para un ejemplo ver esta [página](http://blog.heapanalytics.com/dont-iterate-over-a-postgres-array-with-a-loop/).
+
+- Una manera de darle la vuelta es usando `unnest`.
+
+Arreglos
+=======================================================
+
+```{sql}
+create table cosas (
+  id serial not null,
+  nombre varchar,
+  etiquetas varchar [],
+  created_at timestamp,
+  updated_at timestamp
+);
+```
+
+* Insertamos de la siguiente manera:
+
+```{sql}
+insert into cosas
+values (1, 'Cosa 1', '{"Algo", "Otra cosa"}', now(), now());
+insert into cosas
+values (2, 'Cosa 2', '{"Algo más", "cosa"}', now(), now());
+insert into cosas
+values (3, 'Cosa 3', '{"Algo", "cosa"}', now(), now());
+```
+
+Arreglos
+=======================================================
+
+* Seleccionamos usando el operador de contención `@>`
+  - Más operadores [aquí](http://www.postgresql.org/docs/9.4/static/functions-array.html).
+
+```{sql}
+select nombre from cosas
+where etiquetas @> '{Algo}';
+```
+
+
+
+* Seleccionamos usando unnest
+
+```{sql}
+select unnest(etiquetas) from cosas;
+```
+
+
+Rangos
+=======================================================
+
+* [Documentación](http://www.postgresql.org/docs/9.4/static/rangetypes.html)
+
+* Tipos
+  - `int4range`
+  - `int8range`
+  - `numrange`
+  - `tsrange`
+  - `tstzrange`
+  - `daterange`
+
+
+Rangos
+=======================================================
+
+```{sql}
+create table clases (
+  salon varchar,
+  periodo tsrange
+);
+```
+
+* Insertamos de la siguiente manera:
+
+```{sql}
+insert into clases
+values ('Sala de video 2', '[2015-03-04 08:00, 2015-03-04 11:00]');
+```
+
+Tipos compuestos
+=======================================================
+
+- El ejemplo paradigmático es el de los números complejos $\mathbf{C}$
+
+```{sql}
+create type complejo as (
+  real double precision,
+  img double precision
+  );
+
+create table test (
+  num_complejo complejo,
+  num_real double precision
+);
+
+```
+
+
+Tipos compuestos
+=======================================================
+
+- ¿Cómo se usa?
+
+```{sql}
+-- Insertar
+insert into test values (row(1.0, 32), 1000);
+insert into test values ((1.234, 2), 0);
+
+-- Es preferible usar row para no escapar quotes :(
+
+-- Seleccionar por atributo
+select (num_complejo).real from test;
+
+-- Actualizar
+update test  set num_complejo = (2, 64)
+  where num_real = 1000;
+
+update test  set num_complejo.real = 4
+  where num_real = 1000;
+-- Nota la asimetría con el select
+```
 
 
 ========================================================
@@ -509,7 +628,14 @@ create extension fuzzystrmatch schema mis_extensiones;
 - Las extensiones se deben de instalar *por base de datos*.
 
 **Ejercicio**: Instalar las siguientes extensiones: `dblink`, `file_fdw`, `fuzzystrmatch`, `hstore`
-, `pgcrypto`, `postgres_fdw`, `tablefunc`, `auto_explain`, `cube`, `dict_xsyn`, `pg_trgm`.
+, `pgcrypto`, `postgres_fdw`, `tablefunc`, `auto_explain`, `cube`, `dict_xsyn`, `pg_trgm`, `uuid-ossp`.
+
+
+========================================================
+type: exclaim
+
+## PostgreSQL
+### Operaciones básicas
 
 
 Operaciones básicas
@@ -523,6 +649,36 @@ Operaciones básicas
 
 * `DELETE`
 
+SELECT
+======================================================
+
+- En teoría es sencillo, pero ejecuta lo que sigue
+    - En pantalla completa
+
+```{sql}
+
+postgres=# \help select
+
+Command:     SELECT
+Description: retrieve rows from a table or view
+Syntax:
+
+...
+
+```
+
+SELECT
+=======================================================
+
+Existen además:
+
+- `VALUES` regresa una tabla luego de evaluar las expresiones.
+
+- `TABLE` es un `SELECT * FROM`.
+
+- **Ejercicio** Usa los `\help` para ver como son.
+
+
 Modificadores básicos
 =======================================================
 
@@ -534,9 +690,76 @@ Modificadores básicos
 
 Joins
 =======================================================
-Tomado desde [aquí](http://giannopoulos.net/wp-content/uploads/2013/05/B)
+Imagen tomada de [aquí](http://giannopoulos.net/wp-content/uploads/2013/05/B)
 
-![sql_joins](images/sql_joins.jpg)
+<div class="midcenter" style="margin-left:-300px; margin-top:-240px;">
+  <img src="images/sql_joins.jpg"></img>
+</div>
+
+
+Joins
+=======================================================
+
+- `CROSS JOIN`
+  - `select * from tabla1 CROSS JOIN tabla2;`
+  - Producto cartesiano
+  - Si lo están usando, quizá sea por error:
+      - `select * from tabla1, tabla2;`
+
+
+Joins
+=======================================================
+
+- `INNER JOIN`
+
+```{sql}
+select ... from tabla1 INNER JOIN tabla2 ON condicion;
+
+select ... from tabla1 INNER JOIN tabla2 USING (lista columnas);
+
+select ... from tabla1 NATURAL INNER JOIN tabla2;
+```
+
+Joins
+=======================================================
+
+- `OUTER JOIN`
+    - Agrega renglones sin _match_ llenándolas con valores `NULL`.
+
+```{sql}
+select ... from tabla1
+  LEFT/RIGHT/FULL  OUTER JOIN tabla2 ON condicion;
+
+select ... from tabla1
+  LEFT/RIGHT/FULL  OUTER JOIN tabla2
+    USING (lista columnas);
+
+select ... from tabla1 NATURAL
+  LEFT/RIGHT/FULL  OUTER  JOIN tabla2;
+```
+
+Operaciones de conjuntos
+======================================================
+
+- Va enmedio de dos `selects`
+
+  - `union`
+  - `union all`
+  - `intersect`
+  - `except`
+
+
+Subqueries
+=======================================================
+
+- Sin correlacionar
+  - Calculan un resultado constante para el `query` superior
+  - Se ejecutan una sola vez
+
+- Correlacionado
+  - Referencia variables del `query` superior.
+  - Se repite por cada renglón del `query` superior.
+  - Se puede reescribir como un `join`.
 
 
 Agregaciones
@@ -598,12 +821,24 @@ select
 from information_schema.columns
 where table_name = 'table_name' and table_schema='table_schema';
 ```
+
+Generar queries
+=======================================================
+
 - Generar *queries* para `MongoDB`
 
 ```{sql}
 select
     'db.foo.findOne({_id: ObjectId("' || _id || '")})'
 from foo;
+```
+- Generar una tabla con muchas columnas de un tipo
+  - por ejemplo vas a importar un archivo MSExcel para un **LET**.
+
+```{sql}
+SELECT 'CREATE TABLE data_import('
+|| string_agg('field' || i::text || ' varchar(255)', ',') || ');'
+FROM generate_series(1,100) As i;
 ```
 
 Fechas
@@ -659,78 +894,92 @@ generate_series(0,14,2) as step(i);
 
 - Como las tablas dinámicas de Excel.
 
-- Usaremos `tablefunc`
+- Usaremos `tablefunc`, en particular la función `crosstab(source_sql, category_sql)`
+
+- Recuerda activar la extensión
+
+```
+create extension tablefunc;
+create extension "uuid-ossp"; -- También la usaremos
+```
+
+"Pivotear" tablas
+========================================================
+
+- Generemos una tabla transaccional
 
 ```{sql}
-CREATE TEMP TABLE t (
-  section   text
- ,status    text
- ,ct        integer
+select
+generate_series as fecha,
+cus.tarjeta as tarjeta,
+(ARRAY['ATM', 'COMERCIO', 'INTERNET'])[trunc(random()*3)+1] as tipo_comercio,
+(random() * 10000 + 1)::int AS monto
+into transacciones
+from generate_series((now() - '100 days'::interval)::date, now()::date, '1 day'::interval),
+(select uuid_generate_v4() as tarjeta from generate_series(1,15)) cus;
+```
+
+"Pivotear" tablas
+========================================================
+
+```{sql}
+select *
+from crosstab(
+'select                      -- source sql
+date_part(''year'', fecha),
+date_part(''month'', fecha),
+tipo_comercio,
+monto from transacciones
+order by 1',
+'select                      -- category sql
+distinct tipo_comercio
+from transacciones'
+)
+as                           -- tabla de salida
+( year int,
+  month int,
+  ATM int,
+  COMERCIO int,
+  INTERNET int
 );
-
-INSERT INTO t VALUES
- ('A', 'Active', 1), ('A', 'Inactive', 2)
-,('B', 'Active', 4), ('B', 'Inactive', 5)
-                   , ('C', 'Inactive', 7);
 ```
 
-```{sql}
-SELECT * FROM crosstab(
-       'SELECT section, status, ct
-        FROM   t
-        ORDER  BY 1,2'
+Ejercicio
+=======================================================
 
-      ,$$VALUES ('Active'::text), ('Inactive')$$)
-AS ct ("Section" text, "Active" int, "Inactive" int);
-```
+- Modifica el generador de datos para incluir la columna `colonia` la cual pueda tener 10 valores.
+- Modifica el generador de datos para incluir horas en las fechas.
+- Modifica el generador para que **no** transaccionen las tarjetas todos los días.
+
 
 Estadísticas muy loca
 ========================================================
 - Como **feature engineering**
 
-Suponiendo una tabla así:
-
-
-user_id | place | type_of_place | money_spended| time
---------|-------|---------------|-------------|------
-        |       |               |             |
-
 - Promedio y desviación estandar...
 
 ```{sql}
 SELECT
-    user_id,
-    type_of_place,
-    avg(money_spended) AS avg,
-    stddev(money_spended) AS stddev
+    tarjeta,
+    tipo_comercio,
+    avg(monto) AS avg,
+    stddev(monto) AS stddev
 FROM
 
 GROUP BY
-    user_id,
-    type_of_place
+    tarjeta,
+    tipo_comercio
 ```
 
 Estadísticas muy loca
 ========================================================
 
-- Hora en la que más realiza transacciones
+- Top 5 colonias por gasto
 
 ```{sql}
 SELECT
     ...
-    mode(extract(hour FROM time)) AS mode  -- Add this expression
-FROM
-    ...
-```
-Estadísticas muy loca
-========================================================
-
-- Top 5 lugares por gasto
-
-```{sql}
-SELECT
-    ...
-    (array_agg(place ORDER BY money_earned DESC))[1:5] AS top5_places
+    (array_agg( colonia ORDER BY monto DESC))[1:5] AS top5_colonias
 FROM
     ...
 ```
@@ -739,12 +988,12 @@ FROM
 
 ```{sql}
 (SELECT
-    (array_agg(place ORDER BY cnt DESC))[1:5]
+    (array_agg(colonia ORDER BY cnt DESC))[1:5]
 FROM
-    (SELECT place, count(*) FROM earnings AS t2
-     WHERE t2.user_id = earnings.user_id AND t2.type_of_place = earnings.type_of_place
-     GROUP BY place) AS s (place, cnt)
-) AS top5_places
+    (SELECT colonia, count(*) FROM transacciones AS t2
+     WHERE t2.tarjeta = transacciones.tarjeta AND t2.tipo_comercio = transacciones.tipo_comercio
+     GROUP BY colonia) AS s (colonia, cnt)
+) AS top5_colonias
 ```
 
 
@@ -758,12 +1007,15 @@ Estadísticas muy loca
 (SELECT
     array_agg(cnt ORDER BY hour DESC)
 FROM
-    (SELECT extract(hour FROM time), count(*) FROM earnings AS t2
-     WHERE t2.user_id = earnings.user_id AND t2.type_of_place = earnings.type_of_place
+    (SELECT extract(hour FROM fecha), count(*) FROM transacciones AS t2
+     WHERE t2.tarjeta = transacciones.tarjeta AND t2.tipo_comercio = transacciones.tipo_comercio
      GROUP BY 1) AS s (hour, cnt)
 ) AS hourly_histogram
 ```
 
+
+Estadísticas muy loca
+========================================================
 
 
 **Ejercicio:** El último query no trae los datos correctos, es necesario usar un `generate_series`
@@ -839,6 +1091,10 @@ Ejercicio: Un poco de Text Mining
     unique (movie_id, actor_id)
   );
 ```
+
+Ejercicio: Un poco de Text Mining
+========================================================
+
 - Índices
 
 ```{sql}
@@ -873,6 +1129,10 @@ select count(*) from movies where title !~* '^the.*';
 create index movies_title_pattern on movies (lower(title) text_pattern_ops);
 -- Alternativas: varchar_pattern_ops, bpchar_pattern_ops, tern_ops, name_pattern_ops
 ```
+
+Ejercicio: Un poco de Text Mining
+========================================================
+
 - Levenshtein
 
 ```{sql}
@@ -880,8 +1140,7 @@ select movie_id title from movies
 where levenshtein(lower(title), lower('a hard day nght')) <= 3;
 ```
 
-Ejercicio: Un poco de Text Mining
-========================================================
+
 
 -Trigramas
 
@@ -899,6 +1158,9 @@ where title % 'Avatre';
 
 -- Excelentes para user input...
 ```
+
+Ejercicio: Un poco de Text Mining
+========================================================
 
 -- Metafonemas
 
@@ -949,13 +1211,14 @@ ORDER BY dist;
 ```
 
 
-Ejercicio: Un poco de Text Mining
+Ejercicio
 ========================================================
 
 **Ejercicio**: Trae todas las películas cercanas a *Apocalypse Now* para recomendárselas a un amigo...
 
 **Ejercicio**: ¿Cómo modificas el código, si tu amigo escribe mal el nombre de la película?
 
+**Ejercicio**: Usando el truco del `cube` y las estadísticas por tarjeta, ve que tarjetas se parecen.
 
 Agregaciones
 ====================================================
@@ -995,6 +1258,61 @@ from (
      from actors j
 ) as tabla;
 ```
+
+========================================================
+type: exclaim
+## PostgreSQL
+## Untrusted Languages
+
+
+
+Ejecutar Python dentro de PostgreSQL
+=======================================================
+
+- Instalar la librería
+
+```{bash}
+sudo apt-get install postgresql-plpython-9.4
+```
+
+- En la base de datos
+
+```{sql}
+create language plpythonu;
+```
+
+Ejecutar Python dentro de PostgreSQL
+=======================================================
+
+
+- Crear una función
+
+```{sql}
+create function hola(name text)
+  returns text as $$
+    return 'hola %s!' % name
+$$ language plpythonu;
+```
+
+- Usar la función
+
+```{sql}
+select hola('Adolfo');
+```
+
+Ejecutar Python dentro de PostgreSQL
+=======================================================
+
+- ¿Por qué?
+  - Es más fácil programar en `python` que en `PL/pgSQL`
+
+  - Se puede escribir todo: `queries`, `caching`, `triggers`, `exceptions`
+
+- ¿Peligros?
+  - Por algo se llaman `untrusted languages`.
+  - `SQL injection`
+  - Corromper la base
+
 
 ========================================================
 type: exclaim
@@ -1210,6 +1528,13 @@ type: exclaim
 Modificar, modificar
 ========================================================
 * Modificar: `/etc/postgresql/9.x/postgres.conf`
+  * Puedes hacerlo con
+
+  ```
+  \e /etc/postgresql/9.4/postgres.conf
+  ```
+
+  desde `psql`.
   * `shared_buffers` por lo menos un 1/4 de RAM
       - Si tienes más de 32 Gb `->` 8Gb
   * `wal_buffers=16Mb`
@@ -1248,14 +1573,143 @@ type: exclaim
 
 
 
-App
+Estadísticas
 ========================================================
 * Al igual que en el código, no optimicen al inicio...
 
+* Todo empieza con las estadísticas: `pg_stat_statements`.
 
+* Registra las estadísticas de todos los SQL ejecutados en el servidor.
+
+```
+create extension pg_stat_statements;
+```
+
+Estadísticas
+========================================================
+
+Hay que mover el archivo `postgresql.conf` de nuevo
+
+```
+# postgresql.conf
+shared_preload_libraries = 'pg_stat_statements'
+
+pg_stat_statements.max = 10000
+pg_stat_statements.track = all
+```
+
+- [Ver](http://www.postgresql.org/docs/9.4/static/pgstatstatements.html) la documentación
+
+Estadísticas
+========================================================
+
+```{sql}
+SELECT
+  (total_time / 1000 / 60) as total_minutes,
+  (total_time/calls) as average_time,
+  query
+FROM pg_stat_statements
+ORDER BY 1 DESC
+LIMIT 100;
+```
+
+- ¿Qué optimizar?
+
+Queries
+========================================================
+* Hagan mucho en cada query
+    - PostgreSQL es muy bueno con queries grandes
+    - (y no tan bueno con muchos queries pequeños).
+
+* Asegurar que cuando usen una llave o índice los tipos coincidan (o no se usará el índice).
+
+* Eviten búsquedas de texto como `LIKE %Hola%`
+
+
+Queries: EXPLAIN ANALYZE
+========================================================
+
+```{sql}
+explain [analyze]
+select * from ...
+```
+
+* Es un  árbol invertido -> Hay que buscar en el nivel más profundo para ver donde ocurre el problema.
+
+* Leerlo es una arte...
+
+Queries: EXPLAIN ANALYZE
+========================================================
+
+```{sql}
+postgres=# explain select * from transacciones;
+                 QUERY PLAN
+--------------------------------------------------
+ Seq Scan on transacciones
+ (cost=0.00..28.15 rows=1515 width=35)
+(1 row)
+
+```
+
+```
+postgres=# explain analyze select * from transacciones;
+                 QUERY PLAN
+--------------------------------------------------
+ Seq Scan on transacciones
+ (cost=0.00..28.15 rows=1515 width=35)
+ (actual time=0.007..0.105 rows=1515 loops=1)
+ Planning time: 0.024 ms
+ Execution time: 0.158 ms
+(3 rows)
+
+```
+
+Queries: EXPLAIN ANALYZE
+========================================================
+
+
+```
+postgres=# explain analyze select * from transacciones where monto > 5000;
+                 QUERY PLAN
+--------------------------------------------------
+ Seq Scan on transacciones
+ (cost=0.00..31.94 rows=742 width=35)
+ (actual time=0.007..0.170 rows=746 loops=1)
+   Filter: (monto > 5000)
+   Rows Removed by Filter: 769
+ Planning time: 0.039 ms
+ Execution time: 0.207 ms
+(5 rows)
+```
+
+
+Queries: EXPLAIN ANALYZE
+========================================================
+
+
+* Buscar malos conteos, escaneos secuenciales, loops enormes, etc.
+
+- Ve la carpeta `docs` para una mayor profundización al tema.
 
 Indexing
 ========================================================
+
+- `B-tree`
+  - Es el valor por omisión. Regularmente quieres usar este.
+- `Gin`
+  - Varios valores en una columna
+  - `hstore / array / json`
+- `Gist`
+  - Full text search
+  - Shapes
+  - GIS
+
+Entre otros
+
+Indexing
+========================================================
+
+
 * Indexing
     - foreign keys
     - `WHERE` comunes
@@ -1266,9 +1720,24 @@ Indexing
 * Los índices afectan muchísimo los `updates`, `deletes`
     - No tiene caso hacerlo para tablas pequeñas
 
+Indexing
+========================================================
 
 
 
+* Ya se pueden generar concurrentemente:
+
+```
+create index concurrently...
+```
+
+* Con filtros
+
+```
+create index where var = valor
+```
+
+* Rule of thumb: Índices en más de 10,000 filas...
 
 
 Indexing
@@ -1313,7 +1782,7 @@ Partitioning
 Partitioning
 ========================================================
 * Está basado en `table inheritance` y  `constraint exclusion`:
-    - `triggers`o `RULES` se encargan de las inserciones y actualizaciones.
+    - `triggers` o `RULES` se encargan de las inserciones y actualizaciones.
     - Las constricciones definen los rangos para la tabla.
 
 * Consideraciones:
@@ -1365,64 +1834,6 @@ FOR EACH ROW EXECUTE PROCEDURE ufo_insert();
 
 
 
-Queries
-========================================================
-* Hagan mucho en cada query
-    - PostgreSQL es muy bueno con queries grandes
-    - (y no tan bueno con muchos queries pequeños).
-
-* Asegurar que cuando usen una llave o índice los tipos coincidan (o no se usará el índice).
-
-* Eviten búsquedas de texto como `LIKE %Hola%`
-
-
-
-
-
-Queries: EXPLAIN ANALYZE
-========================================================
-
-```{sql}
-explain [analyze]
-select * from ...
-```
-
-* Es un  árbol invertido -> Hay que buscar en el nivel más profundo para ver donde ocurre el problema.
-
-* Leerlo es una arte...
-
-Queries: EXPLAIN ANALYZE
-========================================================
-
-```{sql}
-postgres=# explain select * from clases;
-                        QUERY PLAN
-----------------------------------------------------------
- Seq Scan on clases  (cost=0.00..18.60 rows=860 width=64)
-(1 row)
-```
-
-```
-postgres=# explain analyze select * from clases;
-                                             QUERY PLAN
-----------------------------------------------------------------------------------------------------
- Seq Scan on clases  (cost=0.00..18.60 rows=860 width=64) (actual time=0.005..0.006 rows=1 loops=1)
- Planning time: 0.026 ms
- Execution time: 0.018 ms
-(3 rows)
-```
-
-
-Queries: EXPLAIN ANALYZE
-========================================================
-
-
-* Buscar malos conteos, escaneos secuenciales, loops enormes, etc.
-
-- Ve en la carpeta `docs`, el archivo `optimizer.pdf` para una introducción al tema.
-
-- Activa la extensión `auto_explain` para que puedas estar optimizando mientras ejecutas *queries*.
-
 
 Tablespaces
 ========================================================
@@ -1459,9 +1870,9 @@ ETL
 
 
 
-`INSERT`s
+INSERTs
 ========================================================
-* "Bulk inserts"
+* _Bulk inserts_
 
 ```{sql}
 UPDATE  mytable
@@ -1485,7 +1896,7 @@ VALUES
 
 
 
-`INSERT`s
+INSERTs
 ========================================================
 ```{sql}
 INSERT INTO bar (a, b, c)
@@ -1502,7 +1913,7 @@ WHERE  a = foo.d;
 
 
 
-`INSERT`s
+INSERTs
 ========================================================
 * Crea y carga las tablas en una sola transacción (`SELECT INTO`, `CREATE TABLE AS`)
 
@@ -1514,7 +1925,7 @@ WHERE  a = foo.d;
 
 
 
-`COPY`
+COPY
 ========================================================
 * Dos versiones en  `psql` y en `SQL`:
     - `COPY`  en el servidor
@@ -1531,7 +1942,7 @@ WHERE  a = foo.d;
 
 
 
-`COPY`
+COPY
 ========================================================
 * En `SQL`
 
@@ -1553,13 +1964,14 @@ delimiter ',' header csv;
 ```
 
 
-`COPY`
+COPY
 ========================================================
 
 * **Versión segura**:
 
 ```
-\copy airports(iata, airport, city, state, country, lat, long)
+\copy
+airports(iata, airport, city, state, country, lat, long)
 from 'airports.csv' with delimiter ',' header csv
 ```
 
@@ -1569,14 +1981,18 @@ COPY: Archivos gigantes
 - Si tengo un archivo gigante y quiero aprovechar la memoria de manera eficiente y mis CPUs
 
 ```
-cat archivote.psv | parallel --pipe --block 500M ./carga_postgres.sh
+cat archivote.psv | \
+  parallel --pipe --block 500M ./carga_postgres.sh
 
-# Si no lee de stdin y usa archivos...
+## Si no lee de stdin y usa archivos...
+cat archivote.psv | \
+  parallel --pipe --block 500M "cat > {#}; ./carga_postgres.sh {#}"
 
-cat archivote.psv | parallel --pipe --block 500M "cat > {#}; ./carga_postgres.sh {#}"
-
-# Salvando el avance...
-cat archivote.psv | parallel --pipe --block 500M --joblog my_log --resume-failed "cat > {#}; ./carga_postgres.sh {#}"
+## Salvando el avance...
+cat archivote.psv | \
+  parallel --pipe --block 500M \
+    --joblog my_log --resume-failed \
+      "cat > {#}; ./carga_postgres.sh {#}"
 ```
 
 
@@ -1587,12 +2003,13 @@ COPY: Archivos gigantes
   - Viene incluida dentro de `GNU parallel`
 
 ```
-cat archivote.psv | parallel --pipe --block 500M sql pg://user:pass@host/db
+cat archivote.psv | \
+  parallel --pipe --block 500M sql pg://user:pass@host/db
 ```
 
 Esta versión no usa archivos temporales , todo pasa por los *pipes* (memoria).
 
-`FDW`: Foreign Data Wrappers
+FDW: Foreign Data Wrappers
 ========================================================
 * Soporta: Oracle, MySQL, ODBC, NoSQL, Archivos, twitter, ldap, www, etc.
     - [Docs](http://wiki.postgresql.org/wiki/Foreign_data_wrappers)
@@ -1606,7 +2023,8 @@ CREATE SERVER file_server FOREIGN DATA WRAPPER file_fdw;  -- Una formalidad
 CREATE FOREIGN TABLE carriers
 ( Code varchar, Description varchar )
 SERVER file_server
-OPTIONS (format 'csv', delimiter ',', filename 'carriers.csv', header 'true', null '');
+OPTIONS \
+(format 'csv', delimiter ',', filename 'carriers.csv', header 'true', null '');
 ```
 
 
@@ -1641,7 +2059,7 @@ GROUP BY tail_num, year, month;
 
 
 
-`Unlogged tables`
+Unlogged tables
 ========================================================
 * Hasta 40% más rápidas (no usan el wal)
 
@@ -1653,7 +2071,7 @@ FROM dirty_rita,
 WHERE ...
 ```
 * Mucho cuidado, se cae el servidor y desaparece la tabla
-    - Ya me pasó :( 6 Tb perdidos
+    - Ya me pasó :( varios Tb perdidos
 
 
 
@@ -1720,48 +2138,13 @@ sql -n --list-tables pg://user:pass@host/db  | parallel -j0 -r --colsep '\|' sql
 
 Tarea
 ========================================================
-* Cargar los archivos ufo de manera sucia
 * Configurar su `postgres.conf`
-* Crear un particionado para ufo por año.
+* Cargar los archivos ufo y gdelt de manera sucia
+* Crear un particionado para ufo y gdelt por año.
 * Cargar  todas las tablas auxiliares como fdw.
-* Limpiar ufo en la BD.
-* Exportar a archivo CSV (con `copy`).
-
-¿Cómo cargar masivamente?
-========================================================
-* Dentro del archivo `cargar_ufo.sh`
-
-```{shell}
-# Dividimos el archivo rita.csv
-split -l 1000000 rita.csv rita_
-
-for f in rita_*
-do
-# Yo cambiaría el encoding de cada archivo con iconv antes de cargarlos
-sql="\copy dirty_rita from $f with header csv;";
-echo $sql
-echo "-"
-date
-# Ojalá hayan configurado .pgpass
-psql -d bigdata_db -U usuario -c "$sql"
-echo "*******************************"
-date
-done
-
-# Borramos
-# rm rita_*
-```
-
-- ¿Cómo hacerlo en paralelo?
-
-Van a fallar las subidas...
-========================================================
-* Pero no todas... (esa es la idea, avanzar)
-
-* Los archivos que no se carguen, observen el error y quiten las líneas con `sed`.
-    - Guarden las líneas con error a una archivo
-
-* Quizá sea bueno guardar la salida del script a un archivo con `>` .
+* Limpiar ufo y gdelt en la BD.
+* Exportarlas a archivo CSV (con `copy`).
+* Usen masivamente `parallel` y sus utilerías.
 
 ========================================================
 type: exclaim
