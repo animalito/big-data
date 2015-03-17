@@ -135,10 +135,11 @@ echo "local     gdelt     gdeltdba     md5" >> `./hba_path`
 pg_ctl restart -D ./data/
 
 # -----------------------------------------------
-# Configuracion del contenedor de docker
-# para que funcione como servidor de bd
+# Configuracion del serivicio para que se
+# pueda levantar desde docker
 # -----------------------------------------------
 
+# Shell de arranque
 echo "
 su - postgres
 #!/bin/bash
@@ -146,4 +147,19 @@ su - postgres
 " >> start_postgres
 
 chmod +x start_postgres
+
+exit
+
+# -----------------------------------------------
+# Los siguientes comandos se corren en el
+# host, fuera del docker
+# -----------------------------------------------
+# Crear un checkpoint de la imagen
+docker commit -m "bd, usuarios, esquemas y extensiones OK" postgres postgres:ready
+
+# Correr la imagen pegando el puerto de postgres a otro puerto local
+docker run -p 2345:5432 -u postgres postgres:ready /var/lib/postgresql/start_postgres
+
+
+
 
