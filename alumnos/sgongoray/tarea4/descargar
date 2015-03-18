@@ -1,0 +1,18 @@
+install.packages('XML')
+install.packages('rvest')
+library(rvest)
+
+base <- "http://data.gdeltproject.org/events/"
+
+  gdelt <- html(paste0(base,"index.html"))
+
+  files <- gdelt %>% 
+     html_nodes("a") %>%
+     html_text()
+
+  for (i in files[4:801]){
+       url <- paste0(base,i)
+        destfile <- paste0("/home/sergio/MetodosDeGranEscala/gdelt_file",i)
+       download.file(url,destfile)
+    }
+

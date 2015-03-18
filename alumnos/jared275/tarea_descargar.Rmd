@@ -1,0 +1,33 @@
+---
+title: "Tarea descarga UFO"
+author: "Carlos Jared Romero Reyes"
+date: "24/02/2015"
+output: html_document
+---
+
+Primero consigo los nombres de las direcciones de los archivos
+
+```{r}
+ufo_data <- html("http://data.gdeltproject.org/events/index.html")
+
+archivos<-ufo_data%>%
+  html_nodes("a") %>%
+  html_attr("href")
+
+#Pego la dirección completa y solo me quedo con los archivos que tienen información
+archivos<-paste0("http://data.gdeltproject.org/events/",archivos[4:807])
+
+write (archivos, "/home/jared/Dropbox/Maestría CD/big-data/alumnos/jared275/archivos_ufo.txt")
+```
+
+En la linea de comando me voy mi directorio y los descargo en paralelo con el siguiente comando:
+
+__parallel -a archivos_ufo.txt wget__
+
+Después de descargar los archivos zip los descomprimo con parallel con el siguiente comando
+
+__ls *.zip | parallel unzip__
+
+Finalmente borro los archivos zip con:
+
+__ls *.zip | parallel rm__

@@ -1672,12 +1672,12 @@ Distribuyendo ejecución
 - Verifiquemos que podemos conectarnos:
 
 ```
-parallel --nonall -slf instancias hostname
+parallel --nonall --slf instancias hostname
 ```
 
 - `slf` = `--sshloginfile`
 - `--nonall` significa que se ejecute el mismo comando en todas las máquinas remotas sin parámetros.
-- Si no tienes máquinas remotas puedes cambiar `-slf instancias` por `--sshlogin :`.
+- Si no tienes máquinas remotas puedes cambiar `--slf instancias` por `--sshlogin :`.
 
 Distribuyendo parallel
 =======================================================
@@ -1685,7 +1685,7 @@ Distribuyendo parallel
 - Para usar todos los `cores` de la máquina remota debes de tener instalado `parallel`
 
 ```
-parallel --nonall -slf instancias "sudo apt-get install -y parallel"
+parallel --nonall --slf instancias "sudo apt-get install -y parallel"
 ```
 
 Distribuyendo archivos

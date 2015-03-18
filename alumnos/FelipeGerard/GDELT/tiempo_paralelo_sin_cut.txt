@@ -1,0 +1,1 @@
+./en_paralelo_sin_cut.sh > result_en_paralelo_sin_cut.txt  4752.00s user 92.47s system 780% cpu 10:20.60 total

@@ -1,0 +1,38 @@
+---
+title: "Métodos de Gran Escala Tarea 4 parte 3"
+author: "Amanda Balderas M."
+date: "Monday, February 23, 2015"
+output: html_document
+---
+
+**Modificar los ejemplos de awk de promedios, máximo, mí­nimo y desviaión estándar para que se calculen con varias columnas.**
+
+**_Media_**
+
+```
+awk -F " " '{for (i=1; i<=NF; i++) sum[i] += $i; j=NF} END {for (i=1; i<=j; ++i) printf "%s ", sum[i]/NR; printf "\n"}'
+```
+
+**_Máximo_**
+
+```
+awk -F" " '{for (i=1; i<=NF; i++) {if(max[i]==""){max[i]=$i} if($i>max[i]){max[i]=$i}}; j=NF} END {for (i=1; i<=j; ++i) printf "%s ", max[i]; printf "\n"}'
+```
+
+**_Mínimo_**
+
+```
+awk -F" " '{for (i=1; i<=NF; i++) {if(min[i]==""){min[i]=$i} if($i<min[i]){min[i]=$i}}; j=NF} END {for (i=1; i<=j; ++i) printf "%s ", min[i]; printf "\n"}'
+```
+
+**_Desviación estándar_** 
+
+```
+awk -F" " '{for (i=1; i<=NF; i++) {sum[i]+=$i; sumsq[i]+=$i*$i}; j=NF} END {for (i=1; i<=j; ++i) printf "%s ", sqrt(sumsq[i]/NR - (sum[i]/NR)**2); printf "\n"}'
+```
+
+**_Varianza_**
+
+```
+awk -F" " '{for (i=1; i<=NF; i++) {sum[i]+=$i; sumsq[i]+=$i*$i}; j=NF} END {for (i=1; i<=j; ++i) printf "%s ", sumsq[i]/NR - (sum[i]/NR)**2; printf "\n"}'
+```

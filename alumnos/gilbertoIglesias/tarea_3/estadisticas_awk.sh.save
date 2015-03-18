@@ -1,0 +1,9 @@
+cat UFO-Nov-Dic-2014-limpio.tsv | cut -f5 | grep "[0-9].*" > UFO-Nov-Dic-2014-numeros.tsv
+sed 's/~//' UFO-Nov-Dic-2014-numeros.tsv  |  sed 's/ /|/' > UFO-Nov-Dic-2014-numeros.tsvawk '
+{FS="|"}
+{
+  print $2;
+  count+=1;
+} 
+END {print "mean = " count}
+' UFO-Nov-Dic-2014-numeros.tsv

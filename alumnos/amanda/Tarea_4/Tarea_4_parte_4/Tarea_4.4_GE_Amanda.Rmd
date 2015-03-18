@@ -1,0 +1,32 @@
+---
+title: "Métodos de Gran Escala Tarea 4 parte 3"
+author: "Amanda Balderas M."
+date: "Monday, February 23, 2015"
+output: html_document
+---
+
+**¿Cuánto tiempo tarda cada una de las cuatro opciones?**
+
+* Verificamos el tiempo que tarda el script utilizando `awk` y procesando en _serie_.
+
+```
+time ./awk_serie.sh
+```
+
+* Verificamos el tiempo que tarda el script utilizando `awk` y procesando en _parallelo_.
+
+```
+time ./awk_paral.sh
+```
+
+* Verificamos el tiempo que tarda el script utilizando `mawk` y procesando en _serie_.
+
+```
+time ./awk_serie.sh
+```
+
+* Verificamos el tiempo que tarda el script utilizando `mawk` y procesando en _parallelo_.
+
+```
+time ./awk_paral.sh
+```
