@@ -58,6 +58,7 @@ type: exclaim
 ========================================================
 
 * Open-source
+* Es una base de datos orientada a objetos.
 * Varios tipos de [índices](http://www.postgresql.org/docs/9.3/static/indexes.html)
 * `JOIN`s optimizados
     - 5 diferentes tipos de joins
@@ -971,7 +972,7 @@ GROUP BY
     tipo_comercio
 ```
 
-Estadísticas muy loca
+Feature engineering
 ========================================================
 
 - Top 5 colonias por gasto
@@ -997,7 +998,7 @@ FROM
 ```
 
 
-Estadísticas muy loca
+Feature engineering
 ========================================================
 
 - ¿Y un histograma de horas en los lugares?
@@ -1014,7 +1015,7 @@ FROM
 ```
 
 
-Estadísticas muy loca
+Feature engineering
 ========================================================
 
 
@@ -1022,6 +1023,8 @@ Estadísticas muy loca
 ¿Se les ocurre como?
 
 **Ejercicio:** Más adelante veremos que `PostgreSQL` es muy bueno haciendo mucho en un sólo `query` ¿Cómo unirían estos en uno solo?
+
+**Ejercicio** ¿Se te ocurre como definir distancias entre estos registros?
 
 
 Tamaños...
@@ -1066,7 +1069,7 @@ DELETE FROM libros WHERE ctid NOT IN
 - **ctid** es una columna oculta en todas las tablas de `Postgresql`, y es único para cada renglón.
 
 
-Ejercicio: Un poco de Text Mining
+Un poco de Text Mining
 ========================================================
 
 - En un *script* que siempre parta de cero:
@@ -1079,7 +1082,7 @@ Ejercicio: Un poco de Text Mining
   - `actors` (`actor_id` (serial primary key), `name` (text))
 
 
-Ejercicio: Un poco de Text Mining
+Un poco de Text Mining
 ========================================================
 
 - Y una tabla **`habtm`**:
@@ -1092,7 +1095,7 @@ Ejercicio: Un poco de Text Mining
   );
 ```
 
-Ejercicio: Un poco de Text Mining
+Un poco de Text Mining
 ========================================================
 
 - Índices
@@ -1107,7 +1110,7 @@ create index movies_genres_cube on movies using gist (genre);
 - Carga la información con el script `movies_data.sql`.
   - Obtenido del libro *Seven databases in seven weeks*.
 
-Ejercicio: Un poco de Text Mining
+Un poco de Text Mining
 ========================================================
 
 - ¿Qué hace lo siguiente?
@@ -1130,7 +1133,7 @@ create index movies_title_pattern on movies (lower(title) text_pattern_ops);
 -- Alternativas: varchar_pattern_ops, bpchar_pattern_ops, tern_ops, name_pattern_ops
 ```
 
-Ejercicio: Un poco de Text Mining
+Un poco de Text Mining
 ========================================================
 
 - Levenshtein
@@ -1159,7 +1162,7 @@ where title % 'Avatre';
 -- Excelentes para user input...
 ```
 
-Ejercicio: Un poco de Text Mining
+Un poco de Text Mining
 ========================================================
 
 -- Metafonemas
@@ -1174,7 +1177,7 @@ where metaphone(name, 6) = metaphone('Broos Wils', 6);
 
 ```
 
-Ejercicio: Un poco de Text Mining
+Un poco de Text Mining
 ========================================================
 
 - El campo `genre` es un vector multidimensional...
@@ -1195,7 +1198,7 @@ FROM movies
 ORDER BY dist;
 ```
 
-Ejercicio: Un poco de Text Mining
+Un poco de Text Mining
 ========================================================
 
 - Dentro del cubo
@@ -1314,6 +1317,15 @@ Ejecutar Python dentro de PostgreSQL
   - Corromper la base
 
 
+
+Tarea / Ejercicio
+=======================================================
+
+- En `python` dentro del `postgresql` obviamente.
+- Escribe una función en python que cree una tabla mejorada de `transacciones`.
+- Usa 20 tarjetas, con un uso distribuido normalmente, gasto distribuido normalmente, etc, etc.
+- Usa la [**documentación**](http://www.postgresql.org/docs/9.4/static/plpython.html)
+
 ========================================================
 type: exclaim
 ## PostgreSQL
@@ -1325,8 +1337,6 @@ Capas que afectan el performance
 ========================================================
 
 ![capas](images/capas_performance.png)
-
-
 
 
 Diferentes tipos, diferentes problemas
@@ -1348,6 +1358,36 @@ type: exclaim
 
 
 
+Prioridades
+=======================================================
+Regularmente para un servidor genérico, las prioridades son las siguientes:
+
+1. `CPU`
+2. `RAM`
+3. `I/O`
+
+
+Prioridades
+=======================================================
+Pero para una RDBMS son
+
+3. `I/O`
+2. `RAM`
+1. `CPU`
+
+Necesidades
+========================================================
+
+- Las necesidades son diferentes por que:
+
+  - Hacemos recorridos secuenciales gigantescos
+  - Si usamos índices accesamos aleatoriamente al I/O
+  - Peticiones de `queries` nunca antes vistos
+  - Reportes
+
+- Todo esto no requiere `CPU`.
+
+
 Hardware
 ========================================================
 ## CPU,  RAM, I/O, Network
@@ -1364,6 +1404,17 @@ type:alert
 
 # **Un core, un query**
 
+- `=>`  Por lo menos dos cores...
+
+- `PostgreSQL` **aún** no soporta `queries` en paralelo...
+
+CPU
+========================================================
+
+* ¿Rápidos o más?
+
+  - Muchos `queries` enormes `=>` Cores rápidos.
+  - Muchos `queries` pequeños `=>` Más cores.
 
 
 RAM
@@ -1377,10 +1428,20 @@ RAM
 * DW
     - ¿Cuál es el tamaño de los `sorts` y los `aggregates`?
 
+RAM
+========================================================
 
+- ¿La base de datos cabe en RAM?
+
+  - Si sí, ¡compra más cores!
+
+  - Si no, compra mejores discos.
 
 I/O
 ========================================================
+
+* Son principalmente el cuello de botella.
+
 * ¿Habrá problemas de I/O?
     - ¿Muchos inserts, updates? -> Limitado por el log de transacciones
     - ¿DB es más grande que 3x el RAM? -> Cada query sufrirá
@@ -1390,6 +1451,38 @@ I/O
 
 * ¿Cargas masivas? -> Discos
 
+
+I/O
+========================================================
+
+- `RAID`: *Redundant Array of Independent Disks*
+  - Técnica de virtualización de almacenamiento de datos.
+  - Combinación de varios discos en una sóla unidad lógica de almacenamiento.
+  - [Wikipedia](http://en.wikipedia.org/wiki/RAID)
+
+I/O
+========================================================
+
+- SO
+  - I/O Aleatorio, poco uso
+  - `RAID 1`
+
+- WAL
+  - Acceso secuencial
+  - Uso constante
+  - `RAID 1`
+
+I/O
+========================================================
+
+- Datos
+  - Acceso aleatorio
+  - Uso elevado
+  - `RAID 10`
+
+- **NO USAR**:
+  - `RAID 0` -> No hay redundancia
+  - `RAID 5` -> Malo para escribir
 
 
 Árbol de decisión
@@ -1454,11 +1547,10 @@ Divide et impera
     alter table tablota set tablespace = 'newstorage';
     ```
 
+    - **Cuidado**: La BD se bloquea durante esta transacción.
 
 
-* Cuidado: La BD se bloquea durante esta transacción.
-
-
+- Tablas temporales a `SSDs`.
 
 
 GNU/Linux: Tipos de `filesystem`
@@ -1493,7 +1585,7 @@ GNU/Linux: Tamaño de las páginas
 
 * Modificarlos permanentemente depende de su versión de kernel y distibución...
 
-* Un kernel nuevo (algo menor a `2.6.9` es malísimo...)
+* Un `kernel` nuevo (algo menor a `2.6.9` es malísimo...)
 
 
 
@@ -1535,27 +1627,65 @@ Modificar, modificar
   ```
 
   desde `psql`.
-  * `shared_buffers` por lo menos un 1/4 de RAM
+Modificar, modificar
+========================================================
+  * `shared_buffers`
+      - ¿Cuánto cache podemos usar para mantener datos?
+      - Por lo menos un 1/4 de RAM
       - Si tienes más de 32 Gb `->` 8Gb
+
+
+Modificar, modificar
+========================================================
+  * `work_mem`
+      - ¿Cuánta memoria para operaciones de ordenamiento y tablas `hash` antes de usar discos?
+      - Se aplica por operación.
+      - Por lo menos 1Gb
+
+Modificar, modificar
+========================================================
+- [Mitigar el costo de escritura a disco](http://www.postgresql.org/docs/9.2/static/runtime-config-query.html)
+  - `fysnc`, `synchronous_commit`
+    - Determina si todas las páginas `WAL` deben grabarse a disco antes de que se considere terminada la transacción.
+    - Ponerlo en `off` puede causar corrupción de datos si se cae el servidor
+    - En un `dwh` puede apagarse, y aumentar el rendimiento...
+
+Modificar, modificar
+========================================================
   * `wal_buffers=16Mb`
-  * `work_mem` por lo menos 1Gb
   * `maintenance_work_mem` por lo menos 1Gb
   * `temp_buffers=16Mb`
 
 Modificar, modificar
 ========================================================
-- `effective_cache_size` 3/4 de la RAM disponible...
-- `default_statistics_target` 1000
-      - Estadísticas por columnas es aún más rápido
-- `autovacuum=off`,  `vacuum_cost_delay=off`
+* [Planeador](http://www.postgresql.org/docs/9.4/static/runtime-config-query.html)
+
+  * `effective_cache_size`
+      - 3/4 de la RAM disponible...
+      - ¿Cuánta memoria hay disponible para mantener en caché las consultas?
+
+  * `default_statistics_target` 1000
+      - Estadísticas por columnas es aún más rápido,
+      - Es decir, se puede establecer por columnas.
+
+
+Modificar, modificar
+========================================================
+  - `autovacuum=off`,  `vacuum_cost_delay=off`
       - Hacerlo a mano e incluir `analyze`
+
+- `random_page_cost` Determina la forma en que el planeador considera o no usar índices
+  - Acceder secuencialmente es más rápido que el acceso con índices
+  - Un valor bajo favorece el uso de índices, uno alto las lecturas secuenciales.
+Modificar, modificar
+========================================================
 
 - Checkpoints
 
 ```
 checkpoint_completion_target = 0.9
-checkpoint_timeout = 10m-30m # Depends on restart time
-checkpoint_segments = 32 # To start.
+checkpoint_timeout = 10m-30m
+checkpoint_segments = 32 # Para iniciar
 ```
 
 
@@ -1565,6 +1695,28 @@ Modificar, modificar
 - `random_page_cost` 3.0 para un arreglo `RAID10`, 2.0 para un `SAN` 1.1 para `Amazon EBS`.
 
   * [Docs](http://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server)
+
+- `listen_address`
+  - ¡Muy pocas! cada conexión cuesta muchísimo.
+  - Mejor filtren a nivel del `firewall`.
+  - Usen mucho el `pg_hba.conf`.
+
+Modificar, modificar
+========================================================
+
+- `max_connections`
+  - De nuevo, las conexiones toman memoria y procesamiento.
+  - Mejor usen un `pool` de conexiones.
+  - `pgbouncer` o `pgpool` son opciones interesantes.
+
+Por último...
+=======================================================
+
+- Sea científicos: midan, prueben, configuren.
+
+- La [**documentación**](http://www.pgconfig.org/) es su amiga.
+
+- Una guía rápida está [aquí](http://www.pgconfig.org/)
 
 ========================================================
 type: exclaim
@@ -1581,7 +1733,7 @@ Estadísticas
 
 * Registra las estadísticas de todos los SQL ejecutados en el servidor.
 
-```
+```{sql}
 create extension pg_stat_statements;
 ```
 
@@ -1605,8 +1757,11 @@ Estadísticas
 
 ```{sql}
 SELECT
+  -- Tiempo total respecto al sistema (minutos)
   (total_time / 1000 / 60) as total_minutes,
+  --Tiempo promedio en ejecutar en milisegundos
   (total_time/calls) as average_time,
+  -- El query
   query
 FROM pg_stat_statements
 ORDER BY 1 DESC
@@ -1615,8 +1770,31 @@ LIMIT 100;
 
 - ¿Qué optimizar?
 
+Cache
+=======================================================
+
+- 80/20
+- `PostgreSQL` mantendrá los datos que se accesan mucho en `cache`.
+- Queremos que el cache esté usándose cerca del 99%.
+
+```{sql}
+SELECT
+  sum(heap_blks_read) as heap_read,
+  sum(heap_blks_hit)  as heap_hit,
+  sum(heap_blks_hit) / (sum(heap_blks_hit) + sum(heap_blks_read)) as ratio
+FROM
+  pg_statio_user_tables;
+```
+
+- Ahorita va a marcar un error (división por cero).
+
 Queries
 ========================================================
+* Los problemas principales de un `query` son:
+  - No hay memoria para el _sorting_.
+  - No hay estadísticas.
+  - Está escrito con las patas.
+
 * Hagan mucho en cada query
     - PostgreSQL es muy bueno con queries grandes
     - (y no tan bueno con muchos queries pequeños).
@@ -1696,15 +1874,30 @@ Indexing
 
 - `B-tree`
   - Es el valor por omisión. Regularmente quieres usar este.
+
 - `Gin`
+  - _generalized inverted index_
   - Varios valores en una columna
   - `hstore / array / json`
+
+Indexing
+========================================================
+
+
 - `Gist`
+  - _generalized search tree_
   - Full text search
   - Shapes
   - GIS
 
-Entre otros
+
+
+- `SP-Gist`
+  - _spatial-partitioned Gist_
+
+- `hash`
+
+- Entre otros
 
 Indexing
 ========================================================
@@ -1719,6 +1912,25 @@ Indexing
     - `partial`
 * Los índices afectan muchísimo los `updates`, `deletes`
     - No tiene caso hacerlo para tablas pequeñas
+
+
+Indexing
+========================================================
+
+```{sql}
+select amname from pg_am;
+
+ amname
+--------
+ btree
+ hash
+ gist
+ gin
+ spgist
+(5 rows)
+
+
+```
 
 Indexing
 ========================================================
@@ -1739,6 +1951,30 @@ create index where var = valor
 
 * Rule of thumb: Índices en más de 10,000 filas...
 
+* Recuerda que hay otro costo relacionado: su tamaño en disco.
+
+```{sql}
+select pg_size_pretty(pg_total_relation_size('idx'));
+```
+
+Indexing
+========================================================
+
+- Índices compuestos
+  - Debe de incluir el `query` todas las columnas
+
+```{sql}
+create index idx_nombre on tabla (col1, col2, col3);
+```
+
+- Es diferente a un índice combinado...
+
+```{sql}
+create index idx_nombre1 on tabla (col1);
+create index idx_nombre2 on tabla (col2);
+create index idx_nombre3 on tabla (col3);
+```
+
 
 Indexing
 ========================================================
@@ -1749,7 +1985,28 @@ Indexing
     - Escaneos secuenciales -> candidatos para índices
     - Muchos Updates/Deletes  -> Borrar índices (quizá)
 
-* [Docs](http://www.postgresql.org/docs/9.2/static/monitoring-stats.html)
+* [Docs](http://www.postgresql.org/docs/9.4/static/monitoring-stats.html)
+
+Indexing
+========================================================
+
+- Por ejemplo, para ver una lista de todas las tablas con las más grandes primero y el porcentaje de las veces que se accesan por índice:
+
+```{sql}
+SELECT
+  relname,
+  100 * idx_scan / (seq_scan + idx_scan)
+    as percent_of_times_index_used,
+  n_live_tup
+    as rows_in_table
+FROM
+  pg_stat_user_tables
+WHERE
+    seq_scan + idx_scan > 0
+ORDER BY
+  n_live_tup DESC;
+```
+
 
 Divide et impera
 ========================================================
@@ -1834,7 +2091,6 @@ FOR EACH ROW EXECUTE PROCEDURE ufo_insert();
 
 
 
-
 Tablespaces
 ========================================================
 * Paraleliza el acceso.
@@ -1851,7 +2107,30 @@ type: exclaim
 ## ETL
 
 
+ETL
+========================================================
 
+
+- Los datos están guardados en:
+  - Diferentes lugares
+  - Diferentes sistemas
+  - Diferentes formatos
+
+- Los datos debe de ser extraído de diferentes fuentes.
+
+- Los datos deben de ser filtrados.
+
+ETL
+========================================================
+
+- Seleccionar
+- Filtrado
+- Ordenado
+- Convertido
+- Integrado
+- Analizado
+- Nuevas variables
+- ...
 
 ETL
 ========================================================
@@ -1868,7 +2147,21 @@ ETL
 
 * Cargar en masa, en paralelo y olvídense de los `update`s.
 
+ETL
+========================================================
 
+- PostgreSQL permite conectarse a diferentes fuentes externas:
+
+  - `INSERT...SELECTS`
+  - `dblink`
+  - `FDW`
+  - ...
+
+- O usar herramientas externas como
+  - `bash`
+  - `python` con `SQL Alchemy` (por ejemplo)
+  - `R` con `dplyr` (por ejemplo)
+  - `ODBC`/`JDBC`
 
 INSERTs
 ========================================================
@@ -2093,6 +2386,8 @@ Tips
 
 - *Loggea*, siempre, todo
 
+- [**Docs**](http://www.postgresql.org/docs/9.4/static/runtime-config-logging.html)
+
 - En **`postgres.conf`**
 ```
 log_destination = 'csvlog'
@@ -2107,6 +2402,7 @@ log_connections = on
 log_disconnections = on
 log_lock_waits = on
 log_temp_files = 0
+log_statements = all
 ```
 
 
@@ -2141,6 +2437,8 @@ Tarea
 * Configurar su `postgres.conf`
 * Cargar los archivos ufo y gdelt de manera sucia
 * Crear un particionado para ufo y gdelt por año.
+  - Por ejemplo, ciudades, países, aeropuertos, demografía, educación, etc.
+  - Al menos 2.
 * Cargar  todas las tablas auxiliares como fdw.
 * Limpiar ufo y gdelt en la BD.
 * Exportarlas a archivo CSV (con `copy`).
@@ -2149,8 +2447,72 @@ Tarea
 ========================================================
 type: exclaim
 
+## Intermezzo: DWH
+
+
+Esquemas
+=======================================================
+
+- Esquema estrella
+- Esquema constalación
+- Esquema copo de nieve
+
+Tarea
+========================================================
+
+- Crear un esquema de estrella para `ufo`.
+- Desarrollar los `LET`.
+
+
+
+========================================================
+type: exclaim
+
 ## PostgreSQL: Analítica
 
+
+LATERAL JOIN
+=======================================================
+- Es el `for each` de `sql`.
+- Se incluye desde `9.3` (aunque es `SQL 1999`).
+- Permite referirse a columnas externas dentro del sub-select.
+
+LATERAL JOIN
+========================================================
+
+- Top-N
+
+```{sql}
+select t.*
+  from tabla  t
+  join otra_tabla ot
+  on (t.col = ot.col)
+  where ot.campo = ...
+  order by t.created_at desc
+  limit 10
+```
+
+```{sql}
+select t.*
+  from otra_tabla ot
+  join LATERAL (
+    select *
+      from tabla t
+      where t.col = ot.col
+      order by t.created_at desc
+      limit 10
+  ) top_algo on (true)
+where ot.campo = ....
+order by t.created_at desc
+limit 10
+```
+
+Ejercicio
+=======================================================
+
+- Genera ambos `queries` que calcule el top 3 de avistamientos por año
+en duración.
+- Comparalos con el `explain analyze`.
 
 
 Agregados regulares
@@ -2485,6 +2847,10 @@ CTEs
 ========================================================
 * `CTE` = **Common Table Expression**
 
+* Es como un método privado.
+
+* Permite encadenado en lugar de anidado.
+
 * Es un `query` se puede usar en un `query` más grande.
 
 * Hay tres tipos:
@@ -2533,6 +2899,9 @@ select min(flight_date), max(flight_date), count(*) from aa_flights_1;
 
 CTEs recursivos
 ========================================================
+
+- Es el `while` de `SQL`.
+
 * Secuencias:
 
 ```{sql}
@@ -2677,94 +3046,32 @@ type: exclaim
 
 Vistas materializadas
 ========================================================
-```{sql}
-CREATE OR REPLACE FUNCTION mv_support.create_matview(name, name)
-  RETURNS void AS
-$BODY$
- DECLARE
-     matview ALIAS FOR $1;
-     view_name ALIAS FOR $2;
-     entry mv_support.matviews%ROWTYPE;
- BEGIN
-     SELECT * INTO entry FROM mv_support.matviews WHERE mv_name = matview;
-     IF FOUND THEN
-         RAISE EXCEPTION 'Materialized view ''%'' ya existe.',
-           matview;
-     END IF;
-
-     -- continua...
-```
-
-
-
+- Existen a partir de 9.3
+- El `query` es ejecutado y usado para popular la vista materializada.
+- Puede ser actualizada (a diferencia de una tabla normal)
 
 ```{sql}
-     -- continua...
-
-     EXECUTE 'REVOKE ALL ON ' || view_name || ' FROM PUBLIC';
-     EXECUTE 'GRANT SELECT ON ' || view_name || ' TO PUBLIC';
-     EXECUTE 'CREATE TABLE ' || matview || ' AS SELECT * FROM ' || view_name;
-     EXECUTE 'REVOKE ALL ON ' || matview || ' FROM PUBLIC';
-     EXECUTE 'GRANT SELECT ON ' || matview || ' TO PUBLIC';
-     INSERT INTO mv_support.matviews (mv_name, v_name, last_refresh)
-       VALUES (matview, view_name, CURRENT_TIMESTAMP);
-     RETURN;
- END
- $BODY$
-  LANGUAGE plpgsql
+create materialized view vista_mat_nombre
+as query;
 ```
-
-
 
 Vistas materializadas
 ========================================================
-```{sql}
-CREATE OR REPLACE FUNCTION mv_support.drop_matview(name)
-  RETURNS void AS
-$BODY$
- DECLARE
-     matview ALIAS FOR $1;
-     entry mv_support.matviews%ROWTYPE;
- BEGIN
-     SELECT * INTO entry FROM mv_support.matviews WHERE mv_name = matview;
-     IF NOT FOUND THEN
-         RAISE EXCEPTION 'Materialized view % no existe.', matview;
-     END IF;
-     EXECUTE 'DROP TABLE ' || matview;
-     DELETE FROM mv_support.matviews WHERE mv_name=matview;
-     RETURN;
- END
- $BODY$
-  LANGUAGE plpgsql
+
+- Para refrescar la vista:
+
+```
+refresh materialized view vista_mat_nombre;
 ```
 
+- Esto causa un `lock` en la tabla.
+  - `> 9.4`:
 
+    ```{sql}
+    refresh materialized view concurrently ...
+    ```
 
-Vistas materializadas
-========================================================
-```{sql}
-CREATE OR REPLACE FUNCTION mv_support.refresh_matview(name)
-  RETURNS void AS
-$BODY$
- DECLARE
-     matview ALIAS FOR $1;
-     entry mv_support.matviews%ROWTYPE;
- BEGIN
-     SELECT * INTO entry FROM mv_support.matviews WHERE mv_name = matview;
-     IF NOT FOUND THEN
-         RAISE EXCEPTION 'Materialized view % no existe.', matview;
-     END IF;
-    EXECUTE 'DELETE FROM ' || matview;
-    EXECUTE 'INSERT INTO ' || matview || ' SELECT * FROM ' || entry.v_name;
-    UPDATE mv_support.matviews
-        SET last_refresh=CURRENT_TIMESTAMP
-        WHERE mv_name=matview;
-    RETURN;
-END
-$BODY$
-LANGUAGE plpgsql
-```
-
+- También se puede alterar, "dropear", etc.
 
 
 Muestreo
@@ -2809,6 +3116,11 @@ Tarea
 * Rescribir con una CTE
   - Ejercicio de **Estadística muy loca**
   - Muestreo
+
+Proyecto 2
+=======================================================
+
+- Por determinar...
 
 ========================================================
 type: exclaim
