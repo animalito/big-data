@@ -1,3 +1,7 @@
+-- Query para generar transacciones
+-- con colonias 10 aleatorias,
+-- hora y saltos de mas de un dia
+
 select
     generate_series as fecha,
     cus.tarjeta as tarjeta,
@@ -14,31 +18,3 @@ from generate_series((now() - '100 days'::interval)::timestamp,     -- 100 dias
                        ((random() + 1) * '12:00:00'::time)),
 (select uuid_generate_v4() as tarjeta from generate_series(1,15)) cus;
 
-
-
-drop function IF EXISTS hola(text);
-create function hola(name text)
-  returns text as $$
-    import random
-    return 'hola %s!' % name
-$$ language plpythonu;
-
-
-drop function if exists transacciones(integer);
-create function transacciones(n integer)
-    returns TABLE (
-    fecha timestamp, tarjeta varchar ) as $$
-    import random
-    import uuid
-    from datetime import datetime, timedelta
-
-    int_tarjetas = range(15)
-    for i in range(n):
-        now = datetime.now()
-        ri = random.randint
-        delta = timedelta(days=ri(1, 10), hours=ri(1, 60), minutes=ri(1, 60), seconds=ri(1, 60))
-        fecha = now + delta
-        tarjeta = uuid.uuid5(uuid.NAMESPACE_DNS, str(random.choice(int_tarjetas)))
-        yield (fecha, tarjeta)
-
-$$ language plpythonu;
