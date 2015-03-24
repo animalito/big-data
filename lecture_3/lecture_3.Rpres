@@ -466,7 +466,7 @@ where category = 'File Locations';
 ```
 
 ```
-select name, context, unit, setting, boot_val, reset_val,
+select name, context, unit, setting, boot_val, reset_val
 from pg_settings
 where name in (
 'listen_addresses', 'max_connections', 'shared_buffers',
@@ -629,7 +629,7 @@ create extension fuzzystrmatch schema mis_extensiones;
 - Las extensiones se deben de instalar *por base de datos*.
 
 **Ejercicio**: Instalar las siguientes extensiones: `dblink`, `file_fdw`, `fuzzystrmatch`, `hstore`
-, `pgcrypto`, `postgres_fdw`, `tablefunc`, `auto_explain`, `cube`, `dict_xsyn`, `pg_trgm`, `uuid-ossp`.
+, `pgcrypto`, `postgres_fdw`, `tablefunc`, `cube`, `dict_xsyn`, `pg_trgm`, `uuid-ossp`.
 
 
 ========================================================
@@ -1326,12 +1326,199 @@ Tarea / Ejercicio
 - Usa 20 tarjetas, con un uso distribuido normalmente, gasto distribuido normalmente, etc, etc.
 - Usa la [**documentación**](http://www.postgresql.org/docs/9.4/static/plpython.html)
 
+
+JSON
+========================================================
+
+- Siempre quisieramos que los datos fueran perfectos y se mantuviera la relación y todo eso
+- La realidad es que los datos:
+
+    - son imperfectos
+    - se guardan de manera imperfecta
+    - se tienen que mover entre sistemas
+      - como al web...
+
+- Y a veces, pues no quieres ir con `SQL`
+
+
+JSONB
+========================================================
+
+- PostgreSQL soporta dos tipos de `JSON`: estándar (`JSON`) y binario (`JSONB`).
+- Es importante recalcar que `JSONB` **NO** es igual a `BSON`.
+  - `JSONB` es interno a PostgreSQL, se transmiten en `JSON`, se guardan en `JSONB`.
+  - `JSONB` soporta más tipos que `BSON`
+      - e.g. `BSON` no soporta enteros o flotantes con más de 64 bits de precisión.
+
+
+JSONB
+========================================================
+- PostgreSQL soporta codificación en `javascript` para poder garantizar los resultados.
+    - Tiene un `V8` engine dentro!
+    - Cuidado con los `XSS` y `SQL injections` !!
+        - Más adelante un ejemplo
+
+JSONB
+=======================================================
+
+- Nos da más operadores:
+
+```{sql}
+-- Contención derecha
+select '{"a":1, "b": 2}'::jsonb @> '{"a": 1}'::jsonb;
+
+-- Contención izquierda
+select '{"a":1}'::jsonb <@ '{"a":1, "b": 2}'::jsonb;
+
+-- Existencia
+select '{"a":1, "b": 2}'::jsonb ? 'a';
+
+-- ¿Existe alguno?
+select '{"a":1, "b": 2}'::jsonb ?| ARRAY['b', 'd'];
+
+-- ¿Existen todos?
+select '{"a":1, "b": 2}'::jsonb ?& ARRAY['a', 'b'];
+```
+
+JSON
+=======================================================
+
+```{sql}
+create table json_test (
+  data JSONB
+);
+```
+
+```{sql}
+insert into json_test (data)
+  values
+    ('
+      {
+      "nombre": "Adolfo",
+      "apellido": "De Unánue",
+      "clase": "big data"
+      }
+    ');
+
+
+JSON
+========================================================
+
+```{sql}
+-- Observa el operador
+select distinct data->>'nombre' as nombres from json_test;
+
+-- Se puede usar en where
+select distinct data->>'nombre' as nombres from json_test where data->>'clase' = 'big data';
+
+-- E inclusive con JOINs
+-- (Este código no va a correr)
+select cargo,
+    data ->> 'nombre' as nombre,
+    data ->> 'apellido' as apellido
+    from json_test
+join nomina on
+(
+  nomina.nombre = json_test.data ->> 'nombre'
+);
+```
+
+JSON
+========================================================
+- Operadores
+
+```{sql}
+-- existencia
+select * from json_test where data ? 'nombre';
+
+-- ?| ¿Existe alguno?
+-- ?& ¿Todos existen?
+
+-- contención
+select * from json_test where
+  data @> '{"nombre": "Daniela"}';
+select * from json_test where
+  data @> '{"nombre": "Adolfo"}';
+```
+
+JSON
+=========================================================
+
+- Como todo en la vida, hay que crearle índices:
+
+```{sql}
+create index idx_nombre_gin
+  on json_test using gin(nombre);
+```
+
+- Nota que es de tipo `gin` y no `btree`.
+    - Los índices `GIN` son para "ver dentro" de los objetos.
+
+- Soporta los operadores `@>, ?, ?&`
+
+JSON
+========================================================
+
+- Se puede extraer la información de una tabla relacional como JSON
+    - para mandar a un servicio, por ejemplo
+
+```{sql}
+select
+  row_to_json(transacciones)
+  from transacciones
+  limit 10;
+```
+
+JSON: Últimas cosas
+========================================================
+
+- `JSON` **NO SIGNIFICA** `schema-less`.
+    - Tiene que haber alguna estructura, convención y validación
+    - Aquí puede entrar el `V8`
+
+    ```{sql}
+    create extension plv8;
+
+    create or replace function tiene_llave(doc json)
+    return boolean as
+    $$
+    if ....
+    // Código JS
+    return true;
+    $$ language plv8 immutable;
+    ```
+
+JSON: Últimas cosas
+========================================================
+
+- `JSON` **NO SIGNIFICA** _escalamiento_.
+    - No hay nada en el formato que garantice que correrá en compus normales.
+    - No hay nada en el formato que garantice escalabilidad horizontal.
+    - No hay nada en el formato que garantice que no hay un punto único de fallo.
+
+  - Me acabo de enterar que existe:  `pl/proxy`
+
+
+JSON: Últimas cosas
+========================================================
+
+- Ver la carpeta [`docs`](./docs) para ejemplos y presentaciones.
+
+
+
 ========================================================
 type: exclaim
 ## PostgreSQL
 ## Performance
 
+¿Por qué?
+========================================================
 
+- Más usuarios.
+- Mejor rendimiento para los usuarios existentes.
+- Guardar más información.
+- Mejorar la disponibilidad del sistema.
+- Dispersión geográfica.
 
 Capas que afectan el performance
 ========================================================
@@ -1407,6 +1594,9 @@ type:alert
 - `=>`  Por lo menos dos cores...
 
 - `PostgreSQL` **aún** no soporta `queries` en paralelo...
+
+    - Pero en `9.5` quizá esté...
+    - Actualmente `pg_pool` y `pl/proxy` dan soporte básico.
 
 CPU
 ========================================================
@@ -2389,7 +2579,8 @@ Tips
 - [**Docs**](http://www.postgresql.org/docs/9.4/static/runtime-config-logging.html)
 
 - En **`postgres.conf`**
-```
+
+```{bash}
 log_destination = 'csvlog'
 log_directory = 'pg_log'
 logging_collector = on
@@ -2513,228 +2704,6 @@ Ejercicio
 - Genera ambos `queries` que calcule el top 3 de avistamientos por año
 en duración.
 - Comparalos con el `explain analyze`.
-
-
-Agregados regulares
-========================================================
-![capas](images/regular_aggregate.png)
-
-
-
-
-Windowing functions
-========================================================
-* Provee acceso a un conjunto de renglones, desde el renglón actual.
-
-![capas](images/windowing_function.png)
-
-
-
-
-
-Componentes de la ventana
-========================================================
-* Una partición
-    - Especificado por `PARTITION`.
-    - Nunca cambia
-    - Puede contener un `frame`.
-
-
-Componentes de la ventana
-========================================================
-* Un marco (frame)
-    - Especificado por `ORDER BY`
-    - Se mueve en la partición.
-    - Pero sólo dentro de una partición.
-
-
-Componentes de la ventana
-========================================================
-* Función
-    - Algunas toman valores en la partición, otras en el frame.
-
-
-
-
-Partition
-========================================================
-![partition](images/partition.png)
-
-
-
-Frame
-========================================================
-![frame1](images/frame.png)
-
-Frame
-=======================================================
-![frame2](images/window_frame.png)
-
-Window
-========================================================
-![window](images/window.png)
-
-
-Todo junto
-========================================================
-```{sql}
-  select ...
-  window_function()
-  over (
-  partition by
-  order by ...
-  )
-  from ...
-  where ...
-```
-
-
-
-
-Windowing functions: Generalidades
-========================================================
-* Regresa un valor por cada renglón.
-
-* El valor de retorno es calculado en los renglones de la ventana.
-
-*  `OVER()` convierte funciones normales en `window function`. Esto significa que cuando PostgreSQL ve una `window function` revisa todos los registros que satisfacen el `WHERE`, hace la agregación y devuelve la salida como parte del registro actual.
-
-* `PARTITION BY` le indica a PostgreSQL que subdivida la ventana. La agregación se hace en la subventana.
-
-
-Windowing functions: Generalidades
-========================================================
-* `ORDER BY` ordena las filas, las `window functions` trabajan entre el renglón actual y el ultimo de la ventana.
-
-* Se pueden combinar `ORDER BY`  y  `PARTITION BY`. Reinicia el ordenamiento por cada ventana.
-
-* A diferencia de ORACLE, PostgreSQL permite usar como `window function` los agregados que ustedes creen.
-
-* Pueden tener varias particiones, no se preocupen...
-
-
-
-Lista de funciones
-========================================================
-* `row_number()` -> Regresa el número de la fila actual.
-* `rank()` -> Rango de la fila actual con gaps.
-* `dense_rank()` -> Lo mismo pero sin gap.
-* `percent_rank()` -> Rango relativo.
-* `cume_dist()` -> Rango relativo.
-* `ntile()` ->
-
-Lista de funciones
-========================================================
-* `lag()` -> Regresa el valor de la fila anterior (partición).
-* `lead()` -> Regresa el valor de la fila siguiente (partición).
-* `first_value()` -> Regresa el primer valor del marco.
-* `last_value()` -> Regresa el último valor del marco.
-* `nth_value()` -> Regresa el n-ésimo valor del marco.
-
-
-
-
-Agregados y acumuladores
-========================================================
-### Agregados
-* Regresa el mismo valor  para todo el marco.
-    - `sum`, `avg`, `max`, etc,
-    - Se pueden checar desde `psql`, con   `\da[S+]`
-
-```{sql}
-select col, sum(col) over() from tabla;
-```
-
-
-
-Agregados y acumuladores
-========================================================
-### Acumulados
-
-* Regresa diferentes valores a lo largo del marco.
-
-```{sql}
-select carrier, tail_num,
-air_time,
-sum(air_time) over (
-  partition by carrier, tail_num
-  order by flight_date
-  rows between unbounded preceding
-  and current row
-  ) as acumulado,
-sum(air_time) over (
-  partition by carrier, tail_num
-  ) as total
-from rita
-order by carrier
-```
-
-Agregar una función de agregación
-========================================================
-
-```
-CREATE OR REPLACE FUNCTION _final_median(anyarray)
-RETURNS float8 as
-$$
-WITH q AS
-(
-  SELECT val
-  FROM unnest($1) val
-  WHERE VAL is not null
-  ORDER BY 1
-),
-cnt AS
-(
-  SELECT COUNT(*) AS c FROM q
-)
-
-SELECT AVG(val)::float8
-FROM
-(
-SELECT val FROM q
-LIMIT 2 - MOD((SELECT c FROM cnt), 2)
-OFFSET GREATEST(CEIL((SELECT c FROM cnt) / 2.0) - 1, 0)
-) q2;
-$$
-LANGUAGE sql IMMUTABLE;
-)
-```
-
-```
-CREATE AGGREGATE median(anyelement)
-(
-SFUNC = array_append,
-STYPE = anyarray,
-FINALFUNC = _final_median,
-INITCOND= '{}'
-);
-```
-
-```
-select median(score), avg(score)
-from game_results;
-```
-
-Tarea
-========================================================
-* En la base de datos: RITA
-    - ¿Primer vuelo de cada aerolínea? ¿Primer vuelo de cada avión?
-    - ¿Vuelos fantasmas? (Por favor pregúnten que es un vuelo fantasma)
-    - ¿Promedio de retraso por avión, por mes, por año?
-    - ¿Los vuelos mas largos tienen más retrasos?
-    - ¿Cuál aerolínea tiene más kilómetros, más vuelos, más destinos?
-    - ¿Km por aerolínea, ciudad, y diferencia respecto al promedio de km?
-    - ¿Cómo podrían identificar un hub?
-
-Tarea
-========================================================
-
-  - Número de retrasos por aerolína, ¿Quién es la que más se retrasa? (`row_num`, `rank`, ...)
-  - Días con retraso ¿Qué días?¿Qué horas?
-  - ¿Hay un número de vuelo de mala suerte?¿De avión?
-  - ¿Serie de tiempo (diaria) por aerolínea?
-  - Distancia recorrida por carrier ¿Tiempo de vuelo?
-  - ¿Cómo obtener accidentes?
 
 
 ========================================================
@@ -3024,25 +2993,208 @@ order by a,b
 
 
 
-Ejercicio:
+Agregados regulares
+========================================================
+![capas](images/regular_aggregate.png)
+
+
+
+
+Windowing functions
+========================================================
+* Provee acceso a un conjunto de renglones, desde el renglón actual.
+
+![capas](images/windowing_function.png)
+
+
+
+
+
+Componentes de la ventana
+========================================================
+* Una partición
+    - Especificado por `PARTITION`.
+    - Nunca cambia
+    - Puede contener un `frame`.
+
+
+Componentes de la ventana
+========================================================
+* Un marco (frame)
+    - Especificado por `ORDER BY`
+    - Se mueve en la partición.
+    - Pero sólo dentro de una partición.
+
+
+Componentes de la ventana
+========================================================
+* Función
+    - Algunas toman valores en la partición, otras en el frame.
+
+
+
+
+Partition
+========================================================
+![partition](images/partition.png)
+
+
+
+Frame
+========================================================
+![frame1](images/frame.png)
+
+Frame
+=======================================================
+![frame2](images/window_frame.png)
+
+Window
+========================================================
+![window](images/window.png)
+
+
+Todo junto
+========================================================
+```{sql}
+  select ...
+  window_function()
+  over (
+  partition by
+  order by ...
+  )
+  from ...
+  where ...
+```
+
+
+
+
+Windowing functions: Generalidades
+========================================================
+* Regresa un valor por cada renglón.
+
+* El valor de retorno es calculado en los renglones de la ventana.
+
+*  `OVER()` convierte funciones normales en `window function`. Esto significa que cuando PostgreSQL ve una `window function` revisa todos los registros que satisfacen el `WHERE`, hace la agregación y devuelve la salida como parte del registro actual.
+
+* `PARTITION BY` le indica a PostgreSQL que subdivida la ventana. La agregación se hace en la subventana.
+
+
+Windowing functions: Generalidades
+========================================================
+* `ORDER BY` ordena las filas, las `window functions` trabajan entre el renglón actual y el ultimo de la ventana.
+
+* Se pueden combinar `ORDER BY`  y  `PARTITION BY`. Reinicia el ordenamiento por cada ventana.
+
+* A diferencia de ORACLE, PostgreSQL permite usar como `window function` los agregados que ustedes creen.
+
+* Pueden tener varias particiones, no se preocupen...
+
+
+
+Lista de funciones
+========================================================
+* `row_number()` -> Regresa el número de la fila actual.
+* `rank()` -> Rango de la fila actual con gaps.
+* `dense_rank()` -> Lo mismo pero sin gap.
+* `percent_rank()` -> Rango relativo.
+* `cume_dist()` -> Rango relativo.
+* `ntile()` ->
+
+Lista de funciones
+========================================================
+* `lag()` -> Regresa el valor de la fila anterior (partición).
+* `lead()` -> Regresa el valor de la fila siguiente (partición).
+* `first_value()` -> Regresa el primer valor del marco.
+* `last_value()` -> Regresa el último valor del marco.
+* `nth_value()` -> Regresa el n-ésimo valor del marco.
+
+
+
+
+Agregados y acumuladores
+========================================================
+### Agregados
+* Regresa el mismo valor  para todo el marco.
+    - `sum`, `avg`, `max`, etc,
+    - Se pueden checar desde `psql`, con   `\da[S+]`
+
+```{sql}
+select col, sum(col) over() from tabla;
+```
+
+
+
+Agregados y acumuladores
+========================================================
+### Acumulados
+
+* Regresa diferentes valores a lo largo del marco.
+
+```{sql}
+select carrier, tail_num,
+air_time,
+sum(air_time) over (
+  partition by carrier, tail_num
+  order by flight_date
+  rows between unbounded preceding
+  and current row
+  ) as acumulado,
+sum(air_time) over (
+  partition by carrier, tail_num
+  ) as total
+from rita
+order by carrier
+```
+
+Agregar una función de agregación
 ========================================================
 
-* Posibles rutas...
-    - Modificar el ejemplo anterior para obtener las posibles rutas entre dos ciudades
-    - Crear una función
+```{sql}
+CREATE OR REPLACE FUNCTION _final_median(anyarray)
+  RETURNS float8 as
+  $$
+    WITH q AS
+      (
+        SELECT val
+        FROM unnest($1) val
+        WHERE VAL is not null
+        ORDER BY 1
+      ),
+    cnt AS
+    (
+      SELECT COUNT(*) AS c FROM q
+    )
+    SELECT AVG(val)::float8
+      FROM
+      (
+        SELECT val FROM q
+        LIMIT 2 - MOD((SELECT c FROM cnt), 2)
+        OFFSET GREATEST(CEIL((SELECT c FROM cnt) / 2.0) - 1, 0)
+      ) q2;
+  $$
+LANGUAGE sql IMMUTABLE;
+)
+```
 
-* Otras cosas interesantes:
-    - Grados de separación entre nodos (¿Small world networks?)
-    - Nodos en común
-    - ¿Cómo están conectados?
-    - Características en común
-    - Travelling Salesman Problem
+Agregar una función de agregación
+========================================================
 
+```{sql}
+CREATE AGGREGATE median(anyelement)
+(
+SFUNC = array_append,
+STYPE = anyarray,
+FINALFUNC = _final_median,
+INITCOND= '{}'
+);
+```
 
-=========================================================
-type: exclaim
+```{sql}
+select median(score), avg(score)
+from game_results;
+```
 
-# **Misceláneos**
 
 Vistas materializadas
 ========================================================
@@ -3116,6 +3268,54 @@ Tarea
 * Rescribir con una CTE
   - Ejercicio de **Estadística muy loca**
   - Muestreo
+
+
+Tarea
+========================================================
+- Para UFO y GDELT
+    - Utiliza las plantillas de la clase de Minería de datos para describirlas.
+
+Tarea
+========================================================
+* En la base de datos: UFO
+    - ¿Primer avistamiento en cada estado? ¿Primer avistamiento de cada forma?
+    - ¿Promedio de entre avistamientos, por mes, por año? ¿Por estado?
+    - ¿Cuál estado tiene mayor varianza?
+    - ¿Existen olas temporales? ¿Existen olas espacio-temporales?
+    - ¿Narrativas parecidas?
+    - ¿Cómo está relacionado con la geografía?
+    - ¿Con características sociales?
+    - Desarrolla un modelo predictivo.
+
+Tarea
+========================================================
+* En la base de dato: GDELT
+    - Responde preguntas parecidas a las anteriores.
+    - Señala el caso de México.
+    - ¿Existen clústers?
+    - ¿Qué países son parecidos a México?
+    - ¿Puedes desarrollar un modelo predictivo?
+    - ¿Qué más bases de datos puedes traer al análisis?
+
+
+
+
+
+Ejercicio:
+========================================================
+
+* Posibles rutas...
+    - Modificar el ejemplo anterior para obtener las posibles rutas entre dos ciudades
+    - Crear una función
+
+* Otras cosas interesantes:
+    - Grados de separación entre nodos (¿Small world networks?)
+    - Nodos en común
+    - ¿Cómo están conectados?
+    - Características en común
+    - Travelling Salesman Problem
+
+
 
 Proyecto 2
 =======================================================
