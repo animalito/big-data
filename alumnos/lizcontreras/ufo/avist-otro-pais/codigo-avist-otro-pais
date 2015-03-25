@@ -1,0 +1,22 @@
+Avistamiento otro país
+
+1. < ufo-nov-dic-2014.tsv | cut -f2 | grep -E "?[(]" | sort | wc -l
+
+Arroja 70 avistamientos
+
+2. Para comprobar se da un vistazo a la lista
+
+< ufo-nov-dic-2014.tsv | cut -f2 | grep -E "?[(]" | sort > avist-otro-pais
+
+Al obtener la lista se puede observar que dentro existen estados de EEUU por lo que todavía no se cumple el objetivo. Por lo que hay que remover estos de la cuenta de 70
+
+3. Quitar los de EEUU
+
+< ufo-nov-dic-2014.tsv | cut -f2 | grep -E "?[(]" | grep -E "Queens|Ellicot|Hutchinson|Indianaplis|Los Angeles|Mansfield|New York|Orange|Orlando|Thomas" | sort | wc -l 
+
+15
+
+4. En total los avistamientos en otro país son de 55
+
+
+
