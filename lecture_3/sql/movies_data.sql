@@ -1,4 +1,30 @@
-INSERT INTO genres (name,position) VALUES 
+drop table if exists genres;
+drop table if exists movies;
+drop table if exists actor_id;
+drop table if exists movies_actors;
+
+create table genres (
+       name varchar,
+       position int);
+
+create table movies (
+       movie_id int PRIMARY KEY,
+       title varchar,
+       genre cube);
+
+create table actors (
+       actor_id int PRIMARY KEY,
+       name varchar);
+
+create table movies_actors (
+    movie_id integer references movies not null,
+    actor_id integer references actors not null,
+    unique (movie_id, actor_id)
+  );
+
+
+
+INSERT INTO genres (name,position) VALUES
 ('Action',1),
 ('Adventure',2),
 ('Animation',3),
@@ -18,7 +44,7 @@ INSERT INTO genres (name,position) VALUES
 ('Thriller',17),
 ('Western',18);
 
-INSERT INTO movies (movie_id,title,genre) VALUES 
+INSERT INTO movies (movie_id,title,genre) VALUES
 (1,'Star Wars','(0,7,0,0,0,0,0,0,0,7,0,0,0,0,10,0,0,0)'),
 (2,'Forrest Gump','(0,0,0,5,0,0,0,7,0,0,0,0,0,0,0,0,0,0)'),
 (3,'American Beauty','(0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0)'),
@@ -2881,7 +2907,7 @@ INSERT INTO movies (movie_id,title,genre) VALUES
 (2861,'Texas Across the River','(0,0,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0,5)'),
 (2862,'Avatar','(0,7,0,0,0,0,0,0,0,7,0,0,0,5,10,0,0,0)');
 
-INSERT INTO actors (actor_id,name) VALUES 
+INSERT INTO actors (actor_id,name) VALUES
 (1,'50 Cent'),
 (2,'A Martinez'),
 (3,'A. Michael Baldwin'),
@@ -7869,7 +7895,7 @@ INSERT INTO actors (actor_id,name) VALUES
 (4985,'Zohra Lampert'),
 (4986,'Zooey Deschanel');
 
-INSERT INTO movies_actors (movie_id,actor_id) VALUES 
+INSERT INTO movies_actors (movie_id,actor_id) VALUES
 (1,3165),
 (1,644),
 (1,1753),
