@@ -1,0 +1,29 @@
+Tarea 6
+
+
+
+docker start -ia stoic_brown
+sudo service start postgresql 
+sudo su lechuga #para cambiar a su usuario
+create database transacciones owner lechuga; 
+\connect transacciones; 
+create extension tablefunc; 
+create extension "uuid-ossp";  
+create language plpythonu; 
+CREATE OR REPLACE FUNCTION transac(OUT fecha varchar, OUT tarjeta varchar, OUT tipo varchar, OUT monto varchar)
+  RETURNS setof record
+AS $$
+import uuid
+import random
+from datetime import date, timedelta
+a=['COMERCIO','ATM','INTERNET']
+resultado=[]
+for i in range (15):
+    for i in range(100):
+        p=str(date.today() - timedelta(days=i))
+        q=str(uuid.uuid4())
+        x=str(a[random.randint(0,2)])
+        y=str((random.randint(1, 10000)))
+        resultado.append((p,q,x,y))
+return resultado
+$$ LANGUAGE plpythonu;
