@@ -1,0 +1,150 @@
+---
+title: "Proyecto_1"
+author: "Andrea García Tapia"
+date: "3 de marzo de 2015"
+output: ioslides_presentation
+
+
+---
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(Hmisc)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+tabla <- read.delim("~/proyecto/big-data/alumnos/AndyGT/proyecto_1/tabla.txt", 
+                    stringsAsFactors=FALSE)
+```
+
+## Proyecto 1
+
+
+¿Cuántas observaciones totales?
+
+¿Cuál es el top 5 de estados?
+
+¿Cuál es el top 5 de estados por año?
+
+¿Cuál es la racha más larga en días de avistamientos en un estado?
+
+¿Cuál es la racha más larga en días de avistamientos en el país?
+
+¿Cuál es el mes con más avistamientos? ¿El día de la semana?
+
+
+
+##Observaciones totales
+
+
+```{r}
+#wc -l tabla.txt
+```
+
+![ ](~/proyecto/big-data/alumnos/AndyGT/proyecto_1/obs.png)
+
+##top 5 de estados
+
+```{r}
+# cat tabla.txt | cut -d$'\t' -f4 | sort -t $'\t' -k 1 | uniq -c | 
+#                 sort -t $'\t'-g | tail -5
+```
+![ ](~/proyecto/big-data/alumnos/AndyGT/proyecto_1/top5.png)
+
+
+
+##Racha más larga (días) de avistamientos por estado
+```{r, echo=FALSE}
+# preparando datos (registro con fecha y ciudad de avistamiento)
+datos <- tabla %>%
+  separate(col=Date...Time, into=c("month","day","year","time"),
+           regex=" ",remove=F,extra="drop")%>%
+  mutate(date= paste(month, day, year, sep ='/'),
+         state = State, 
+         date = as.Date(date, format='%m/%d/%y')) %>%
+  select(date, state )
+
+# quitamos los que no tienen estado 
+#datos <- datos[complete.cases(datos),]
+
+# duración
+duracion <-datos%>%
+  group_by(state,date)%>%
+  arrange(state, date)%>%
+  summarise(reportes =n())%>%
+  mutate(freq = reportes/sum(reportes), 
+         prev = lag(date),
+         dif = (date -prev))
+
+
+
+# solo nos interesa el acumulado 
+duracion$acum <- sequence(rle(as.character(duracion$dif))$lengths)
+#ordenamos 
+duracion_1 <-duracion[with(duracion, order(-acum)), ]
+
+# mayor racha de avistamiento por estado
+result <- duracion_1 %>%
+  group_by(state) %>%
+  top_n(n=1)
+
+```
+
+```{r}
+head(result, 15)
+```
+
+
+
+##Racha más larga (días) de avistamientos en el país
+```{r}
+head(duracion_1)
+```
+
+
+
+##Mes  más concurrido  
+```{r}
+# cut -d$'\t' -f1,2,4 tabla.txt | cut -d' ' -f4,7 | cut -d'/' -f1 | 
+#    sort | uniq -c |sort -g | tail -1
+
+df <- datos[complete.cases(datos),]
+df <- as.data.frame(df)
+fechas <- df$date
+fechas <- as.Date(fechas,format='%m/%d/%y')
+
+  
+mes <- months(fechas)
+unique(mes)
+mes <- as.factor(mes)
+summary(mes)
+```
+
+
+
+
+##Día de la semana más concurrido 
+
+```{r}
+# cut -d $'\t' -f2,3,4 tabla.txt | sed 's/"//g' | cut -d " " -f1 | 
+#        sort | uniq -c | sort | sed 's/City/ /' | sed 's/Two/ /'
+```
+
+
+```{r,echo=FALSE}
+dias <- weekdays(fechas)
+unique(dias)
+dias <- as.factor(dias)
+
+```
+ 
+```{r}
+summary(dias)
+```
+
+## Gracias
+
+
+
+
+
+
+

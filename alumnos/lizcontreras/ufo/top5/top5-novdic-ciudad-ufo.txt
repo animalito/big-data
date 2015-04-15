@@ -1,0 +1,5 @@
+      6 Portland
+      6 Phoenix
+      5 Spring Hill
+      5 Miami
+      5 Lakewood

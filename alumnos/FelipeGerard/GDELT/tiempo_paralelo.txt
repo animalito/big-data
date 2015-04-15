@@ -1,1 +1,0 @@
-./en_paralelo.sh > result_paralelo  8219.73s user 95.09s system 680% cpu 20:22.61 total

@@ -1,0 +1,201 @@
+---
+title: "Tarea05"
+author: "Edwin Chazaro"
+date: "March 15, 2015"
+output: html_document
+---
+###Tarea - Crear una maquina en docker con un usuario de sistema opoerativo distinto de postgres y root el cual tenga acceso y sea dueño de dos bases de datos llamadas ufo y gdelt. Instalar extensiones en cada Base.
+
+##Instalacion
+####Desde docker bajamos la versión 14.10 sobre la cual sí está soportado postgres 9.4
+docker pull ubuntu:14.10
+
+####Iniciamos un contenedor con la imagen de ubuntu 14.10 (en mi caso 525b6e4a4cc8)
+docker run -i -t 525b6e4a4cc8 /bin/bash 
+
+####Instalamos Postgres, Postgis y de paso emacs
+
+sudo apt-get update
+
+sudo apt-get -y install python-software-properties
+
+sudo apt-get install postgresql-9.4 libpq-dev postgresql-contrib
+
+sudo apt-get update
+
+sudo apt-get install postgis
+
+sudo apt-get install emacs
+
+##Configuracion de usuario de Unix
+#### creamos un usuario de sistema operativo llamado chazarovsky y definimos su contraseña
+
+sudo adduser chazarovsky
+
+####Luego hay que dar permisos al usuario. lo hacen modificando el archivo visudo con el siguiente comando que abre vim
+sudo /usr/sbin/visudo
+
+Hay que editar el archivo y poner abajo de root nuestro usuario con los mismos privilegios
+
+Recordar Escape (para salir de modo insert) y luego :x  (para guardar cambios y salir)
+
+####Iniciamos el servicio
+sudo service postgresql start
+
+####Hay que identificar la ubicacion del archivo pg_hba.conf cambiando al usuario postgres y entrando a psql
+su postgres
+
+psql
+
+select name, setting
+from pg_settings
+where category = 'File Locations';
+
+En mi caso fue "/etc/postgresql/9.4/main/pg_hba.conf"
+
+####Modificamos el archivo pg_hba.conf desde root 
+Ctrl + d para salir a postgres
+
+Ctrl + d para salir a root
+
+emacs /etc/postgresql/9.4/main/pg_hba.conf
+
+Cambian postgress por all para permitir el acceso a todos los usuarios locales y cambiamos a ident el mecanismo de autenticacion para usuarios locales
+
+Salimos con Ctrl +x Ctrl +s Ctrl +x Ctrl +c
+
+Hacemos un reload 
+
+/etc/init.d/postgresql reload
+
+####Cambiamos a postgres para crear el usuario chazarovsky
+
+su postgres
+
+psql
+
+create role chazarovsky login password 'blablabla' superuser valid until 'infinity';
+
+##Creacion de las bases
+
+create database ufo owner chazarovsky;
+
+create database gdelt owner chazarovsky;
+
+####nos cambiamos a usuario chazarovsky
+
+Ctrl + d para salir de psql
+
+su chazarovsky para cambiar de usuario
+
+psql -d ufo para entrar a la base ufo desde el usuario chazarovsky
+
+####Instalamos las extensiones y creamos los esquemas
+create extension dblink;
+create extension file_fdw;
+create extension fuzzystrmatch;
+create extension hstore;
+create extension pgcrypto;
+create extension postgres_fdw;
+create extension tablefunc;
+create extension cube; 
+create extension dict_xsyn;
+create extension pg_trgm;
+create schema "$user";
+create schema dirty;
+create schema clean;
+create schema shameful;
+create schema playground;
+create schema output;
+create schema mining;
+create schema ml;
+CREATE EXTENSION "uuid-ossp"; 
+
+####Damos accesos a los esquemas dirty y clean
+grant usage on schema dirty to public;
+
+alter default privileges in schema dirty
+grant select, references on tables
+  to public;
+
+alter default privileges in schema dirty
+grant select, update on sequences
+  to public;
+
+alter default privileges in schema dirty
+grant execute on functions
+  to public;
+
+alter default privileges in schema dirty
+grant usage on types
+  to public;
+  
+grant usage on schema clean to public;
+
+grant select, references, trigger
+  on all tables in schema clean
+    to public;
+
+grant execute on all functions in schema clean to public;
+grant select, update on all sequences in schema clean to public;
+
+####Nos conectamos a la base gdelt
+``\``connect gdelt 
+
+####Instalamos las extensiones y creamos los esquemas en gdelt
+create extension dblink;
+create extension file_fdw;
+create extension fuzzystrmatch;
+create extension hstore;
+create extension pgcrypto;
+create extension postgres_fdw;
+create extension tablefunc;
+create extension cube; 
+create extension dict_xsyn;
+create extension pg_trgm;
+create schema "$user";
+create schema dirty;
+create schema clean;
+create schema shameful;
+create schema playground;
+create schema output;
+create schema mining;
+create schema ml;
+CREATE EXTENSION "uuid-ossp"; 
+
+####Damos accesos a los esquemas dirty y clean
+grant usage on schema dirty to public;
+
+alter default privileges in schema dirty
+grant select, references on tables
+  to public;
+
+alter default privileges in schema dirty
+grant select, update on sequences
+  to public;
+
+alter default privileges in schema dirty
+grant execute on functions
+  to public;
+
+alter default privileges in schema dirty
+grant usage on types
+  to public;
+  
+grant usage on schema clean to public;
+
+grant select, references, trigger
+  on all tables in schema clean
+    to public;
+
+grant execute on all functions in schema clean to public;
+grant select, update on all sequences in schema clean to public;
+
+####Validamos que se hayan creado las bases y salimos de todo
+
+``\``l
+
+Ctrl + d Ctrl + d Ctrl + d 
+
+
+
