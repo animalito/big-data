@@ -1,0 +1,20 @@
+Ejercicio:
+
+1. Selecciona las líneas que tienen exáctamente 5 dígitos
+
+grep -E "^[a-z]{5}$" names.txt
+
+No arroja salida debido a que no hay nombres con exáctamente 5 dígitos
+
+2. Selecciona las que tienen más de 6 dígitos
+
+grep -E "^[a-z]{7}" names.txt
+
+liliana
+evening
+jessica
+jessica
+
+3. Cuenta cuantos javier, romina y andrea hay
+
+grep -E "javier|romina|andrea" names.txt | sort |uniq -c

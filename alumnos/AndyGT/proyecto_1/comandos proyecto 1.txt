@@ -1,0 +1,11 @@
+# comandos proyecto 1
+# observaciones
+ wc -l tabla.txt
+ #Top 5
+ cat tabla.txt | cut -d$'\t' -f4 | sort -t $'\t' -k 1 | uniq -c | sort -t $'\t' -g | tail -5
+ # Top 5 por año 
+ cut -d$'\t' -f1,2,4 tabla.txt | cut -d' ' -f4,7 | cut -d'/' -f3 | sort | uniq -c |sort -k 2 |  awk  '{if ($2=="15") print $1,$2,$3;}' | sort -k1 -nr | head -5
+ # mes conmas avistamientos
+ cut -d$'\t' -f1,2,4 tabla.txt | cut -d' ' -f4,7 | cut -d'/' -f1 | sort | uniq -c |sort -g | tail -1
+ # dia 
+ cut -d $'\t' -f2,3,4 tabla.txt | sed 's/"//g' | cut -d " " -f1 | sort | uniq -c | sort | sed 's/City/ /' | sed 's/Two/ /'

@@ -105,7 +105,7 @@ Instalación
 ```
 > sudo apt-get update
 > sudo apt-get -y install python-software-properties
-> sudo apt-get install postgresql-9.4 libpq5-dev postgresql-contrib
+> sudo apt-get install postgresql-9.4 libpq-dev postgresql-contrib
 ```
 
 - Accesando a la base
@@ -466,7 +466,7 @@ where category = 'File Locations';
 ```
 
 ```
-select name, context, unit, setting, boot_val, reset_val,
+select name, context, unit, setting, boot_val, reset_val
 from pg_settings
 where name in (
 'listen_addresses', 'max_connections', 'shared_buffers',
@@ -629,7 +629,7 @@ create extension fuzzystrmatch schema mis_extensiones;
 - Las extensiones se deben de instalar *por base de datos*.
 
 **Ejercicio**: Instalar las siguientes extensiones: `dblink`, `file_fdw`, `fuzzystrmatch`, `hstore`
-, `pgcrypto`, `postgres_fdw`, `tablefunc`, `auto_explain`, `cube`, `dict_xsyn`, `pg_trgm`, `uuid-ossp`.
+, `pgcrypto`, `postgres_fdw`, `tablefunc`, `cube`, `dict_xsyn`, `pg_trgm`, `uuid-ossp`.
 
 
 ========================================================
@@ -1072,9 +1072,22 @@ DELETE FROM libros WHERE ctid NOT IN
 Un poco de Text Mining
 ========================================================
 
-- En un *script* que siempre parta de cero:
+- Crea una base de datos llamada `movies`.
 
-- Crea una base de datos: **movies**.
+- Observa el *script* `movies_data.sql`:
+    - Siempre parte de cero. Esto es una buena práctica.
+    - Partir de cero: _dropear_, crear, etc.
+
+
+- Ejecuta el script `movies_data.sql`.
+
+**NOTA**: Obtenido del libro *Seven databases in seven weeks*.
+
+
+Un poco de Text Mining
+========================================================
+
+El _script_ hace lo siguiente:
 
 - Crea tres tablas:
   - `genres` (`name` (text UNIQUE), `position` (integer)),
@@ -1106,9 +1119,7 @@ create index movies_actors_actor_id on movies_actors (actor_id);
 create index movies_genres_cube on movies using gist (genre);
 ```
 
-
-- Carga la información con el script `movies_data.sql`.
-  - Obtenido del libro *Seven databases in seven weeks*.
+- **Ejercicio**: Modifica el _script_ agregando los índices y ejecuta de nuevo.
 
 Un poco de Text Mining
 ========================================================
@@ -1326,12 +1337,199 @@ Tarea / Ejercicio
 - Usa 20 tarjetas, con un uso distribuido normalmente, gasto distribuido normalmente, etc, etc.
 - Usa la [**documentación**](http://www.postgresql.org/docs/9.4/static/plpython.html)
 
+
+JSON
+========================================================
+
+- Siempre quisieramos que los datos fueran perfectos y se mantuviera la relación y todo eso
+- La realidad es que los datos:
+
+    - son imperfectos
+    - se guardan de manera imperfecta
+    - se tienen que mover entre sistemas
+      - como al web...
+
+- Y a veces, pues no quieres ir con `SQL`
+
+
+JSONB
+========================================================
+
+- PostgreSQL soporta dos tipos de `JSON`: estándar (`JSON`) y binario (`JSONB`).
+- Es importante recalcar que `JSONB` **NO** es igual a `BSON`.
+  - `JSONB` es interno a PostgreSQL, se transmiten en `JSON`, se guardan en `JSONB`.
+  - `JSONB` soporta más tipos que `BSON`
+      - e.g. `BSON` no soporta enteros o flotantes con más de 64 bits de precisión.
+
+
+JSONB
+========================================================
+- PostgreSQL soporta codificación en `javascript` para poder garantizar los resultados.
+    - Tiene un `V8` engine dentro!
+    - Cuidado con los `XSS` y `SQL injections` !!
+        - Más adelante un ejemplo
+
+JSONB
+=======================================================
+
+- Nos da más operadores:
+
+```{sql}
+-- Contención derecha
+select '{"a":1, "b": 2}'::jsonb @> '{"a": 1}'::jsonb;
+
+-- Contención izquierda
+select '{"a":1}'::jsonb <@ '{"a":1, "b": 2}'::jsonb;
+
+-- Existencia
+select '{"a":1, "b": 2}'::jsonb ? 'a';
+
+-- ¿Existe alguno?
+select '{"a":1, "b": 2}'::jsonb ?| ARRAY['b', 'd'];
+
+-- ¿Existen todos?
+select '{"a":1, "b": 2}'::jsonb ?& ARRAY['a', 'b'];
+```
+
+JSON
+=======================================================
+
+```{sql}
+create table json_test (
+  data JSONB
+);
+```
+
+```{sql}
+insert into json_test (data)
+  values
+    ('
+      {
+      "nombre": "Adolfo",
+      "apellido": "De Unánue",
+      "clase": "big data"
+      }
+    ');
+
+
+JSON
+========================================================
+
+```{sql}
+-- Observa el operador
+select distinct data->>'nombre' as nombres from json_test;
+
+-- Se puede usar en where
+select distinct data->>'nombre' as nombres from json_test where data->>'clase' = 'big data';
+
+-- E inclusive con JOINs
+-- (Este código no va a correr)
+select cargo,
+    data ->> 'nombre' as nombre,
+    data ->> 'apellido' as apellido
+    from json_test
+join nomina on
+(
+  nomina.nombre = json_test.data ->> 'nombre'
+);
+```
+
+JSON
+========================================================
+- Operadores
+
+```{sql}
+-- existencia
+select * from json_test where data ? 'nombre';
+
+-- ?| ¿Existe alguno?
+-- ?& ¿Todos existen?
+
+-- contención
+select * from json_test where
+  data @> '{"nombre": "Daniela"}';
+select * from json_test where
+  data @> '{"nombre": "Adolfo"}';
+```
+
+JSON
+=========================================================
+
+- Como todo en la vida, hay que crearle índices:
+
+```{sql}
+create index idx_nombre_gin
+  on json_test using gin(nombre);
+```
+
+- Nota que es de tipo `gin` y no `btree`.
+    - Los índices `GIN` son para "ver dentro" de los objetos.
+
+- Soporta los operadores `@>, ?, ?&`
+
+JSON
+========================================================
+
+- Se puede extraer la información de una tabla relacional como JSON
+    - para mandar a un servicio, por ejemplo
+
+```{sql}
+select
+  row_to_json(transacciones)
+  from transacciones
+  limit 10;
+```
+
+JSON: Últimas cosas
+========================================================
+
+- `JSON` **NO SIGNIFICA** `schema-less`.
+    - Tiene que haber alguna estructura, convención y validación
+    - Aquí puede entrar el `V8`
+
+    ```{sql}
+    create extension plv8;
+
+    create or replace function tiene_llave(doc json)
+    return boolean as
+    $$
+    if ....
+    // Código JS
+    return true;
+    $$ language plv8 immutable;
+    ```
+
+JSON: Últimas cosas
+========================================================
+
+- `JSON` **NO SIGNIFICA** _escalamiento_.
+    - No hay nada en el formato que garantice que correrá en compus normales.
+    - No hay nada en el formato que garantice escalabilidad horizontal.
+    - No hay nada en el formato que garantice que no hay un punto único de fallo.
+
+  - Me acabo de enterar que existe:  `pl/proxy`
+
+
+JSON: Últimas cosas
+========================================================
+
+- Ver la carpeta [`docs`](./docs) para ejemplos y presentaciones.
+
+
+
 ========================================================
 type: exclaim
 ## PostgreSQL
 ## Performance
 
+¿Por qué?
+========================================================
 
+- Más usuarios.
+- Mejor rendimiento para los usuarios existentes.
+- Guardar más información.
+- Mejorar la disponibilidad del sistema.
+- Dispersión geográfica.
 
 Capas que afectan el performance
 ========================================================
@@ -1407,6 +1605,9 @@ type:alert
 - `=>`  Por lo menos dos cores...
 
 - `PostgreSQL` **aún** no soporta `queries` en paralelo...
+
+    - Pero en `9.5` quizá esté...
+    - Actualmente `pg_pool` y `pl/proxy` dan soporte básico.
 
 CPU
 ========================================================
@@ -2389,7 +2590,8 @@ Tips
 - [**Docs**](http://www.postgresql.org/docs/9.4/static/runtime-config-logging.html)
 
 - En **`postgres.conf`**
-```
+
+```{bash}
 log_destination = 'csvlog'
 log_directory = 'pg_log'
 logging_collector = on
@@ -2515,6 +2717,8 @@ en duración.
 - Comparalos con el `explain analyze`.
 
 
+
+
 Agregados regulares
 ========================================================
 ![capas](images/regular_aggregate.png)
@@ -2528,8 +2732,16 @@ Windowing functions
 
 ![capas](images/windowing_function.png)
 
+- Se realiza **sobre** (`over`) un conjunto de renglones.
 
 
+OVER
+=======================================================
+- `over` puede seguir de cualquier función de agregación.
+- `over` define que renglones son visibles en cada renglón.
+    - `over()` hace visibles todos los renglones para cada renglón.
+
+- `over(partition by algo)` segrega de manera parecida a un `group by`.
 
 
 Componentes de la ventana
@@ -2632,7 +2844,48 @@ Lista de funciones
 * `nth_value()` -> Regresa el n-ésimo valor del marco.
 
 
+Otras funciones
+=======================================================
 
+- Son un tipo de funciones de agregación
+  - muchos renglones `->` un renglón.
+- La diferencia estriba en que el orden de los renglones es importante.
+
+- Se agregaron varias funciones de este tipo y la cláusula `WITHIN GROUP` para especificar el ordenamiento.
+
+
+- `mode()` es un buen ejemplo
+
+
+Otras funciones
+=======================================================
+
+- Un subtipo especial de estas funciones son las **hypothetical set functions**.
+    - `percent_rank`, `dense_rank`.
+
+- Otro subconjunto: **inverse distribution functions**:
+    - `percentile_cont`,  `percentile_disc`
+
+    ```{sql}
+    select percentile_disc(0.5) -- mediana
+    within group(order by algo)
+    from tabla
+    ```
+
+Otras funciones
+=======================================================
+
+```{sql}
+select
+  aggfnoid, aggkind
+  from pg_aggregate
+  where aggkind in ('o', 'h')
+  order by aggkind;
+```
+
+- `n` -> normal aggregates
+- `o` -> ordered-set aggregates
+- `h` -> hypothetical-set aggregates
 
 Agregados y acumuladores
 ========================================================
@@ -2672,35 +2925,37 @@ order by carrier
 Agregar una función de agregación
 ========================================================
 
-```
+```{sql}
 CREATE OR REPLACE FUNCTION _final_median(anyarray)
-RETURNS float8 as
-$$
-WITH q AS
-(
-  SELECT val
-  FROM unnest($1) val
-  WHERE VAL is not null
-  ORDER BY 1
-),
-cnt AS
-(
-  SELECT COUNT(*) AS c FROM q
-)
-
-SELECT AVG(val)::float8
-FROM
-(
-SELECT val FROM q
-LIMIT 2 - MOD((SELECT c FROM cnt), 2)
-OFFSET GREATEST(CEIL((SELECT c FROM cnt) / 2.0) - 1, 0)
-) q2;
-$$
+  RETURNS float8 as
+  $$
+    WITH q AS
+      (
+        SELECT val
+        FROM unnest($1) val
+        WHERE VAL is not null
+        ORDER BY 1
+      ),
+    cnt AS
+    (
+      SELECT COUNT(*) AS c FROM q
+    )
+    SELECT AVG(val)::float8
+      FROM
+      (
+        SELECT val FROM q
+        LIMIT 2 - MOD((SELECT c FROM cnt), 2)
+        OFFSET GREATEST(CEIL((SELECT c FROM cnt) / 2.0) - 1, 0)
+      ) q2;
+  $$
 LANGUAGE sql IMMUTABLE;
 )
 ```
 
-```
+Agregar una función de agregación
+========================================================
+
+```{sql}
 CREATE AGGREGATE median(anyelement)
 (
 SFUNC = array_append,
@@ -2710,138 +2965,10 @@ INITCOND= '{}'
 );
 ```
 
-```
+```{sql}
 select median(score), avg(score)
 from game_results;
 ```
-
-Tarea
-========================================================
-* En la base de datos: RITA
-    - ¿Primer vuelo de cada aerolínea? ¿Primer vuelo de cada avión?
-    - ¿Vuelos fantasmas? (Por favor pregúnten que es un vuelo fantasma)
-    - ¿Promedio de retraso por avión, por mes, por año?
-    - ¿Los vuelos mas largos tienen más retrasos?
-    - ¿Cuál aerolínea tiene más kilómetros, más vuelos, más destinos?
-    - ¿Km por aerolínea, ciudad, y diferencia respecto al promedio de km?
-    - ¿Cómo podrían identificar un hub?
-
-Tarea
-========================================================
-
-  - Número de retrasos por aerolína, ¿Quién es la que más se retrasa? (`row_num`, `rank`, ...)
-  - Días con retraso ¿Qué días?¿Qué horas?
-  - ¿Hay un número de vuelo de mala suerte?¿De avión?
-  - ¿Serie de tiempo (diaria) por aerolínea?
-  - Distancia recorrida por carrier ¿Tiempo de vuelo?
-  - ¿Cómo obtener accidentes?
-
-
-========================================================
-type: exclaim
-
-# **Intermezzo**
-
-
-Grafos
-========================================================
-
-
-- En una `RDBMS` los grafos se guardan como *listas de adyacencia*
-
-- **Nodos**
-
-```{sql}
-create table nodes (
-id integer primary key,
-name varchar,
-feature_1 varchar,
-feature_2 varchar,
-...
-)
-```
-
-Grafos
-========================================================
-
-- **Edges**
-
-```{sql}
-create table edges (
-a integer not null references nodes(id)
-on update cascade
-on delete cascade,
-b integer not null references nodes(id)
-on update cascade
-on delete cascade,
-primary key(a,b)
-);
-```
-
-- **Índices**
-
-```{sql}
-create index a_idx on edges(a);
-create index b_idx on edges(b);
-```
-
-- Otros
-
-```{sql}
--- - Si el grafo no es direccionado
-create unique index pair_unique_idx
-on edges (least(a,b), greatest(a,b));
-
--- Sin auto bucles
-alter table edges add constraint
-no_auto_bucles_chk check (a <> b);
-
-```
-
-Tarea
-========================================================
-
-## **Ejercicio**
-
-- Modificar el código:
-    - Nodos: ciudades; atributos del nodo: ¿aerolíneas? / ¿principal aerolínea?
-    - Edges: conexiones
-
-- Crear estas tablas
-
-
-Árboles
-========================================================
-
-```{sql}
-
-create table arbol (
-  id integer not null,
-  parent_id integer references tree(id),
---  feature_1 varchar,
---  feature_2 integer,
---  ...
-  unique(id, parent_id)
-);
-
--- Insertamos
-
-insert into arbol(id, parent_id)
-values(1, NULL), /* Root */
-(2,1), (3,1), (4,1),
-(5,2), (6,2), (7,2), (8,3),
-(9,3), (10,4), (11.5), (12,5), (13, 6),
-(14,7), (15, 8);
-
-
-```
-
-
-
-=========================================================
-type:exclaim
-
-# **CTEs**
 
 CTEs
 ========================================================
@@ -2864,23 +2991,25 @@ CTEs
 CTE estándar
 ========================================================
 ```{sql}
-with cancelaciones_ciudad as (
-select origin as ciudad, cancellation_code as razon, count(*) as conteo
-where cancelled is true
-from rita
-group by origin, cancellation_code
+with  ciudad_forma as (
+  select
+  city as ciudad, state as estado, shape as forma, count(*) as conteo
+  where shape  is not null
+from ufo
+group by city, state, shape
 )
 
 
-select ciudad, max(conteo) over(partition by ciudad)
-from cancelacones_ciudad;
+select
+estado, max(conteo)
+over(partition by ciudad)
+from ciudad_forma;
 ```
 
+- De esta manera es como una _vista materializada_
+    - ver más adelante...
 
-* ¿Qué hace esté query?
-    - Modificarlo para que muestre la ciudad y su principal razón de cancelación.
-    - ¿Hay algún patrón?
-
+**Ejercicio** Reescríbelo como un subquery y compara con `explain analyze`.
 
 
 CTEs escribibles
@@ -2890,9 +3019,14 @@ CTEs escribibles
 ```{sql}
 -- ¡NO EJECUTAR!
 with
-aa_flights_1 as (delete from only rita where carrier = 'AA' returning *),
-aa_flights_2 as (insert into rita_AA select * from aa_flights)
-select min(flight_date), max(flight_date), count(*) from aa_flights_1;
+deleted_countries as (
+  delete from only ufo
+  where country is not  'US'
+  returning *
+  ),
+
+insert into foreign_ufos
+select * from deleted_countries;
 ```
 
 
@@ -2905,21 +3039,121 @@ CTEs recursivos
 * Secuencias:
 
 ```{sql}
-with recursive seq(n) as (
--- término no recursivo
-select 1 as n
-union all
+with recursive seq(n)
+as (
+  -- término no recursivo
+  select 1 as n -- 1. se ejecuta primero
+  union all
 
--- término recursivo
-select n+1
-from seq
-where n < 100
+  -- término recursivo
+  select n+1
+  from seq
+  where n < 100
 )
 
 select n from seq
 ```
 
-* Dos equipos: Creen una serie de fibonacci, factorial
+CTEs recursivos
+========================================================
+
+- Es el `while` de `SQL`.
+
+* Secuencias:
+
+```{sql}
+with recursive seq(n)  -- 2. Se envía el resultado aquí
+as (
+  -- término no recursivo
+  select 1 as n
+  union all
+
+  -- término recursivo
+  select n+1
+  from seq
+  where n < 100
+)
+
+select n from seq
+```
+
+CTEs recursivos
+========================================================
+
+- Es el `while` de `SQL`.
+
+* Secuencias:
+
+```{sql}
+with recursive seq(n)
+as (
+  -- término no recursivo
+  select 1 as n
+  union all
+
+  -- término recursivo
+  select n+1
+  from seq -- 3. Se ve aquí
+  where n < 100
+)
+
+select n from seq -- 3. Se ve aquí
+```
+
+CTEs recursivos
+========================================================
+
+- Es el `while` de `SQL`.
+
+* Secuencias:
+
+```{sql}
+with recursive seq(n)
+as (
+  -- término no recursivo
+  select 1 as n
+  union all
+
+  -- término recursivo
+  select n+1 -- 4. Se ejecuta el union
+  from seq
+  where n < 100
+)
+
+select n from seq
+```
+
+CTEs recursivos
+========================================================
+
+- Es el `while` de `SQL`.
+
+* Secuencias:
+
+```{sql}
+with recursive seq(n)   -- 5. se vuelve a mandar
+
+as (
+  -- término no recursivo
+  select 1 as n
+  union all
+
+  -- término recursivo
+  select n+1
+  from seq
+  where n < 100
+)
+
+select n from seq
+```
+
+**Es como un bucle**
+
+CTEs recursivos
+========================================================
+
+- Este ejemplo recién mostrado sirve como sustituto del `generate_series`
+    - Ya que sólo funciona en `PostgreSQL`.
 
 
 CTEs recursivos
@@ -3022,27 +3256,25 @@ order by a,b
 ;
 ```
 
-
-
-Ejercicio:
-========================================================
-
-* Posibles rutas...
-    - Modificar el ejemplo anterior para obtener las posibles rutas entre dos ciudades
-    - Crear una función
-
-* Otras cosas interesantes:
-    - Grados de separación entre nodos (¿Small world networks?)
-    - Nodos en común
-    - ¿Cómo están conectados?
-    - Características en común
-    - Travelling Salesman Problem
-
-
+FILTER
 =========================================================
-type: exclaim
 
-# **Misceláneos**
+- sustituto del `CASE WHEN... THEN ... ELSE... END`
+
+```{sql}
+select year,
+sum(duration) filter (where month = 1) as enero,
+sum(duration) filter (where month = 1) as febrero,
+...
+from ufo
+group by year;
+```
+
+La alternativa es
+
+```{sql}
+...sum(case when month = 1 then duration else 0 end ) as enero...
+```
 
 Vistas materializadas
 ========================================================
@@ -3117,10 +3349,6 @@ Tarea
   - Ejercicio de **Estadística muy loca**
   - Muestreo
 
-Proyecto 2
-=======================================================
-
-- Por determinar...
 
 ========================================================
 type: exclaim
@@ -3138,11 +3366,10 @@ PostgreSQL y R
 - Hereda del paquete `DBI`.
 
 - No soporta conexiones con `SSL`.
-  - Adios *Heroku*
 
 - Modo de empleo: Ejecutas *queries*, obtienes `data.frames`, los manipulas en `R`, escribes las tablas de resultado.
 
-
+- Hay que tener cuidado en los tipos de retorno.
 
 PostgreSQL y R
 ========================================================
@@ -3192,10 +3419,40 @@ op3 <- mutate(op1, rank = rank(desc(var4)))
 # etc, etc
 ```
 
-Tarea
 ========================================================
+type: exclaim
 
-- Generar un reporte en `R`, usando `dplyr`/`sqldf` donde se reproduzcan al menos **cinco** de las peticiones mencionadas anteriormente para  **`RITA`**.
+## PostgreSQL
+# **Proyecto 2**
+
+Proyecto 2
+========================================================
+- Para UFO y GDELT
+    - Utiliza las plantillas de la clase de Minería de datos para describirlas.
+
+Proyecto 2
+========================================================
+* En la base de datos: UFO
+    - ¿Primer avistamiento en cada estado? ¿Primer avistamiento de cada forma?
+    - ¿Promedio de entre avistamientos, por mes, por año? ¿Por estado?
+    - ¿Cuál estado tiene mayor varianza?
+    - ¿Existen olas temporales? ¿Existen olas espacio-temporales?
+    - ¿Narrativas parecidas?
+    - ¿Cómo está relacionado con la geografía?
+    - ¿Con características sociales?
+    - Desarrolla un modelo predictivo.
+
+Proyecto 2
+========================================================
+* En la base de dato: GDELT
+    - Responde preguntas parecidas a las anteriores.
+    - Señala el caso de México.
+    - ¿Existen clústers?
+    - ¿Qué países son parecidos a México?
+    - ¿Puedes desarrollar un modelo predictivo?
+    - ¿Qué más bases de datos puedes traer al análisis?
+
+
 
 ========================================================
 type:exclaim
@@ -3213,3 +3470,103 @@ Bibliografía
 * [Trees and more with postgreSQL](http://www.slideshare.net/PerconaPerformance/trees-and-more-with-postgre-s-q-l)
 * [Graphs in database: RDBMs in the social network age](http://www.slideshare.net/quipo/rdbms-in-the-social-networks-age)
 
+
+
+
+
+========================================================
+type: exclaim
+
+# **Addendum**
+
+
+Grafos
+========================================================
+
+
+- En una `RDBMS` los grafos se guardan como *listas de adyacencia*
+
+- **Nodos**
+
+```{sql}
+create table nodes (
+id integer primary key,
+name varchar,
+feature_1 varchar,
+feature_2 varchar,
+...
+)
+```
+
+Grafos
+========================================================
+
+- **Edges**
+
+```{sql}
+create table edges (
+a integer not null references nodes(id)
+on update cascade
+on delete cascade,
+b integer not null references nodes(id)
+on update cascade
+on delete cascade,
+primary key(a,b)
+);
+```
+
+- **Índices**
+
+```{sql}
+create index a_idx on edges(a);
+create index b_idx on edges(b);
+```
+
+- Otros
+
+```{sql}
+-- - Si el grafo no es direccionado
+create unique index pair_unique_idx
+on edges (least(a,b), greatest(a,b));
+
+-- Sin auto bucles
+alter table edges add constraint
+no_auto_bucles_chk check (a <> b);
+
+```
+
+Tarea
+========================================================
+
+## **Ejercicio**
+
+- Modificar el código:
+    - Nodos: ciudades; atributos del nodo: ¿aerolíneas? / ¿principal aerolínea?
+    - Edges: conexiones
+
+- Crear estas tablas
+
+
+Árboles
+========================================================
+
+```{sql}
+
+create table arbol (
+  id integer not null,
+  parent_id integer references tree(id),
+--  feature_1 varchar,
+--  feature_2 integer,
+--  ...
+  unique(id, parent_id)
+);
+
+-- Insertamos
+
+insert into arbol(id, parent_id)
+values(1, NULL), /* Root */
+(2,1), (3,1), (4,1),
+(5,2), (6,2), (7,2), (8,3),
+(9,3), (10,4), (11.5), (12,5), (13, 6),
+(14,7), (15, 8);
+```

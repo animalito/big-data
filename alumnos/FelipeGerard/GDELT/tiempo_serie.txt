@@ -1,1 +1,0 @@
-./en_serie.sh > result_serie.txt  4137.45s user 83.74s system 188% cpu 37:16.91 total

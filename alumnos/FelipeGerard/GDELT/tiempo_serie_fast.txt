@@ -1,1 +1,0 @@
-./en_serie_fast.sh > result_serie  4752.54s user 77.86s system 153% cpu 52:32.18 total

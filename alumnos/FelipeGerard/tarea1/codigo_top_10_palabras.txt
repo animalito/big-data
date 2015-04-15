@@ -1,1 +1,0 @@
-< thetimemachine.txt | tr '[:upper:]' '[:lower:]' | grep -Eo '\w+' | sort | uniq -c | sort -rk 1 | head > top_10_palabras.txt

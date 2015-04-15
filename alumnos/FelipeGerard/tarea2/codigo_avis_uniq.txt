@@ -1,1 +1,0 @@
-< avis_otros_paises.tsv grep -Eo '\([A-Za-z]*/?[A-Za-z]*\)' | tr -d '()' | sort | uniq -c | sort -rk 1 > uniq_otros.tsv
