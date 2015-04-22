@@ -478,6 +478,14 @@ find ./data/books -type f | parallel -j0 egrep -i  '\[\[:digit:\]\]' {} | awk '{
 
 
 
+** Ejercicio
+
+- Diseñe el **MapReduce** para lo siguiente:
+  - Encontrar el máximo de un conjunto de datos.
+  - Encontrar el promedio y desviación estándar de unos datos.
+  - Encontrar el top 10 de una cantidad.
+  - Contar por grupo
+
 * Apache Haoop 2.x: YARN
 
 
