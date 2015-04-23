@@ -1,2 +1,8 @@
+#! /bin/bash
 
-# Debe ser un doble for o parallel para bajar las descripciones a archivos. De ahí las pegaremos a las tablas. Podríamos no pegarlas sino hasta postgres!
+find datos/ufo_psv_id \
+| grep .ufo_psv_id \
+| parallel -j8 --progress \
+"< {} awk -F'|' '{print \"curl -s\", \$8, \">\", \"datos/descriptions_html/\" \$10 \"_\" \$9 \".desc_html\" }' | grep ndxe" \
+| parallel -j50 --progress "\$({})"
+
