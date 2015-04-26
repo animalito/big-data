@@ -69,12 +69,43 @@ SELECT date_time, city, state, shape, duration, number, units, seconds, posted F
 
 
 
+######################
+CREATE TABLE prueba_part (
+	date timestamp,
+	x varchar
+);
 
+CREATE TABLE prueba_part_2000 (
+CONSTRAINT partition_date_range
+CHECK (date >= '2000-01-01'::date AND date <= '2000-12-31'::date))
+INHERITS (prueba_part);
 
+CREATE TABLE prueba_part_2001 (
+CONSTRAINT partition_date_range
+CHECK (date >= '2001-01-01'::date AND date <= '2001-12-31'::date))
+INHERITS (prueba_part);
 
+CREATE TABLE prueba_overflow ()
+INHERITS (prueba_part);
 
+CREATE OR REPLACE FUNCTION prueba_insert()
+RETURNS TRIGGER AS $f$
+BEGIN
+	CASE
+		WHEN (NEW.date <= '2000-12-31') THEN
+			INSERT INTO prueba_part_2000 VALUES (NEW.*);
+		WHEN (NEW.date <= '2001-12-31') THEN
+			INSERT INTO prueba_part_2001 VALUES (NEW.*);
+		ELSE
+			INSERT INTO prueba_overflow VALUES (NEW.*);
+	END CASE;
+	RETURN NULL;
+END; $f$ LANGUAGE plpgsql;
 
+CREATE TRIGGER prueba_insert BEFORE INSERT ON prueba_part
+FOR EACH ROW EXECUTE PROCEDURE prueba_insert();
 
+INSERT INTO prueba_part VALUES ('2000-06-25'::date, 'cha');
 
 
 
