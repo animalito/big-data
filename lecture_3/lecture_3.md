@@ -2518,7 +2518,7 @@ CREATE FOREIGN TABLE carriers
 ( Code varchar, Description varchar )
 SERVER file_server
 OPTIONS \
-(format 'csv', delimiter ',', filename 'carriers.csv', header 'true', null '');
+(format 'csv', delimiter ',', filename 'ufo.csv', header 'true', null '');
 ```
 
 
@@ -2526,7 +2526,7 @@ OPTIONS \
 FDW
 ========================================================
 ```{sql}
-ALTER FOREIGN TABLE carriers OPTIONS ( SET filename '../carriers.csv' );
+ALTER FOREIGN TABLE carriers OPTIONS ( SET filename '../ufo.csv' );
 -- Cambiamos la localización del archivo
 ```
 
@@ -2559,9 +2559,9 @@ Unlogged tables
 
 ```{sql}
 CREATE UNLOGGED TABLE
-cleaned_rita
+cleaned_ufo
 AS SELECT ...
-FROM dirty_rita,
+FROM dirty_ufo,
 WHERE ...
 ```
 * Mucho cuidado, se cae el servidor y desaparece la tabla
