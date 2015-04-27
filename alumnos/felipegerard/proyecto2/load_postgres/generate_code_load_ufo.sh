@@ -3,7 +3,7 @@
 # CREATE DATABASE ufo WITH TEMPLATE transacciones OWNER felipe;
 
 # GENERAMOS CÓDIGO PARA SUBIR DATOS A LA TABLA SUCIA
-find `pwd`/datos/ufo \
+find `pwd`/../datos/ufo \
 | grep ndxe \
 | while read f; do echo '\\'copy dirty.raw_input FROM $f WITH delimiter "'|'" ';'; done > tmp001
 
@@ -28,7 +28,7 @@ rm tmp001
 
 # CREAMOS LA TABLA LIMPIA DE UFO CON SU PARTICIÓN
 
-ls datos/ufo| grep ndxe | awk '{gsub(/[^0-9]/,"",$0); $0=substr($0,1,4); if($0=="") $0="1000"; print}' | sort | uniq \
+ls ../datos/ufo| grep ndxe | awk '{gsub(/[^0-9]/,"",$0); $0=substr($0,1,4); if($0=="") $0="1000"; print}' | sort | uniq \
 | while read a;
 do
 echo "CREATE TABLE clean.ufo_$a (CONSTRAINT partition_date_range CHECK (date_time >= '$a-01-01'::date AND date_time <= '$a-12-31'::date)) INHERITS (clean.ufo);"
@@ -66,7 +66,7 @@ RETURNS TRIGGER AS \$f\$
 BEGIN
 	CASE" > create_ufo_partition_trigger.sql
 
-ls datos/ufo| grep ndxe | awk '{gsub(/[^0-9]/,"",$0); $0=substr($0,1,4); if($0=="") $0="1000"; print}' | sort | uniq \
+ls ../datos/ufo| grep ndxe | awk '{gsub(/[^0-9]/,"",$0); $0=substr($0,1,4); if($0=="") $0="1000"; print}' | sort | uniq \
 | while read a;
 do
 echo "WHEN (NEW.date_time >= '$a-01-01'::date AND NEW.date_time <= '$a-12-31'::date) THEN INSERT INTO clean.ufo_$a VALUES (NEW.*);"
