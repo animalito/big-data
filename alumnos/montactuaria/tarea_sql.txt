@@ -1,0 +1,96 @@
+Ejercicio 1
+	•	Modifica el generador de datos para incluir la columna colonia la cual pueda tener 10 valores.
+	•	Modifica el generador de datos para incluir horas en las fechas.
+	•	Modifica el generador para que no transaccionen las tarjetas todos los días.
+
+select
+generate_series as fecha,
+cus.tarjeta as tarjeta,
+(ARRAY['ATM', 'COMERCIO', 'INTERNET'])[trunc(random()*3)+1] as tipo_comercio,
+(random() * 10000 + 1)::int AS monto,
+colonias as colonia
+into transacciones1
+from generate_series((now() - '10 days'::interval)::date::timestamp, now()::date, '10 hours'::interval),
+(select uuid_generate_v4() as tarjeta from generate_series(1,15)) cus,
+generate_series(1,10,1) colonias;
+
+
+ Ejercicio 2
+
+
+SELECT
+    tarjeta,
+    tipo_comercio,
+    avg(monto) AS avg,
+    stddev(monto) AS stddev,
+(SELECT
+    (array_agg(colonia ORDER BY cnt DESC))[1:5]
+FROM
+    (SELECT colonia, count(*) FROM transacciones1 AS t2
+     WHERE t2.tarjeta = transacciones1.tarjeta AND t2.tipo_comercio = transacciones1.tipo_comercio
+     GROUP BY colonia) AS s (colonia, cnt)
+) AS top5_colonias,
+(SELECT
+    array_agg(cnt ORDER BY hour DESC)
+FROM
+    (SELECT extract(hour FROM fecha), count(*) FROM transacciones1 AS t2
+     WHERE t2.tarjeta = transacciones1.tarjeta AND t2.tipo_comercio = transacciones1.tipo_comercio
+     GROUP BY 1) AS s (hour, cnt)
+) AS hourly_histogram
+FROM transacciones1
+GROUP BY tarjeta, tipo_comercio;
+
+
+
+
+tarjeta                | tipo_comercio |          avg          |      stddev       | top5_colonias |       hourly_histogram        
+--------------------------------------+---------------+-----------------------+-------------------+---------------+-------------------------------
+ df1a9f55-8af0-432b-87e3-887d73b15d51 | ATM           | 5101.8681318681318681 | 2806.840878238543 | {6,10,5,9,4}  | {6,8,10,7,9,8,8,7,6,5,5,12}
+ 3c6e121b-72b4-4505-84a2-15cbfbddbadc | COMERCIO      | 5277.4794520547945205 | 2917.278331622688 | {3,5,4,9,10}  | {5,5,5,5,9,7,9,5,5,1,5,12}
+ 70fda003-704c-463b-b5df-5a24acf918b4 | COMERCIO      | 4975.2333333333333333 | 2729.873644233950 | {3,2,8,1,10}  | {7,9,7,6,11,6,7,7,3,7,10,10}
+ 078393d9-0d9a-462d-8922-0c444723c972 | ATM           | 5200.0652173913043478 | 2656.462833714928 | {1,4,6,7,3}   | {8,9,6,11,4,5,8,11,8,6,7,9}
+ ad35e71a-e0d7-4482-889a-8452870bca0b | COMERCIO      | 5216.8987341772151899 | 2730.557323570789 | {9,7,5,2,4}   | {9,10,11,4,6,10,5,3,3,2,7,9}
+ b389b5ea-5729-42ac-8aa6-210362120de3 | COMERCIO      | 5058.3406593406593407 | 3071.236939445952 | {3,8,7,2,4}   | {9,12,11,7,4,10,4,4,8,10,5,7}
+ ed7c0445-543e-4662-abf8-9cff979c4157 | INTERNET      | 4869.0000000000000000 | 2922.503002131624 | {9,2,7,5,3}   | {8,5,5,5,9,7,5,2,8,8,6,12}
+
+
+######################Movies
+
+psql -d movies -f /big-data/lecture_3/sql/movies_data.sql
+select title, cube_distance(genre, (select genre from movies where title='Apocalypse Now')::cube) dist
+from movies NATURAL join movies_actors NATURAL join actors
+where cube_enlarge((select genre from movies where title='Apocalypse Now')::cube, 5, 18) @> genre
+or metaphone(name, 6) = metaphone('Apocalypse Now', 6)
+ORDER BY dist;
+
+
+#######Ejecutar Python dentro de PostgreSQL
+
+
+create database transacciones owner mont; 
+create extension tablefunc; 
+create extension "uuid-ossp";  
+create language plpythonu; 
+
+CREATE OR REPLACE FUNCTION transacciones(OUT fecha varchar, OUT tarjeta varchar, OUT tipo varchar, OUT monto varchar)
+  RETURNS setof record
+AS $$
+import uuid
+import random
+from datetime import date, timedelta
+a=['COMERCIO','ATM','INTERNET']
+resultado=[]
+for i in range (15):
+    for i in range(100):
+        p=str(date.today() - timedelta(days=i))
+        q=str(uuid.uuid4())
+        x=str(a[random.randint(0,2)])
+        y=str((random.randint(1, 10000)))
+        resultado.append((p,q,x,y))
+return resultado
+$$ LANGUAGE plpythonu;
+
+
+SELECT transacciones();
+
+
