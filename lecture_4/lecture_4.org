@@ -8,7 +8,7 @@
 #+REVEAL_MARGIN: 0.1
 #+REVEAL_MIN_SCALE: 0.5
 #+REVEAL_MAX_SCALE: 2.5
-#+REVEAL_HEAD_PREAMBLE: <meta name="description" content="Big data - Lecture 6.">
+#+REVEAL_HEAD_PREAMBLE: <meta name="description" content="Big data - Lecture 4.">
 #+REVEAL_POSTAMBLE: <p> Creado por Adolfo De Unánue Tiscareño. </p>
 #+REVEAL_PLUGINS: (highlight markdown notes)
 #+REVEAL_ROOT: http://cdn.jsdelivr.net/reveal.js/2.5.0/
@@ -40,8 +40,9 @@ docker run -ti --rm \
   -p 50070:50070 -p 50010:50010 -p 50020:50020 -p 50075:50075 \
   -p 50090:50090 -p 8030:8030 -p 8031:8031 -p 8032:8032 \
   -p 8033:8033 -p 8088:8088 -p 8040:8040 -p 8042:8042 \
-  -p 13562:13562 -p 47784:47784 -p 10020:10020 -p 19888:19888 \
-nanounanue/docker-hadoop /bin/bash
+  -p 13562:13562 -p 47784:47784 -p 10020:10020 -p 19888:19888
+  -p 8000:8000 \
+nanounanue/docker-hadoop /bin/zsh
 #+end_example
 
 ** Contenedor con Hadoop
@@ -56,20 +57,33 @@ docker run -ti --name hadoop_pseudodistribuido \
   -p 50090:50090 -p 8030:8030 -p 8031:8031 -p 8032:8032 \
   -p 8033:8033 -p 8088:8088 -p 8040:8040 -p 8042:8042 \
   -p 13562:13562 -p 47784:47784 -p 10020:10020 -p 19888:19888 \
+  -p 8000:8000 \
 nanounanue/docker-hadoop
 #+end_example
 
 ** Conectarse al contenedor
+
 #+begin_example
 ssh hduser@localhost -p 2122
 #+end_example
 
 ** Navegador Web
 
-
 - [[http://127.0.0.1:50090][Consola de Yarn]]
 
 - [[http://127.0.0.1:50070][Consola de HDFS]]
+
+- [[http://0.0.0.0:8000][HUE - Hadoop User Experience]]
+
+
+
+** Ejercicio
+
+- Explicar los diferentes modos en los que puede ejecutarse **Apache Hadoop**.
+
+-  *Modo Pseudodistribuido*
+
+   - Crea el contendeor de Docker para Hadoop,  vamos a explicar que significa /pseudodistribuido/.
 
 
 * Apache Hadoop
@@ -85,9 +99,16 @@ ssh hduser@localhost -p 2122
 
 ** ¿Qué es?
 
-- Sistema confiable (/realiable/) de almacenamiento compartido y de análisis.
-  - *Almacenamiento*: HDFS
-  - *Análisis*: MapReduce
+- Sistema confiable (/realiable/) de almacenamiento compartido y de procesamiento de datos.
+  - *Almacenamiento*: _Hadoop Distributed File System_, =HDFS=
+  - *Procesamiento*: Varios _frameworks_ basados en =YARN=.
+
+- Puede procesar cantidades masivas de datos y escalar conforme crezcan los datos.
+
+- Flexibilidad para el procesamiento de datos.
+  - No importa la estructura o falta de ella
+
+- Está construido en =Java=.
 
 ** ¿Cómo?
 
@@ -125,11 +146,11 @@ ssh hduser@localhost -p 2122
 - *Hive* (Hadoop InteractiVE) Es un lenguaje parecido al =SQL=: =HQL=, para ejecutar /queries/ sobre el =HDFS=.
 - *HBase* Base de datos distribuida orientada a columnas.
   - Depende de =Zookeeper=.
-
+- *Impala* Lenguaje Interactivo parecido al =SQL=, pero mucho más rápido de =HIVE= debido a su arquitectura *MPP*.
 
 ** Componentes de Apache Hadoop
 
-- *Zookeeper* Sistema distribuido de coordinación.
+- *Zookeeper* Proyecto que proveé un servicio centralizado para facilitar la coordinación de componentes de Hadoop.
 - *Sqoop* Herramienta para mover datos entre =RDBM= y =HDFS=.
 - *Flume* Servicio para recolectar, agregar y mover grandes cantidades de datos entre máquinas individuales y el =HDFS=.
 - *Oozie* Sistema de /workflow/, se usa para coordinar varios /jobs/ de *MapReduce*.
@@ -149,6 +170,14 @@ ssh hduser@localhost -p 2122
 - Sistema de almacenamiento distribuido.
   - /Namenode/ =->= Master
   - /Datanode/ =->=  Slaves
+
+** _Schema on Read_
+
+- Es posible cargar datos sin procesar dentro de Hadoop, la estructura se dará en el tiempo de procesamiento.
+
+- Es muy diferente a _Schema on Write_ como el usado en los =RDBM=s
+  - _Schema on Write_ impone un ciclo de análisis y modelado de datos, así como de su transformación, carga y prueba, antes de los datos puedan ser accesados.
+  - Esto quita mucha flexibilidad: Si se tomaron decisiones incorrectas o los requerimientos cambian, es necesario empezar de nuevo =:(= .
 
 ** Ventajas
 
@@ -239,32 +268,243 @@ hadoop fs -tail archivo_hdfs
 hadoop fs -rm archivo_hdfs
 #+end_example
 
-** Copia en paralelo
+* Decisiones Arquitectónicas: Ingesta de datos
 
-#+begin_example
-hadoop distcp
-#+end_example
+** Decisiones Arquitectónicas
 
-** Modo Pseudodistribuido
+- El hecho de que el =HDFS= permita _Schema on Read_, no elimina la necesidad de tomar decisiones arquitectónicas en la ingesta de los datos, entre ellos:
 
-- Crea una imagen sin Hadoop corriendo, vamos a explicar que significa /pseudodistribuido/.
+  - ¿Cómo se guardarán los datos?
+    - Capa de almacenamiento
+    - Formatos de archivos
+    - Formatos de compresión
+
+  - ¿Diseño de esquema de datos?
+    - Directorios donde guardar los datos y donde ponerlos luego del procesamiento y analítica.
+    - También en =HBase= y en =Hive= se definen esquemas.
+  - ¿Cómo se gestionarán los metadatos?
+  - ¿Cómo se administrará la seguridad?
+    - Autenticación, cifrado, acceso controlado.
+
+** Capa de almacenamiento: =HDFS= vs =HBase=
+
+- =HDFS=
+  - ALmacena los datos como archivos
+  - _Scans_ rápidos.
+  - Malo para acceso aleatorio en escritura y lectura.
+
+- =HBase=
+  -  Guarda los datos como archivos de HBase en el =HDFS=.
+  - _Scans_ lentos.
+  - Rápido acceso aleatorio a lectura y escritura.
+
+En esta clase nos enfocaremos a =HDFS=.
+
+** Formatos de archivos
+
+- Tipos de archivos de Hadoop
+  - Basados en archivos: =SequenceFiles=.
+  - Formatos serializados: =Avro=, =Thrift=.
+  - Formatos columnares: =RCFile=, =ORCFile=, =Parquet=.
+
+- Debido a que la mayoría de formatos de archivos sólo se puede acceder desde =Java=, nos enfocaremos en sólo dos: =Avro= y =Parquet=
+
+** Formatos de archivos
+
+- =Avro=
+  - Independiente del lenguaje.
+  - Almacena el esquema en el encabezado de cada archivo.
+  - Son comprensibles y divisibles.
+    - Soporta compresión con =snappy=.
+  - Es recomendable usarlo en la ingesta de datos.
+  - Las fallas sólo afectan a una porción del archivo.
+
+** Formatos de archivos
+
+- =Parquet=
+  - Diseñado para proveer procesamiento eficiente a través de varios compoentes de hadoop.
+  - Almacena los datos de manera columnar.
+  - Provee excelentes capacidades de compresión.
+  - Soporta estructuras de datos complejas y anidadas.
+  - Los metadatos están guardados al final del archivo.
+  - Puede escribirse y leerse con las APIs de Avro y con esquemas de Avro.
+  - No son tan buenos para recuperarse de errores.
+
+** Formatos de compresión
+
+- Ayuda a reducir los requerimientos de almacenamiento
+- Mejora el procesamiento de los datos
+  - Disminuye ,a cantidad de I/O en disco y red.
+- Para aprovechar las capacidades de procesamiento en paralelo de Hadoop es preferible que el formato sea divisible.
+
+
+** Formatos de compresión
+
+- =bzip2=
+  - Excelente factor  de compresión
+  - Pero muuuuuy lento en compresión/decompresión
+  - Divisible
+
+- =snappy=
+  - Proyecto de Google.
+  - No es divisible, pero muy eficiente en compresión/decompresión.
+  - Se debe de usar con un formato de archivo que provea la capacidad de contenedor (=Avro=, =SequenceFiles=).
+
+- =gzip=
+  - No es divisible
+  - Buen factor de comrpesión: 2.5x lo de =snappy=.
+  - Se debe de usar con un formato de archivo que provea la capacidad de contenedor (=Avro=, =SequenceFiles=).
+
+- =lzop=
+  - Parecido a =snappy= en eficiencia de compresión/decompresión.
+  - Divisible, pero requiere una etapa de indexado.
+  - Buena elección para guardar archivos de texto planos que no se pondrán dentro de un contenedor.
+  - Licenciamiento raro (No viene incluido con Hadoop).
+
+** Esquema
+
+- Basado en Hadoop Application Architectures.
+
+-  ¿Por qué?
+   - Estructura de archivos estándar facilita la colaboración entre equipos.
+   - Permite la reutilización de código para procesarla.
+   - Permite reforzar las políticas de acceso y evitar así corrupción de los datos.
+   - Permite identificar que datos han sido procesados completamente y cuales no
+   - Muy parecido a los =schemas= de PostgreSQL.
+
+** Esquema Propuesto
+
+- =/user/<username>=
+   - Datos para experimentar (i.e. no son parte del proceso de negocio).
+   - =JAR=s, archivos de configuración.
+   - Sólo debe de tener permisos de R/W el usuario en cuestión.
+
+- =/etl=
+   - Datos en sus varias etapas de transformación por el ETL.
+   - Subdirectorios reflejan el _workflow_ de los datos.
+     - Los ETL son creados por *grupos* para *aplicaciones*.
+     - Además cada subdirectorio tendrá a su vez directorios para cada etapa del proceso:
+       - =input= para el lugar donde llegan los archivos
+       - =procesando= para los pasos intermedios (puede haber varios)
+       - =output= para el resultado final
+       - =rechazados= para los registros o archivos que no pudieron ser procesados y que deben de verificarse manualmente.
+   - La estructura quedaría así:
+     - =/etl/<grupo>/<aplicación>/<proceso>/{input, procesando, output, rechazados}=
+   - Sólo el usuario =etl= y los usuarios del grupo =etl= pueden R/W.
+
+- =/tmp=
+   - Datos temporales generados por usuarios o partes de Hadoop.
+   - Se borra su interior regularmente.
+   - Todos tienen permisos de RW en este directorio.
+
+- =/data=
+   - Datos procesados y usados por la organización
+   - Existen controles sobre quién puede o no usar los datos
+   - Los usuarios sólo tienen permisos de lectura.
+   - Los procesos automatizados (y auditados) tienen permisos de escritura.
+
+- =/app=
+   - Todo lo requerido por la aplicación de Hadoop para funcionar (salvo datos)
+   - Archivos de Oozie (definiciones de _workflows_),
+   - Archivos de =hql=, =pig=, =JAR=s, =UDF=s, etc.
+
+** Otras consideraciones
+
+- *Particionado*
+  - Ayuda a reducir la cantidad de I/O para procesar los datos.
+  - Es una especie de _indexado_ básico.
+  - =<nombre del dataset>/<columna sobre la cual particionar>=<valor de la columna>/{archivos}=
+
+- *Denormalizar*
+  - Ahorras =Joins= (que son lentos)
 
 ** Ejercicio
-- Crea una imagen con Hadoop corriendo.
-- Conéctate con el usuario =hduser=.
-- Verifique que =alias= tiene definido el usuario =hduser=.
-  - Usa el comando =alias=.
-- Crear una carpeta =ufo= en el =HDFS= y suba  los archivos de =ufo= a la carpeta recién creada.
-  - Descomprime los archivos antes de subirlos
-  - Crea un /script/ para esta tarea, llámalo =ufo_hdfs.sh=.
-- Crear una carpeta =gdelt= en el =HDFS= y suba los archivos de =gdelt= a esta carpeta.
-  - Descomprime los archivos antes de subirlos
-  - Crea un /script/ para esta tarea, llámalo =gdelt_hdfs.sh=.
-- Muestra las carpetas en la línea de comandos.
-  - Modifica los usuarios y permisos del HDFS ¿Cómo crees que se haga?
-- Muestra las carpetas en la vista web.
+- Cambia al usuario =itam=.
+- Revisa la estructura de directorios con el usuario =hdfs=.
+  - Esto lo puedes hacer con =sudo -u hdfs ...=
+- Crea el esquema de directorios propuesta.
+  - Esto lo puedes hacer con =sudo -u hdfs ...=
+  - =/user/<username>=, =/etl= (para la aplicación =ufo= y =gdelt=, el grupo es =ds=), =/tmp=, =/app= y =/data=.
+  - Las últimas tres están vacías.
+- Asigna los permisos adecuados.
+- Dentro de tu carpeta (siendo el usuario =itam=), crea la carpeta =ufo= y la carpeta =gdelt=.
+- Carga un archivo de cada dataset a esta carpeta usando la línea de comandos.
 
-* MapReduce
+** Ejercicio
+
+En este ejercicio usaremos =kite=, es una herramienta que nos permite cargar y administrar los metadatos de los archivos a Hadoop.
+
+
+* YARN
+
+** YARN
+
+- La infraestructura de Hadoop =0.x= y =1.x= era monolítica, por eso fue rediseñada.
+- =YARN=: /Yet Another Resource Negotiator/.
+- La gestión de recursos es extraída de los paquetes de =MapReduce= para que puedan ser utilizadas por otros componentes.
+- Aportaciones
+  - Escalabilidad.
+  - Compatibilidad con =MapReduce=.
+  - Mejoras en la gestión del /cluster/.
+  - Soporte para otros modelos de programación (además de =MapReduce=).
+    - /Graph processing/
+    - /Message Passing Interface/ (*MPI*).
+    - Soporte para procesamiento /real-time/ o /near real-time/.
+      - =MapReduce= es /batch-oriented/.
+  - Agilidad.
+
+** YARN
+
+- Se dividieron las dos responsabilidades del /JobTracker/:
+  - Gestión de recursos (/Resource Management/)
+  - Asignación y vigilancia de trabajos (/Job scheduling-monitoring/)
+
+- La idea es tener un /ResourceManager/ global y un /NodeManager/ por
+  nodo esclavo, los cuales forman un sistema para la administración de
+  aplicaciones distribuidas.
+
+- El /ResourceManager/ tiene dos componentes principales:
+  - /Scheduler/: Asigna los recursos para las aplicaciones (/pluggeable/).
+  - /Application Manager/: Responsable de aceptar las solicitudes de
+    trabajos, negociando al principio para ejecutar el /Application
+    Master/ específico y provee un servicio de reinicio, por si el
+    /Application Master/ falla.
+
+- En cada nodo:
+
+   - El /Application Master/: Negocia sus recursos con el /Scheduler/,
+  monitorea sus avances y reporta su estatus.
+
+   - El /NodeManager/ es el responsable de los contenedores,
+     monitorear el uso de recursos y reportar todo al
+     /ResourceManager/.
+
+** Arquitectura MapReduce Hadoop 1.x
+
+[[file:./imagenes/MRArch.png]]
+
+** Arquitectura Hadoop 2.x
+
+[[file:./imagenes/Selección_003.png]]
+
+
+** Cambios 1.x -> 2.x
+
+[[file:./imagenes/yarn.png]]
+
+
+** Multiparadigma en Hadoop 2.x
+
+ [[file:./imagenes/YARN.png]]
+
+
+* Procesamiento
+
+** Tipos
+
+- MapReduce
+- Spark
+- Impala
 
 ** MapReduce en Hadoop
 - Principal /framework/ de ejecución de =Apache Hadoop=.
@@ -449,34 +689,6 @@ find ./data/books -type f | parallel -j0 egrep -i  '\[\[:digit:\]\]' {} | awk '{
 - No es parte (estrictamente) del MapReduce
   - Por eso no lo había mencionado.
 
-** MapReduce: Componentes
-
-/Job Tracker/
-
-- Uno por /cluster/.
-- Contacto entre Hadoop y la aplicación cliente.
-- Determina el plan de ejecución:
-  -  ¿Qué archivos?
-  -  ¿Quién hace las tareas?
-  -  Monitoriza.
-- Si una tarea falla, relanza la tarea.
-
-** MapReduce: Componentes
-
-/Task tracker/
-
-- Esclavo
-- Ejecuta la tarea en cada nodo
-- Uno por nodo
-  - Pero se pueden crear varios /Java Virtual Machines/ (JVM) para tener varios /Mappers/ o /Reducers/ en paralelo.
-- =PING= al /JobTracker/, si no, se supone que el nodo a muerto.
-
-
-** Arquitectura: MapReduce
-
-[[file:./imagenes/arquitectura_MR.png]]
-
-
 
 ** Ejercicio
 
@@ -488,66 +700,6 @@ find ./data/books -type f | parallel -j0 egrep -i  '\[\[:digit:\]\]' {} | awk '{
 
 * Apache Haoop 2.x: YARN
 
-
-** YARN
-
-- La infraestructura de Hadoop =0.x= y =1.x= era monolítica, por eso fue rediseñada.
-- =YARN=: /Yet Another Resource Negotiator/.
-- La gestión de recursos es extraída de los paquetes de =MapReduce= para que puedan ser utilizadas por otros componentes.
-- Aportaciones
-  - Escalabilidad.
-  - Compatibilidad con =MapReduce=.
-  - Mejoras en la gestión del /cluster/.
-  - Soporte para otros modelos de programación (además de =MapReduce=).
-    - /Graph processing/
-    - /Message Passing Interface/ (*MPI*).
-    - Soporte para procesamiento /real-time/ o /near real-time/.
-      - =MapReduce= es /batch-oriented/.
-  - Agilidad.
-
-** YARN
-
-- Se dividieron las dos responsabilidades del /JobTracker/:
-  - Gestión de recursos (/Resource Management/)
-  - Asignación y vigilancia de trabajos (/Job scheduling-monitoring/)
-
-- La idea es tener un /ResourceManager/ global y un /NodeManager/ por
-  nodo esclavo, los cuales forman un sistema para la administración de
-  aplicaciones distribuidas.
-
-- El /ResourceManager/ tiene dos componentes principales:
-  - /Scheduler/: Asigna los recursos para las aplicaciones (/pluggeable/).
-  - /Application Manager/: Responsable de aceptar las solicitudes de
-    trabajos, negociando al principio para ejecutar el /Application
-    Master/ específico y provee un servicio de reinicio, por si el
-    /Application Master/ falla.
-
-- En cada nodo:
-
-   - El /Application Master/: Negocia sus recursos con el /Scheduler/,
-  monitorea sus avances y reporta su estatus.
-
-   - El /NodeManager/ es el responsable de los contenedores,
-     monitorear el uso de recursos y reportar todo al
-     /ResourceManager/.
-
-** Arquitectura MapReduce Hadoop 1.x
-
-[[file:./imagenes/MRArch.png]]
-
-** Arquitectura Hadoop 2.x
-
-[[file:./imagenes/Selección_003.png]]
-
-
-** Cambios 1.x -> 2.x
-
-[[file:./imagenes/yarn.png]]
-
-
-** Multiparadigma en Hadoop 2.x
-
- [[file:./imagenes/YARN.png]]
 
 
 * Hello World!: Word count
@@ -607,90 +759,6 @@ python word_count.py
 #+end_example
 
 - Este es un ejemplo de mentiritas, no usa Apache Hadoop.
-
-** =Hadoop Streaming=
-
-- Es un paquete (=jar file=) de Java incluido en Hadoop.
-- Cualquier ejecutable como /mapper/ o /reducer/.
-- Lee del /stdin/, escribe al /stout/.
-- Protocolo =k\t v\n=
-  - ¡Súper importante!
-  - No recibes =k list(v,v,v...)=
-
-- En pseudocódigo
-
-#+begin_example
-cat input_file | mapper | sort | reducer > output_file
-#+end_example
-
-** Hadoop Streaming: Ejecución
-
-#+begin_example
-hadoop jar
-$HADOOP_INSTALL/contrib/streaming/*streaming*.jar
--input input_dir
--output output_dir
--mapper my_mapper
--reducer my_reducer
--file my_mapper
--file my_reducer
--jobconf mapred.map.tasks=2
--jobconf mapred.reduce.tasks=2
-#+end_example
-
-** Ejercicios
-- Obtener una lista de formas, usando =ufo= con =Hadoop Streming= y =bash=.
-  - /Tip/: Recuerden el comando =cut= y =uniq=.
-
-- Obtener una lista de ciudades, estado y su número de avistamientos, usando =ufo= con =Hadoop Streming= y =bash=.
-
-** Hadoop Streaming: Python
-
-- Flujo recomendado:
-- Probamos el /mapper/
-
-#+begin_src sh
-echo "foo foo ernesto david angelica ernesto" | src/wordcount/python/mapper.py
-#+end_src
-
-#+RESULTS:
-| foo      | 1 |
-| foo      | 1 |
-| ernesto  | 1 |
-| david    | 1 |
-| angelica | 1 |
-| ernesto  | 1 |
-
-- Ahora probamos /mapper/ y /reducer/
-  - Nota el =sort=
-
-#+begin_src sh
-echo "foo foo ernesto david angelica ernesto" | src/wordcount/python/mapper.py | sort -k1.1  | src/wordcount/python/reducer.py
-#+end_src
-
-#+RESULTS:
-| angelica | 1 |
-| david    | 1 |
-| ernesto  | 2 |
-| foo      | 2 |
-
-- Ahora probamos con un archivo
-
-#+begin_example sh
-cat data/books/pg5000.txt | src/wordcount/python/mapper.py
-#+end_example
-
-
-** Hadoop Streaming: Python
-
-#+begin_example
-$HADOOP_HOME/bin/hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-*streaming*.jar
--file mapper.py -mapper mapper.py
--file reducer.py -reducer reducer.py
--input books -output books-py-output
-#+end_example
-
-
 
 
 * Pig
@@ -925,14 +993,19 @@ Crear un =wordcount= para los archivos en =data= usando =Pig=
 
 ** Hive
 
-- /Datawarehouse/.
-- =HQL= es casi idéntico a =SQL=.
 - Proyecto de Apache.
-- Estructura a diversos formatos.
-- /Queries/.
-- Acceso al =HDFS= y =HBASE=.
-- /Queries/ en tiempo real.
-- Facilidad de uso.
+- _Abstracción_ pra modelar y procesar datos en Hadoop.
+- Proveé de una manera de estructurar datos guardados en el =HDFS=.
+- Permite crear _queries_ muy similares a =SQL= (llamado =HQL=) y correrlos contra los datos.
+- Contiene un almacén de metadatos (=HCatalog=), que además puede ser compartido con otras interfaces como =Pig=, =MapReduce=, etc.
+- Da Acceso al =HDFS= y =HBASE=.
+
+** Bibliografía recomendada
+
+- Sitio web de Hive
+- Hadoop: The Definitive Guide
+- Programming Hive
+
 
 ** Arquitectura de Apache Hive
 
@@ -1101,126 +1174,6 @@ select * from rita join airports on (rita.Origin = airports.iata) limit 10;
     - ¿Cuál es el /top/ 5?
     - ¿Sería más fácil en =Pig=?
 
-** ¡Más ejercicios!
-
-- Lo que sigue, son de los pocos algoritmos de /grafos/ que se pueden ejecutar en Hadoop...
-
-- Similitud de *Jaccard*
-  - También conocida como /similitud estructural/.
-  - =RITA= se puede armar como un /grafo/  y queremos obtener los nodos (aeropuertos) que son similares.
-  -  J(A,B) = \frac{|A \cap B|}{|A \cup B|} = \frac{|A \cap B|}{|A|+|B|-|A \cap B|}
-
-** ¡Más ejercicios!
-
-[[file:./imagenes/ejercicio_grafos.png]]
-
-
-** Tarea
-
-- Bajar la fuente de datos de  [[http://www.infochimps.com/datasets/marvel-universe-social-graph][aquí]].
-
-- Aplicar la /similitud de Jaccard/ a este /set/.
-
-- Obtener los más parecidos al *Capitán América*.
-
-- Artículos:
-  -  [[http://arxiv.org/abs/cond-mat/0202174][Marvel Universe looks almost like a real social network]]
-  -  [[http://arxiv.org/abs/0708.2410][How to become a superhero]]
-
-
-** ¡Más /grafos/!
-
-- *degree of a node* = Número de conexiones a otros nodos
-- *degree distribution* = Distribución de probabilidad en los /degrees/ sobre todo el /grafo/.
-
-- =P(k)= = Fracción de nodos del /grafo/ con grado =k=,
-  - Es decir: =P(k) = n_k/n=
-
-** ¡Más /grafos/!
-
-Entonces, en =RITA= podemos definir como grado el número siguiente:
-- Por cada aeropuerto, el número de vuelos que llegan más el número de vuelos que salen
-  - Para hacerlo temporal, incluiremos el mes
-  - ¿Se les ocurre otra forma?
-
-
-** ¡Más /grafos/!
-
-#+begin_example
-grunt> vuelos =
-# Si no están en este formato hacer un ETL a:
-# origen destino vuelo mes||año
-
-# Transformamos:
-grunt> aeropuertos_salidas =
-# Sólo aeropuerto, mes, vuelos_entrada
-grunt> aeropuertos_entrada =
-# idem
-
-# Unimos
-grunt> agrupados = COGROUP aeropuertos_entradas BY (aeropuerto, mes), aeropuertos_salidas BY (aeropuerto, mes)
-# ¿Por qué COGROUP y no JOIN?
-
-# Sumamos
-grunt> degree_dist = FOREACH agrupados {
-               vuelos_degree = SUM(aeropuertos_entrada.vuelos_entrada) + SUM(aeropuertos_salida.vuelos_salida)
-               GENERATE
-                FLATTEN(group) AS (aeropuerto, mes),
-                vuelos_degree AS vuelos_degree
-              ;
-};
-
-# Guardamos
-grunt> STORE degree_dist INTO ... ;
-
-#+end_example
-
-** ¡Más /grafos/!
-
-- ¿Qué distribución tiene?
-
-- *Ejercicio*: Graficarlo en R.
-  - Obtener el resultado con =hdfs= y luego usarlo en =R= mostrar la temporalidad con =ggplot2=.
-
-- *Tarea* ¿Alguna medida de grado para el /dataset/ de superhéroes?
-  - ¿Qué distribución tiene?
-
-- Más artículos:
-  - [[http://arxiv.org/abs/cond-mat/0106096][Statistical mechanics of complex networks]]
-  - [[http://arxiv.org/abs/cond-mat/0106144][Evolution of networks]]
-  - [[http://arxiv.org/abs/cond-mat/0303516][The structure and function of complex networks]]
-
-
-** Otro truco en =Hive=
-
-- Si no saben =PigLatin= aún es posible limpiar en =Hive=.
-
-- Creen una tabla con una sola columna y carguen un año de =RITA=
-
-#+begin_example
-create table temp_rita (columnota STRING);
-LOAD DATA INPATH '/user/rita/2000.csv' OVERWRITE INTO TABLE temp_rita;
-#+end_example
-
-- Ahora creen una tabla con la estructura de las columnas que quieran
-  extraer o limpiar
-
-#+begin_example
-create table rita (col_1 STRING, col_2 INT, ....);
-# Y para extraerlas usen
-insert overwrite table rita
-select
-regexp_extract(columnota, 'expresión_regular', 1) col_1,
-regexp_extract(columnota, 'expresión_regular', 1) col_2,
-...
-from temp_rita
-#+end_example
-
-- Un ejemplo de expresión regular sería
-#+begin_example
-^(?:([^,]*)\,?)'
-#+end_example
- y luego usen un cuantificador para extraer la columna que deseen.
 
 
 
@@ -1278,9 +1231,17 @@ group by col1;
 
 * HBase
 
-** CAP Theorem
+** HBase
 
-[[file:./imagenes/cap.png]]
+- Es un almacén distribuido =NoSQL=.
+- Proveé acceso aleatorio a los datos guardados en el =HDFS=.
+  - A diferencia de =HDFS=, que es secuencial.
+
+** Bibliografía
+
+- Sitio web de HBase
+- HBase: The definitive Guide
+- HBase in Action
 
 * Apache Sqoop
 
@@ -1295,8 +1256,26 @@ group by col1;
 
 [[file:./imagenes/sqoop.png]]
 
-** Ejercicio: RITA del tingo al tango
 
+** Bibliografía
+
+- Documentación de Apache Sqoop
+- Apache Sqoop Cookbook
+
+* Apache Flume
+
+** Apache Flume
+
+- Componente para la captura (_ingesta_) de datos basados en eventos a Hadoop.
+
+** Bibliografía
+
+- Documentación de Flume
+- Using Flume
+
+
+** Ejercicio: RITA del tingo al tango
+y
 * Apache Flume
 
 * Apache Spark
@@ -1304,363 +1283,6 @@ group by col1;
 * Oozie
 
 * Hue
-
-* /Cluster/ de Hadoop
-
-** Preliminares: NTP
-
-- Los relojes de todos los nodos del /cluster/ deben de poder
-  sincronizarse, por lo que es necesario instalar *NTP* (/Network
-  Time Protocol/) en todos los nodos y un servidor *NTP* en el nodo maestro.
-
-#+begin_example
-sudo apt-get install ntp # en cada nodo
-# Habilitar el servicio
-chkconfig ntpd on # en cada nodo
-# Iniciar el servicio
-/etc/init.d/ntpd start # en cada nodo
-# Configurar los clientes para usar el servidor NTP local
-# en el archivo /etc/ntp.conf
-server $IP_SERVIDOR_LOCAL
-#+end_example
-
-** Preliminares: DNS
-
-- Todos los nodos deben de estar configurados para =DNS= y =Reverse
-  DNS=
-
-Primero verifiquemos que funcione el /forward lookup/:
-
-#+begin_example
-nslookup host01
-# Debería de devolver:
-# Name: host01.dominio
-# Address: ip_address
-#+end_example
-
-Y el /reverse lookup/
-
-#+begin_example
-nslookup ip_address
-# Debería de devolver:
-x.x.x.x.in-addr.arpa  name=host01.dominio
-#+end_example
-
-Si esto falla hay dos opciones
-
-1. Modificar  en /cada nodo/ el =/etc/hosts= y agregar todos los nodos
-   (incluido el mismo)
-
-#+begin_example
-ip_address name
-#+end_example
-
-2. Configurar un servidor de =DNS= con =bind= (No se verá aquí).
-
-** Preliminares: SELinux
-
-- Si tienen habilitado *SELinux* /Security Enhaced Linux/ , hay que
-  deshabilitarlo
-  - Es muy probable que si están en una =distro= basada en =Debian= no
-    esté instalado por /default/.
-  - Pueden verificarlo tecleando =getenforce= en la línea de comandos.
-  - Si dice que no está instalado, o responde =permissive= o
-    =disabled=, ya no hay que hacer nada.
-  - En caso contrario, seguir las instrucciones para desactivarlo (No
-    se ve aquí, no usamos =distros= basadas en =Red Hat=).
-
-** Preliminares: Firewall
-
-- Deshabiliten el =firewall=
-
-#+begin_example
-service ufw stop
-#+end_example
-
-- Recuerden que están en una red privada, no hay manera de acceder a
-  ella desde afuera.
-
-** Preliminares: Usuarios
-
--Hay que definir los siguientes usuarios y grupos:
-
-=HDFS_USER=, =YARN_USER=, =ZOOKEEPER_USER=,
-=HIVE_USER=, =MAPREDUCE_USER=, =OOZIE_USER=
-=WEBHCAT_USER=, =HBASE_USER=, =PIG_USER= y =HADOOP_GROUP=.
-
-Por ejemplo:
-
-#+begin_example
-| Servicio             | User      | Grupo  |
-|----------------------+-----------+--------|
-| HDFS                 | hdfs      | hadoop |
-| YARN                 | yarn      | hadoop |
-| MapReduce            | mapred    | hadoop |
-| Hive                 | hive      | hadoop |
-| Pig                  | pig       | hadoop |
-| HCatalog/WebHCatalog | hcat      | hadoop |
-| HBase                | hbase     | hadoop |
-| ZooKeeper            | zookeeper | hadoop |
-| Oozie                | oozie     | hadoop |
-#+end_example
-
-cada uno de ellos ejecutará y poseerá los servicios que hay que levantar.
-
-** Preliminares: SSH
-
-- Los usuarios deben de poder conectarse en todos los nodos (*todos*).
-- Hay que crear las llaves con =ssh-keygen= y distribuirlas con
-  =ssh-copy-id=
-
-#+begin_example
-ssh-keygen -t rsa -C "your_email@example.com"
-ssh-copy-id user@ipaddress
-#+end_example
-
-** Preliminares: Directorios
-
-- Núcleares
-
-
-#+begin_example
-| Servicio  | Parámetro         | Definición |
-|-----------+-------------------+------------|
-| HDFS      | DFS_NAME_DIR      |            |
-| HDFS      | DFS_DATA_DIR      |            |
-| HDFS      | FS_CHECKPOINT_DIR |            |
-| HDFS      | HDFS_LOG_DIR      |            |
-| HDFS      | HDFS_PID_DIR      |            |
-| HDFS      | HADOOP_CONF_DIR   |            |
-| YARN      | YARN_LOCAL_DIR    |            |
-| YARN      | YARN_LOG_DIR      |            |
-| YARN      | YARN_PID_DIR      |            |
-| MapReduce | MAPRED_LOG_DIR    |            |
-#+end_example
-
-** Preliminares: Directorios
-
-- Ecosistema
-
-#+begin_example
-| Servicio  | Parámetro          | Definición |
-|-----------+--------------------+------------|
-| Pig       | PIG_CONF_DIR       |            |
-| Pig       | PIG_LOG_DIR        |            |
-| Pig       | PIG_PID_DIR        |            |
-| Oozie     | OOZIE_CONF_DIR     |            |
-| Oozie     | OOZIE_DATA         |            |
-| Oozie     | OOZIE_LOG_DIR      |            |
-| Oozie     | OOZIE_PID_DIR      |            |
-| Oozie     | OOZIE_TMP_DIR      |            |
-| Hive      | HIVE_CONF_DIR      |            |
-| Hive      | HIVE_LOG_DIR       |            |
-| Hive      | HIVE_PID_DIR       |            |
-| WebHcat   | WEBHCAT_CONF_DIR   |            |
-| WebHcat   | WEBHCAT_LOG_DIR    |            |
-| WebHcat   | WEBHCAT_PID_DIR    |            |
-| Hbase     | HBASE_CONF_DIR     |            |
-| Hbase     | HBASE_LOG_DIR      |            |
-| Hbase     | HBASE_PID_DIR      |            |
-| Zookeeper | ZOOKEEPER_DATA_DIR |            |
-| Zookeeper | ZOOKEEPER_CONF_DIR |            |
-| Zookeeper | ZOOKEEPER_LOG_DIR  |            |
-| Zookeeper | ZOOKEEPER_PID_DIR  |            |
-| Sqoop     | SQOOP_CONF_DIR     |            |
-#+end_example
-
-
-** Preliminares: Base de datos
-
-Algunos componentes de =Apache Hadoop=, (como =HIVE=, =Zookeeper=)
-requieren de una base de datos relacional para funcionar.
-
-Se recomienda instalar =PostgreSQL=, instale y configure como se vió
-en la lección 4 de este curso. Será necesario tener el =driver JDBC=,
-no se te olvide.
-
-
-** ¿Qué Hardware necesito?
-
-- ¿Cuántos datos va a contener el /cluster/?
-- ¿Cuáles son las proyecciones de crecimiento de los datos?
-- ¿El /cluster/ será usado para tareas programadas en lote?
-- ¿Será usado para análisis exploratorio de datos?
-- ¿Ambos?
-
-
-
-** Hardware: /DataNode/
-
-- Cumplen dos funciones: Almacenan piezas de los datos del =HDFS= y
-  ejecutan tareas =MapReduce=.
-
-- Deben de ser lo suficientemente rápidos para
-  ejecutar bien la tarea, pero baratos para ser remplazados
-  rápidamente si fallan (Son desechables).
-
-- Debido a la redundancia que provee el =HDFS= no es necesario pensar en
-  arreglos =RAID= para estos componentes, la opción preferida es
-  =JBOD= /Just a Bunch Of Disks/.
-
-- El =DataNode= debe de poseer almacenamiento y poder de cómputo.
-
-** Hardware: /DataNode/
-
-1. Identificar las fuentes de datos.
-   - Piensa en 20% a 30% más de la capacidad del /cluster/ por si hay
-     nuevos datos.
-2. Estimar la tasa de crecimiento de los datos.
-3. Multiplica los requerimientos de almacenamiento por el factor de
-   replicación (por /default/ es *3*).
-   - Ejemplo: Si estimaste =3 TB= en un año, serían =9 TB= la
-     capacidad requerida del /cluster/.
-4. Archivos temporales de =MapReduce=.
-   - =MapReduce= produce archivos que son pasados de la fase de mapeo
-     a la de reducción, estos no residen en el =HDFS=, se recomienda
-     apartar del 25% al 30% de la capacidad de disco para estos
-     archivos.
-
-** Hardware: /DataNode/
-
-- No vale la pena comprar discos de 15000 rpm para el
-  /cluster/. Haddop realiza (principalmente) lectura/escritura
-  /secuencial/, más que aleatoria, por lo que discos de *7200 rpm* son
-  suficientes.
-
-- /Cluster/ de baja densidad
-  - Objetivo: Nodos de bajo costo.
-  - 6 /slots/ para =HDD=, con discos de 2 TB, nos dan 12 TB por
-    servidor.
-  - 2 CPUs de 4 /cores/ (cada tarea de map o reduce utiliza un sólo
-    /core/, si abusamos un poco podemos tener hasta 12 /slots/ de
-    map/reduce por nodo)
-  - Cada tarea requiere de 2 a 4 GB de RAM, 36 GB serían razonables,
-    pero 48GB por nodo es una opción mejor.
-  - Interfaces de 1GbE, utilizando la mayor cantidad de tarjetas de red
-  - *Ejercicio:* ¿Cuántos servidores se requerirían para =500TB=?
-
-** Hardware: /DataNode/
-
-- /Cluster/ de alta densidad
-  - Objetivo: Un /cluster/ más compacto, con mayor poder por nodo.
-    - No se requiere tener cantidades enormes de datos.
-    - /Machine learning/, /EDA/, etc.
-  - Cada nodo con 16x2 TB en =HDD= o 24x1TB.
-  - 16 CPUs y 96 GB de RAM.
-  - Interfaz de 10 GbE.
-
-** Hardware: /Namenode/
-
-- El /Namenode/ es crítico en la disponibilidad del =HDFS=.
-- Almacena todo el metadata del /filesystem/: que bloques con que
-  archivos, en que /datanodes/ están esos bloques, cuántos bloques
-  están disponibles y que servidores pueden contenerlos. Toda esta
-  información debe de estar en memoria.
-
-- Cada bloque ocupa 250 bytes de RAM y 250 bytes de RAM por cada
-  archivo y directorio.
-  - ¿Cuánto sería necesario por 5000 archivos de 20 GB cada uno?
-
-
-** Hardware: =YARN=, =MapReduce=
-
-- =YARN= toma en cuenta los recursos completos del nodo, para negociar
-  las peticiones de recursos de las aplicaciones corriendo en el /cluster/ (un ejemplo sería =MapReduce=).
-
-- =YARN= provee esos recursos a cada aplicación en la forma de un
-  *Contenedor*.
-
-- Es una buena práctica, permitir 2 contenedores por disco por /core/.
-
-** Hardware: =YARN=, =MapReduce=
-
-- En cada nodo, hay que tomar en cuenta la cantidad reservada para los
-  procesos del sistema que *no son* Hadoop.
-
-
-#+begin_example
-| Total Memory per Node | Recommended Reserved System Memory |
-|-----------------------+------------------------------------|
-| 4 GB                  | 1 GB                               |
-| 8 GB                  | 2 GB                               |
-| 16 GB                 | 2 GB                               |
-| 24 GB                 | 4 GB                               |
-| 48 GB                 | 6 GB                               |
-| 64 GB                 | 8 GB                               |
-| 72 GB                 | 8 GB                               |
-| 96 GB                 | 12 GB                              |
-| 128 GB                | 24 GB                              |
-| 256 GB                | 32 GB                              |
-| 512 GB                | 64 GB                              |
-#+end_example
-
-- Luego hay que calcular el número máximo de contenedores por nodo
-
-#+begin_example
-# de contenedores = min(2*cores, 1.8*discos, (RAM total disponible)/MIN_CONTAINER_SIZE)
-#+end_example
-
-** Hardware: =YARN=, =MapReduce=
-
-Donde el =MIN_CONTAINER_SIZE= se toma de la siguiente tabla
-
-#+begin_example
-| RAM total por nodo     | Tamaño mínimo del contenedor       |
-|------------------------+------------------------------------|
-| Less than 4 GB         | 256 MB                             |
-| Between 4 GB and 8 GB  | 512 MB                             |
-| Between 8 GB and 24 GB | 1024 MB                            |
-| Above 24 GB            | 2048 MB                            |
-#+end_example
-
-
-Luego, hay que calcular
-
-#+begin_example
-RAM_por_contenedor = max(MIN_CONTAINER_SIZE, (RAM total disponible)/Contenedores)
-#+end_example
-
-** Hardware: =YARN=, =MapReduce=
-
-Con estos cálculos se obtiene la siguiente tabla:
-
-
-#+begin_example
-| Configuration File    | Configuration Setting                | Value Calculation                |
-|-----------------------+--------------------------------------+----------------------------------|
-| yarn-site.xml         | yarn.nodemanager.resource.memory-mb  |  Containers * RAM-per-Container |
-| yarn-site.xml         | yarn.scheduler.minimum-allocation-mb |  RAM-per-Container              |
-| yarn-site.xml         | yarn.scheduler.maximum-allocation-mb |  containers * RAM-per-Container |
-| mapred-site.xml       | mapreduce.map.memory.mb              |  RAM-per-Container              |
-| mapred-site.xml       | mapreduce.reduce.memory.mb           |  2 * RAM-per-Container          |
-| mapred-site.xml       | mapreduce.map.java.opts              |  0.8 * RAM-per-Container        |
-| mapred-site.xml       | mapreduce.reduce.java.opts           |  0.8 * 2 * RAM-per-Container    |
-| yarn-site.xml (check) | yarn.app.mapreduce.am.resource.mb    |  2 * RAM-per-Container          |
-| yarn-site.xml (check) | yarn.app.mapreduce.am.command-opts   |  0.8 * 2 * RAM-per-Container    |
-#+end_example
-
-** Filesystem
-
-- Usemos =ext4=.
-- Formatea con el siguiente comando (¡Cuidado fíjate en la partición!)
-  - =-m 0= reduce el espacio para =root= a 0% en lugar del 5%.
-  - =-O extent, sparse_super, flex_bg= Mejora la lectura secuencial
-    (=extent=), y mejora las opciones de espacio (=sparse_super=) al no
-    almacenar tantos superbloques y por último empaca juntos los
-    metadatos (=flex_bg=).
-
-#+begin_example
-mkfs -t ext4 -m 0 -O extent, sparse_super, flex_bg /dev/sdb1
-#+end_example
-
-
-- En el =/etc/fstab=, activa las opciones =noatime=, =noadirtime=
-
-#+begin_example
-...
-/dev/sda1 /disk1  ext4 noatime, noadirtime 1 2
-...
-#+end_example
 
 
 ** Ejercicio: Armar un /cluster/
