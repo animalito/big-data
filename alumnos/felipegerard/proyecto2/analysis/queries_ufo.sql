@@ -58,31 +58,29 @@ WHERE row_num = 1
 ORDER BY shape, date_time;
 
 
--- Promedio de avistamientos por mes
-
+-- Avistamientos por mes
 SELECT
+	year,
 	month,
 	count(*) as sightings
 FROM clean.ufo_usa
-GROUP BY month
-ORDER BY month;
+WHERE year is not NULL and month is not NULL
+GROUP BY year, month;
 
 
--- Promedio de avistamientos por año
-
+-- Avistamientos por año
 SELECT
 	year,
 	count(*) as sightings
 FROM clean.ufo_usa
+WHERE year is not NULL
 GROUP BY year
-ORDER BY year;
 
-
--- Promedio de avistamientos por estado
+-- Avistamientos por estado
 
 SELECT
-	state,
-	count(*) as sightings
+state,
+count(*) as sightings
 FROM clean.ufo_usa
 GROUP BY state
 ORDER BY state;
@@ -93,21 +91,21 @@ ORDER BY state;
 WITH s as
 (
 	SELECT
-		state,
-		year,
-		month,
-		count(*) as sightings
+	state,
+	year,
+	month,
+	count(*) as sightings
 	FROM clean.ufo_usa
 	GROUP BY state, year, month
 	ORDER BY state, year, month
 )
 (
 	SELECT
-		state,
-		sum(sightings) as freq,
-		round(avg(sightings),3) as mean,
-		round(stddev(sightings),3) as std_dev,
-		round(stddev(sightings)/avg(sightings),3) as std_dev_over_mean
+	state,
+	sum(sightings) as freq,
+	round(avg(sightings),3) as mean,
+	round(stddev(sightings),3) as std_dev,
+	round(stddev(sightings)/avg(sightings),3) as std_dev_over_mean
 
 	FROM s
 	GROUP BY state

@@ -57,33 +57,33 @@ INSERT INTO clean.ufo (
 			ELSE state
 		END as state2,
 		CASE
-			WHEN number_char = NULL THEN -1.0
-			WHEN duration ~ '-' THEN (split_part(number_char, '-', 1)::float +
+			WHEN number_char = '' THEN NULL
+			WHEN duration2 ~ '-' THEN (split_part(number_char, '-', 1)::float +
 				split_part(number_char, '-', 2)::float)::float / 2.0
 			ELSE number_char::float
 		END as number,
 		CASE
-			WHEN duration ~ 'day' then 'day'
-			WHEN duration ~ 'hour' then 'hour'
-			WHEN duration ~ 'min' then 'min'
-			WHEN duration ~ 'sec' then 'sec'
+			WHEN duration2 ~ 'day' then 'day'
+			WHEN duration2 ~ 'hour' then 'hour'
+			WHEN duration2 ~ 'min' then 'min'
+			WHEN duration2 ~ 'sec' then 'sec'
 		END as units
 		FROM (SELECT *,
+			regexp_replace(duration, '([a-z])\.', '\1', 'g') as duration2,
 			CASE
-				WHEN regexp_replace(duration, '[^\-\.0-9]', '', 'g') ~ '(^[0-9]+(\.[0-9]+)?$)|(^[0-9]+(\.[0-9]+)?-[0-9]+(\.[0-9]+)?$)'
-					THEN regexp_replace(duration, '[^\.\-0-9]', '', 'g')
-				ELSE NULL
+				WHEN regexp_replace(regexp_replace(duration, '([a-z])\.', '\1', 'g'), '[^\-\.0-9]', '', 'g') ~ '(^[0-9]+(\.[0-9]+)?$)|(^[0-9]+(\.[0-9]+)?-[0-9]+(\.[0-9]+)?$)'
+					THEN regexp_replace(regexp_replace(duration, '([a-z])\.', '\1', 'g'), '[^\-\.0-9]', '', 'g')
+				ELSE ''
 			END as number_char
 			FROM dirty.raw_input) d
-		WHERE duration ~ 'day|hour|min|sec' and duration ~ '[0-9]') t
+		--WHERE duration ~ 'day|hour|min|sec' and duration ~ '[0-9]'
+	) t
 );
 
 -- INDICE ESPACIO TEMPORAL
 CREATE INDEX space_time_ufo_idx ON clean.ufo (
 	state, year, month, day, weekday
 );
-
-
 
 
 

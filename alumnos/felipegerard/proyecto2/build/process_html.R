@@ -31,7 +31,7 @@ while(length(lines <- readLines(f, n=1)) > 0){
   x$Description_URL <- desc_urls
 
   # Escribimos
-  write.table(x, file = stdout(), quote = FALSE, sep = '|', na = 'N/A', row.names = FALSE)
+  write.table(x, file = stdout(), quote = FALSE, sep = '|', row.names = FALSE)
 }
 
 close(f)
