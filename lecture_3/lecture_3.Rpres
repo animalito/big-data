@@ -1846,7 +1846,7 @@ Modificar, modificar
 Modificar, modificar
 ========================================================
 - [Mitigar el costo de escritura a disco](http://www.postgresql.org/docs/9.2/static/runtime-config-query.html)
-  - `fysnc`, `synchronous_commit`
+  - `fsync`, `synchronous_commit`
     - Determina si todas las páginas `WAL` deben grabarse a disco antes de que se considere terminada la transacción.
     - Ponerlo en `off` puede causar corrupción de datos si se cae el servidor
     - En un `dwh` puede apagarse, y aumentar el rendimiento...
