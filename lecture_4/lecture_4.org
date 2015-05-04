@@ -875,7 +875,7 @@ DUMP states;
 
 #+begin_html
 <pre><code data-trim>
-beeline -u jdbc:hive2://
+beeline -u jdbc:hive2://localhost:10000
 </code></pre>
 #+end_html
 
@@ -1570,6 +1570,7 @@ GROUP mascotas BY dueño;
 ** Impala
 
 *** Impala
+
 
 
 
