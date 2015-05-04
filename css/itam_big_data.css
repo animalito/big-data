@@ -1,9 +1,9 @@
 .reveal section pre code {
   display: block;
   padding: 0.5em;
-  font-size: 0.95em;
-  line-height: 1.0em;
-  background-color: grey;
+  font-size: 1.2em;
+  line-height: 1.1em;
+  background-color: #BECAD5;
   overflow: visible;
   max-height: none;
   word-wrap: normal;
@@ -42,4 +42,15 @@ margin-right: auto;
 
 .red {
   color: red;
+}
+
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.small-font {
+  font-size: 10px;
 }

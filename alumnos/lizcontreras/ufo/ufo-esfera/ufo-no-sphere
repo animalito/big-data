@@ -1,0 +1,32 @@
+UFO que no tienen forma de esfera
+
+1. < ufo-nov-dic-2014.tsv | cut -f4 | grep -v "Sphere" | sort | wc -l     
+
+954
+
+2. Para comprobar
+
+< ufo-nov-dic-2014.tsv | cut -f4 | grep -v "Sphere" | sort | uniq -c
+     29 
+     26 Changing
+     22 Chevron
+     20 Cigar
+    116 Circle
+      4 Cone
+      4 Cross
+     12 Cylinder
+     14 Diamond
+     34 Disk
+      5 Egg
+    128 Fireball
+     16 Flash
+     54 Formation
+    195 Light
+     67 Other
+     39 Oval
+     12 Rectangle
+      1 Shape
+      6 Teardrop
+     85 Triangle
+     65 Unknown
+

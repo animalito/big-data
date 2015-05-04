@@ -1,0 +1,1585 @@
+#+Title: Lecture 4
+#+Author: Adolfo De Unánue
+#+Email: adolfo.deunanue@itam.mx
+
+#+OPTIONS: toc:nil num:nil
+#+OPTIONS: tex:t
+#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:t reveal_control:t
+#+OPTIONS: reveal_mathjax:t reveal_rolling_links:nil reveal_keyboard:t reveal_overview:t
+#+OPTIONS: reveal_width:1200 reveal_height:800
+#+REVEAL_TRANS: fade
+#+REVEAL_THEME: night
+#+REVEAL_MARGIN: 0.1
+#+REVEAL_SLIDE_NUMBER: t
+#+REVEAL_HEAD_PREAMBLE: <meta name="description" content="ITAM Big data - Lecture 4.">
+#+REVEAL_HEAD_PREAMBLE: <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+#+REVEAL_POSTAMBLE: <p> Creado por Adolfo De Unánue Tiscareño. </p>
+#+REVEAL_PLUGINS: (highlight markdown notes)
+#+REVEAL_ROOT: http://cdn.jsdelivr.net/reveal.js/2.5.0/
+#+REVEAL_EXTRA_CSS: itam-org-reveal.css
+
+
+# tema: default, beige, sky, night, serif, simple, moon, solarized
+# trans: default, cube, page, concave, zoom, linear, fade, none
+
+* Docker
+:PROPERTIES:
+   :reveal_background: #000fff
+ :END:
+
+** Obtener la imagen
+
+#+begin_html
+<pre><code data-trim>
+
+docker pull nanounanue/docker-hadoop
+</code></pre>
+#+end_html
+
+
+** Ejecutar un contenedor
+
+#+begin_html
+<pre><code data-trim>
+
+
+docker run -ti --rm \
+  -v /ruta/a/tus/datos/:/home/itam/data \
+  -p 2122:2122 -p 2181:2181 -p 39534:39534 -p 9000:9000 \
+  -p 50070:50070 -p 50010:50010 -p 50020:50020 -p 50075:50075 \
+  -p 50090:50090 -p 8030:8030 -p 8031:8031 -p 8032:8032 \
+  -p 8033:8033 -p 8088:8088 -p 8040:8040 -p 8042:8042 \
+  -p 13562:13562 -p 47784:47784 -p 10020:10020 -p 19888:19888 \
+  -p 8000:8000 \
+nanounanue/docker-hadoop /bin/zsh
+</code></pre>
+#+end_html
+
+
+** Contenedor con Hadoop
+
+#+begin_html
+<pre><code data-trim>
+
+docker run -ti --name hadoop-pseudo \
+  -v /ruta/a/tus/datos/:/home/itam/data \
+  -p 2122:2122 -p 2181:2181 -p 39534:39534 -p 9000:9000 \
+  -p 50070:50070 -p 50010:50010 -p 50020:50020 -p 50075:50075 \
+  -p 50090:50090 -p 8030:8030 -p 8031:8031 -p 8032:8032 \
+  -p 8033:8033 -p 8088:8088 -p 8040:8040 -p 8042:8042 \
+  -p 13562:13562 -p 47784:47784 -p 10020:10020 -p 19888:19888 \
+  -p 8000:8000 -p 9999:9999 \
+nanounanue/docker_hadoop
+</code></pre>
+#+end_html
+
+
+** Reiniciar el contenedor
+
+#+begin_html
+<pre><code data-trim>
+
+docker start -ai hadoop-pseudo
+</code></pre>
+#+end_html
+
+
+** Conectarse a un contenedor funcionando
+
+- Esto podría ser útil para ver, por ejemplo =logs= o arrancar varios clientes.
+
+- Averigua el número del contenedor
+
+#+begin_html
+<pre><code data-trim>
+
+docker ps -a
+</code></pre>
+#+end_html
+
+
+
+#+begin_html
+<pre><code data-trim>
+docker exec -it <CONTENEDOR_ID> /bin/zsh
+</code></pre>
+#+end_html
+
+
+o en nuestro caso:
+
+#+begin_html
+<pre><code data-trim>
+docker exec -it hadoop_pseudo /bin/zsh
+</code></pre>
+#+end_html
+
+
+- *Nota*: /Recuerda que con los primeros 4 dígitos del contenedor basta para identificarlo./
+
+
+
+** Navegador Web
+
+- [[http://127.0.0.1:50090][Consola de Yarn]]
+
+- [[http://127.0.0.1:50070][Consola de HDFS]]
+
+- [[http://0.0.0.0:8000][HUE - Hadoop User Experience]]
+  - /Desactivado/
+
+
+
+
+** Ejercicio
+
+- Explicar los diferentes modos en los que puede ejecutarse **Apache Hadoop**.
+
+-  *Modo Pseudodistribuido*
+
+   - Crea el contendeor de Docker para Hadoop,  vamos a explicar que significa /pseudodistribuido/.
+
+
+* Apache Hadoop
+:PROPERTIES:
+   :reveal_background: #000fff
+ :END:
+
+** ¿Por qué?
+
+- Aunque la capacidad de los discos ha aumentado considerablemente, la velocidad de los mismos no lo ha hecho igual.
+  - Los discos actuales de =1 Tb=, tardan en leerse completos a =100 Mb/s= cerca de dos a tres horas.
+  - Podemos /paralelizar/ las fuentes en varios discos.
+    - Para leerla simultáneamente
+  - Con varios discos, la **probabilidad de falla** aumenta.
+- Otro problema es la distribución ¿Cómo combinas varios =file systems=?
+
+** ¿Qué es?
+
+- Sistema confiable (/realiable/) de almacenamiento compartido y de procesamiento de datos.
+  - *Almacenamiento*: /Hadoop Distributed File System/, =HDFS=
+  - *Procesamiento*: Varios /frameworks/ basados en =YARN=.
+
+- Puede procesar cantidades masivas de datos y escalar conforme crezcan los datos.
+
+- Flexibilidad para el procesamiento de datos.
+  - No importa la estructura o falta de ella
+
+- Está construido en =Java=.
+
+** ¿Cómo?
+
+- =MapReduce= es un sistema de procesamiento /batch/
+  - Permite correr /queries/ contra **toda** tu base de datos
+  - Pero el resultado puede tardar minutos, horas, etc...
+  - No permite tener a un humano sentado ahí para retroalimentar.
+
+** ¿Cómo?
+
+- Ahora, gracias a =YARN= (ver más adelante) tenemos diferentes tipos de procesamiento:
+  - /SQL Interactivo/: =Impala=, =Hive=, =Spark SQL=.
+  - /Iterativos/: =Spark=.
+  - /Procesamiento de flujos/: =Storm=, =Spark Streaming=.
+  - /Búsquedas/: =Solr=.
+  - /Grafos/ =Spark GraphX=.
+
+** ¿Por qué no otros sistemas?
+
+- ¿Por qué no usar un =PostgreSQL= con muchos discos, muy /pimpeado/?
+  - El problema viene del tiempo que toma mover la cabeza del disco a otro lugar del disco para leer o escribir datos (/seek time/).
+    - ¿Cuál es la /latencia/ de la operación?
+
+- ¿Por qué no /Grid/?
+  - Por ejemplo, cosas  de =HPC= que usan =MPI=.
+    - Son intensivos en **CPU**.
+  - Pero si hay que mover cientos de gigabytes, la transferencia de datos se vuelve un problema.
+    - Basicamente, en que =Hadoop= opera con /data locality/.
+
+** Componentes de Apache Hadoop
+
+- *MapReduce* Modelo de procesamiento /batch/ de datos distribuido y paralelo.
+- *HDFS* Sistema de archivos (/file system/) distribuido.
+- *Pig* Capa de abstracción encima de =MapReduce=. Utiliza /Pig Latin/ un lenguaje de flujo de datos
+  - Como =dplyr=
+- *Hive* (Hadoop InteractiVE) Es un lenguaje parecido al =SQL=: =HQL=, para ejecutar /queries/ sobre el =HDFS=.
+- *HBase* Base de datos distribuida orientada a columnas.
+  - Depende de =Zookeeper=.
+- *Impala* Lenguaje Interactivo parecido al =SQL=, pero mucho más rápido de =HIVE= debido a su arquitectura *MPP*.
+
+** Componentes de Apache Hadoop
+
+- *Zookeeper* Proyecto que proveé un servicio centralizado para facilitar la coordinación de componentes de Hadoop.
+- *Sqoop* Herramienta para mover datos entre =RDBM= y =HDFS=.
+- *Flume* Servicio para recolectar, agregar y mover grandes cantidades de datos entre máquinas individuales y el =HDFS=.
+- *Oozie* Sistema de /workflow/, se usa para coordinar varios /jobs/ de *MapReduce*.
+- *Mahout* Biblioteca de /Machine Learning/.
+  - Ver la carpeta =docs=.
+- *Ambari* Simplifica el aprovisionamiento, gestión y /monitoreo/ de un /cluster/ de Hadoop.
+- *Avro* Formato de serialización y de persistencia de datos.
+- Entre otros...
+
+
+
+* HDFS : Hadoop File System
+:PROPERTIES:
+   :reveal_background: #000fff
+ :END:
+
+
+** HDFS
+
+- Sistema de almacenamiento distribuido.
+  - /Namenode/ =->= Master
+  - /Datanode/ =->=  Slaves
+
+** /Schema on Read/
+
+- Es posible cargar datos sin procesar dentro de Hadoop, la estructura se dará en el tiempo de procesamiento.
+
+- Es muy diferente a /Schema on Write/ como el usado en los =RDBM=s
+  - /Schema on Write/ impone un ciclo de análisis y modelado de datos, así como de su transformación, carga y prueba, antes de los datos puedan ser accesados.
+  - Esto quita mucha flexibilidad: Si se tomaron decisiones incorrectas o los requerimientos cambian, es necesario empezar de nuevo =:(= .
+
+** Ventajas
+
+- Archivos muy grandes
+- /write once, read many times/.
+- Hardware /normal/
+
+** Desventajas
+
+- Acceso a los datos de baja latencia.
+- Muchos archivos pequeños.
+- Muchas escrituras, modificaciones
+
+** Tamaño del bloque
+
+- Cada /file system/ define un tamaño de bloque, el cual es la cantidad mínima de datos que puede escribir o leer.
+  - Típicamente son de =kb=.
+- En =HDFS=, el bloque es de =128 Mb= por /default/.
+  - Es el concepto fundamental, no el archivo.
+
+
+** /Namenode/
+  - Gestiona el /filesystem/
+    - Mantiene el árbol del /filesystem/.
+    - Mantiene los =metadatos= de todos los archivos y carpetas del árbol.
+    - Esta información se guarda en disco en dos archivos:
+      - =namespace image=
+      - =edit log=
+  - Indica a los /datanodes/ realizar tareas de bajo nivel de =I/O=.
+  - /Book Keeper/
+    - División de archivos en bloques (¿Cómo?)
+    - En qué /datanode/ (¿Quién?)
+    - Monitorea.
+  - Uso intensivo de =RAM= y de =I/O=.
+  - Si se /cae/ el =HDFS= no puede ser usado
+    - Hasta la versión =1.x= el /single point of failure/, en Hadoop 2 se incorporó la característica de /HIgh Availability/.
+    - Su caída puede causar la pérdida total de los datos.
+
+** /Namenode/
+
+- Hadoop proveé de dos formas de aliviar esta situación:
+  - Respaldos: Se puede configurar al /namenode/ para que escriba su estado a varios /filesystems/.
+  - /Secondary Namenode/
+
+** /Namenode/
+
+[[file:./imagenes/Selección_004.png]]
+
+
+** /Datanode/
+  - Lee y escribe los =HDFS= /blocks/ y los convierte en archivos del *FS* local.
+  - Se comunica con otros /datanodes/ para la replicación de los datos.
+  - Pueden realizar /caching/ de bloques.
+
+** /Datanode/
+
+[[file:./imagenes/Selección_005.png]]
+
+** /Secondary Name Node/
+  - Como el /namenode/ sólo hay uno por /cluster/.
+  - No es un /namenode/.
+  - Evita que el =edit log= crezca mucho.
+  - No recibe ni guarda cambios en tiempo real del =HDFS=.
+    - Va atrás del /namenode/.
+  - Sólo toma /snapshots/ de la metadata.
+
+
+** Línea de comandos
+
+- Hay muchas maneras de conectarse y usar el =HDFS=. La línea de comandos es una de ellas.
+  - Y espero que ya sepan que es de las más útiles y eficientes.
+
+- Ayuda: =hadoop fs -help=
+
+** Línea de comandos
+
+#+begin_html
+<pre><code data-trim>
+
+hadoop fs -cmd <args>
+hadoop fs -ls
+hadoop fs -mkdir
+hadoop fs -copyFromLocal
+hadoop fs -copyToLocal
+hadoop fs -put archivo archivo_hdfs
+hadoop fs -get archivo_hdfs
+hadoop fs -cat archivo_hdfs
+hadoop fs -cat archivo_hdfs head
+hadoop fs -tail archivo_hdfs
+hadoop fs -rm archivo_hdfs
+</code></pre>
+#+end_html
+
+
+
+* Arquitectura: Ingesta de datos
+:PROPERTIES:
+   :reveal_background: #000fff
+ :END:
+
+** Decisiones Arquitectónicas
+
+- El hecho de que el =HDFS= permita /Schema on Read/, no elimina la necesidad de tomar decisiones arquitectónicas en la ingesta de los datos, entre ellas:
+
+  - ¿Cómo se guardarán los datos?
+    - Capa de almacenamiento
+    - Formatos de archivos
+    - Formatos de compresión
+
+  - ¿Diseño de esquema de datos?
+    - Directorios donde guardar los datos y donde ponerlos luego del procesamiento y analítica.
+    - También en =HBase= y en =Hive= se definen esquemas.
+  - ¿Cómo se gestionarán los metadatos?
+  - ¿Cómo se administrará la seguridad?
+    - Autenticación, cifrado, acceso controlado.
+
+** Capa de almacenamiento: =HDFS= vs =HBase=
+
+- =HDFS=
+  - Almacena los datos como archivos
+  - /Scans/ rápidos.
+  - Malo para acceso aleatorio en escritura y lectura.
+
+- =HBase=
+  -  Guarda los datos como archivos de HBase en el =HDFS=.
+  - /Scans/ lentos.
+  - Rápido acceso aleatorio a lectura y escritura.
+
+- En esta clase nos enfocaremos a =HDFS=.
+
+** Formatos de archivos
+
+- Tipos de archivos de Hadoop
+  - Basados en archivos: =SequenceFiles=.
+  - Formatos serializados: =Avro=, =Thrift=.
+  - Formatos columnares: =RCFile=, =ORCFile=, =Parquet=.
+
+- Debido a que la mayoría de formatos de archivos sólo se puede acceder desde =Java=, nos enfocaremos en sólo dos: =Avro= y =Parquet=
+
+** Formatos de archivos
+
+- =Avro=
+  - Independiente del lenguaje.
+  - Almacena el esquema en el encabezado de cada archivo.
+  - Son comprensibles y divisibles.
+    - Soporta compresión con =snappy=.
+  - Es recomendable usarlo en la ingesta de datos.
+  - Las fallas sólo afectan a una porción del archivo.
+
+** Formatos de archivos
+
+- =Parquet=
+  - Diseñado para proveer procesamiento eficiente a través de varios compoentes de hadoop.
+  - Almacena los datos de manera columnar.
+  - Provee excelentes capacidades de compresión.
+  - Soporta estructuras de datos complejas y anidadas.
+  - Los metadatos están guardados al final del archivo.
+  - Puede escribirse y leerse con las APIs de Avro y con esquemas de Avro.
+  - No son tan buenos para recuperarse de errores.
+
+** Formatos de compresión
+
+- Ayuda a reducir los requerimientos de almacenamiento
+- Mejora el procesamiento de los datos
+  - Disminuye ,a cantidad de I/O en disco y red.
+- Para aprovechar las capacidades de procesamiento en paralelo de Hadoop es preferible que el formato sea divisible.
+
+
+** Formatos de compresión
+
+- =bzip2=
+  - Excelente factor  de compresión
+  - Pero muuuuuy lento en compresión/decompresión
+  - Divisible
+
+- =snappy=
+  - Proyecto de Google.
+  - No es divisible, pero muy eficiente en compresión/decompresión.
+  - Se debe de usar con un formato de archivo que provea la capacidad de contenedor (=Avro=, =SequenceFiles=).
+
+- =gzip=
+  - No es divisible
+  - Buen factor de comrpesión: 2.5x lo de =snappy=.
+  - Se debe de usar con un formato de archivo que provea la capacidad de contenedor (=Avro=, =SequenceFiles=).
+
+- =lzop=
+  - Parecido a =snappy= en eficiencia de compresión/decompresión.
+  - Divisible, pero requiere una etapa de indexado.
+  - Buena elección para guardar archivos de texto planos que no se pondrán dentro de un contenedor.
+  - Licenciamiento raro (No viene incluido con Hadoop).
+
+** Esquema
+
+- *Nota*: /Basado en [[http://shop.oreilly.com/product/0636920033196.do][Hadoop Application Architectures.]]/
+
+-  ¿Por qué?
+   - Estructura de archivos estándar facilita la colaboración entre equipos.
+   - Permite la reutilización de código para procesarla.
+   - Permite reforzar las políticas de acceso y evitar así corrupción de los datos.
+   - Permite identificar que datos han sido procesados completamente y cuales no
+   - Muy parecido a los =schemas= de PostgreSQL.
+
+** Esquema Propuesto
+
+- =/user/<username>=
+   - Datos para experimentar (i.e. no son parte del proceso de negocio).
+   - =JARs=, archivos de configuración.
+   - Sólo debe de tener permisos de R/W el usuario en cuestión.
+
+- =/etl=
+   - Datos en sus varias etapas de transformación por el ETL.
+   - Subdirectorios reflejan el /workflow/ de los datos.
+     - Los ETL son creados por *grupos* para *aplicaciones*.
+     - Además cada subdirectorio tendrá a su vez directorios para cada etapa del proceso:
+       - =input= para el lugar donde llegan los archivos
+       - =procesando= para los pasos intermedios (puede haber varios)
+       - =output= para el resultado final
+       - =rechazados= para los registros o archivos que no pudieron ser procesados y que deben de verificarse manualmente.
+   - La estructura quedaría así:
+     - =/etl/<grupo>/<aplicación>/<proceso>/{input, procesando, output, rechazados}=
+   - Sólo el usuario =etl= y los usuarios del grupo =etl= pueden R/W.
+
+** Esquema Propuesto
+
+- =/tmp=
+   - Datos temporales generados por usuarios o partes de Hadoop.
+   - Se borra su interior regularmente.
+   - Todos tienen permisos de RW en este directorio.
+
+- =/data=
+   - Datos procesados y usados por la organización
+   - Existen controles sobre quién puede o no usar los datos
+   - Los usuarios sólo tienen permisos de lectura.
+   - Los procesos automatizados (y auditados) tienen permisos de escritura.
+
+- =/app=
+   - Todo lo requerido por la aplicación de Hadoop para funcionar (salvo datos)
+   - Archivos de Oozie (definiciones de /workflows/),
+   - Archivos de =hql=, =pig=, =JARs=, =UDFs=, etc.
+
+** Otras consideraciones
+
+- *Particionado*
+  - Ayuda a reducir la cantidad de I/O para procesar los datos.
+  - Es una especie de /indexado/ básico.
+#+begin_example
+<nombre del dataset>/<columna sobre la cual particionar>=<valor de la columna>/{archivos}
+#+end_example
+
+- *Denormalizar*
+  - Ahorras =Joins= (que son lentos)
+
+** Ejercicio I
+- En este ejercicio prepararemos el *esquema* de nuestra aplicación de gran escala.
+- Inicializa el contenedor =hadoop-pseudo=.
+- Cambia al usuario =itam=.
+- Revisa la estructura de directorios con el usuario =hdfs=.
+  - Esto lo puedes hacer con =sudo -u hdfs ...=
+- Crea el esquema de directorios propuesta.
+  - Esto lo puedes hacer con =sudo -u hdfs ...=
+  - =/user/<username>=, =/etl= (para la aplicación =ufo= y =gdelt=, el grupo es =ds=), =/tmp=, =/app= y =/data=.
+  - Las últimas tres están vacías.
+- Asigna los permisos adecuados.
+  - [[http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html][HDFS Permissions Guide]], [[http://stackoverflow.com/questions/23095244/add-new-group-to-hdfs][Pregunta de Stackoverflow]], [[http://spryinc.com/blog/hdfs-permissions-overcoming-permission-denied-accesscontrolexception][Problema del supergroup]]
+- Dentro de tu carpeta (siendo el usuario =itam=), crea la carpeta =datasets= y adentro =ufos= y la carpeta =gdelt=.
+
+** Ejercicio I
+
+- Dentro de tu carpeta (siendo el usuario =itam=), crea la carpeta =experimentos=.
+- Carga dos archivos de cada dataset a esta carpeta desde =/home/itam/data/= usando la línea de comandos.
+  - Observa que una de las carpetas es local...
+
+
+- Verifiquemos que los datos estén bien:
+
+#+begin_html
+<pre><code data-trim>
+hadoop fs -cat experimentos/UFO-Dic-2014.tsv | wc -l
+hadoop fs -cat experimentos/UFO-Dic-2014.tsv | head
+</code></pre>
+#+end_html
+
+- Observa como los datos están en formato de texto, justo como la copia que está en tu disco duro.
+
+
+** Ejercicio II
+
+- En este ejercicio usaremos =kite=.
+- [[http://kitesdk.org/][=Kite=]] es una herramienta que nos permite cargar y administrar los metadatos de los archivos a Hadoop.
+  - Pueden obtener ayuda con =kite-dataset help comando=.
+- Tanto =Avro=, como =Hive Metastore= pueden servir para gestionar los metadatos y =kite= puede trabajar con ambos.
+- En este ejercicio, nos enfocaremos en el dataset de =ufos=.
+- Y a partir de aquí, todos los ejercicios son con el usuario =itam=.
+
+** Ejercicio II
+
+- =HDFS= y =Avro= para guardar los metadatos.
+- Infiere el esquema a partir de uno de los archivos:
+
+#+begin_html
+<pre><code data-trim>
+kite-dataset csv-schema UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
+</code></pre>
+#+end_html
+
+- Esto va a marcar un error, arréglalo con =sed=.
+  - Cuando hay =/= de por medio puedes cambiar el separador de =sed= por cualquier caracter, ejemplo:
+
+#+begin_html
+<pre><code data-trim>
+sed -e -i 's@cambiar_algo@por_esto@g' archivo
+</code></pre>
+#+end_html
+
+
+- Abre el archivo =ufos.avsc=, es el esquema en formato =avro=.
+- Ahora crearemos el =dataset= en el =hdfs=.
+
+#+begin_html
+<pre><code data-trim>
+kite-dataset create dataset:hdfs:/user/itam/datasets/ufos --schema ufos.avsc
+</code></pre>
+#+end_html
+
+- Observa los cambios ocurridos en la carpeta =ufos= del =hdfs=.
+  - Recuerda que puedes ver el contenido con el comando =hadoop fs -cat=
+
+- Para verificar que se realizó bien puedes ejecutar:
+
+#+begin_html
+<pre><code data-trim>
+kite-dataset schema dataset:hdfs:/user/itam/datasets/ufos
+</code></pre>
+#+end_html
+
+** Ejercicio II
+
+- Por último, importemos los datos
+
+#+begin_html
+<pre><code data-trim>
+kite-dataset csv-import data/UFO-Nov-2014.tsv dataset:hdfs:/user/itam/datasets/ufos --delimiter "\t"
+kite-dataset csv-import data/UFO-Dic-2014.tsv dataset:hdfs:/user/itam/datasets/ufos --delimiter "\t"
+</code></pre>
+#+end_html
+
+
+- Veamos que si se copiaron:
+#+begin_html
+<pre><code data-trim>
+kite-dataset show dataset:hdfs:/user/itam/datasets/ufos
+</code></pre>
+#+end_html
+
+- Ahora observa como se ve un conjunto de datos en fornato =avro=, usando las herramientas de línea de comandos.
+  - No lo abras con =hadoop fs -cat ...= o la consola se dañará...
+
+
+- *NOTA*: Si algo salió mal, puedes borrar el dataset con
+#+begin_html
+<pre><code data-trim>
+kite-dataset delete dataset:hdfs:/user/itam/datasets/ufos
+</code></pre>
+#+end_html
+
+** Ejercicio II
+
+- Ahora guardaremos los datos en  =hive metastore=.
+  - No te preocupes más adelante explicaré que es esto, por el momento piensa en una base de datos para los metadatos.
+
+- Los pasos son casi los mismos que el ejercicio anterior, sólo cambia el destino: ya no es el =HDFS=, ahora es =hive metastore=.
+
+- Crea el =dataset=
+
+#+begin_html
+<pre><code data-trim>
+kite-dataset create ufos --schema ufos.avsc
+</code></pre>
+#+end_html
+
+- Para verificar que se realizó bien puedes ejecutar:
+
+#+begin_html
+<pre><code data-trim>
+kite-dataset schema ufos
+</code></pre>
+#+end_html
+
+- Y para asegurarnos que no son los mismos datos que antes (los guardados en el =hdfs=), ejecuta
+
+#+begin_html
+<pre><code data-trim>
+kite-dataset show ufos
+</code></pre>
+#+end_html
+
+** Ejercicio II
+
+- Importemos los datos
+
+#+begin_html
+<pre><code data-trim>
+kite-dataset csv-import data/UFO-Nov-2014.tsv ufos --delimiter "\t"
+kite-dataset csv-import data/UFO-Dic-2014.tsv ufos --delimiter "\t"
+</code></pre>
+#+end_html
+
+
+- Veamos que si se copiaron:
+#+begin_html
+<pre><code data-trim>
+kite-dataset show ufos
+</code></pre>
+#+end_html
+
+- *NOTA*: Si algo salió mal, puedes borrar el dataset con
+#+begin_html
+<pre><code data-trim>
+kite-dataset delete ufos
+</code></pre>
+#+end_html
+
+
+** Ejercicio III
+
+- En este momento, tienes 3 veces los datos en tres formatos diferentes: A
+   1. Archivo de texto
+   2. Archivo =avro=
+   3. Guardado como tabla en =hive= y sus metadatos en el =hive metastore=.
+
+- Más adelante veremos en detalle las /abstracciones/ y /procesadores/ que tiene =Hadoop= para manipular y analizar los datos, pero por el momento los usaremos para ver los datos, sin dar mucha explicación.
+  - En lo que sigue, observa el código, todo tendrá más sentido cuando expliquemos apropiadamente estas herramientas.
+
+- En este ejercicio, veremos =spark=, =pig=, =hive= e =impala=.
+
+** Ejercicio III
+
+- Empecemos con el archivo de texto (localizados en =hdfs://localhost/user/itam/experimentos/=)
+
+- Usaremos la consola de =python= de =spark=
+
+#+begin_html
+<pre><code data-trim>
+pyspark
+</code></pre>
+#+end_html
+
+- La respuesta, luego de varias líneas de texto debe de ser:
+
+#+begin_html
+<pre><code data-trim>
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /__ / .__/\_,_/_/ /_/\_\   version 1.3.0
+      /_/
+
+Using Python version 2.7.8 (default, Oct 20 2014 15:05:19)
+SparkContext available as sc, HiveContext available as sqlCtx.
+>>>
+</code></pre>
+#+end_html
+
+- Observa que hay dos contextos al final: =SparkContext= y =HiveContext=, estos contextos permiten interactuar con el cluster de Hadoop.
+
+** Ejercicio III
+
+- Carguemos como *RDD* el archivo (en este caso, estamos cargando líneas de texto, no como archivo =tsv=)
+
+#+begin_html
+<pre><code data-trim>
+ufos_nov = sc.textfile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
+</code></pre>
+#+end_html
+
+- Contemos las líneas que hemos cargado
+
+#+begin_html
+<pre><code data-trim>
+ufos_nov.count()
+</code></pre>
+#+end_html
+
+- Veamos los primeros cinco renglones
+
+#+begin_html
+<pre><code data-trim>
+ufos_nov.take(5)
+</code></pre>
+#+end_html
+
+- O sólo el primero
+
+
+#+begin_html
+<pre><code data-trim>
+ufos_nov.first()
+</code></pre>
+#+end_html
+
+
+- Si queremos contar el número de estados
+
+#+begin_html
+<pre><code data-trim>
+ufos_nov.map(lambda line: (line.split('\t')[2]))\
+.distinct()\
+.count()
+</code></pre>
+#+end_html
+
+
+** Ejercicio III
+
+- ¿Qué pasa si queremos cargar el archivo e identificar las columnas?
+  - ¡Definimos una función en =python=!
+
+#+begin_html
+<pre><code data-trim>
+def load_tsv(archivo):
+    return csv.reader(StringIO(archivo[1]), delimiter='\t')
+</code></pre>
+#+end_html
+
+- Y leemos el archivo
+#+begin_html
+<pre><code data-trim>
+ufos_nov = sc.textFile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv").flatMap(load_tsv)
+ufos_nov.take(3)[2]
+</code></pre>
+#+end_html
+
+- Más adelante veremos como explotar esta estructura.
+
+- Para salir presiona =Ctrl+C= ó =Ctrl+D=.
+
+** Ejercicio III
+
+- =Pig= es una abstracción sobre MapReduce
+
+- =Pig= tiene un archivo de configuración localizado en =~/.pigbootup=
+
+- Más adelante requeriremos algunos =JARs= para ejecutar cosas en =Pig=, en lugar de usarlos desde el sistema de archivos local, los leeremos desde el =hdfs=.
+  - Crea una carpeta llamada =lib= en =/user/itam=
+  - Copia a esta carpeta los siguientes archivos:
+    - =/usr/lib/pig/datafu-1.1.0-cdh5.4.0.jar=
+    - =/usr/lib/pig/piggybank.jar=
+    - =/usr/lib/pig/lib/avro-1.7.6-cdh5.4.0.jar=
+    - =/usr/lib/pig/lib/snappy-java-1.0.5.jar=
+    - =/usr/lib/pig/lib/json-simple-1.1.jar=
+
+- Crea el archivo =.pigbootup= en tu carpeta =$HOME= (i.e. =/home/itam=)
+
+- Agrega lo siguiente:
+#+begin_html
+<pre><code data-trim>
+REGISTER hdfs://localhost/user/itam/lib/datafu-1.1.0-cdh5.4.0.jar
+REGISTER hdfs://localhost/user/itam/lib/piggybank.jar
+REGISTER hdfs://localhost/user/itam/lib/avro-1.7.6-cdh5.4.0.jar
+REGISTER hdfs://localhost/user/itam/lib/snappy-java-1.0.5.jar
+REGISTER hdfs://localhost/user/itam/lib/json-simple-1.1.jar
+</code></pre>
+#+end_html
+
+
+
+- Para ejecutarlo
+
+#+begin_html
+<pre><code data-trim>
+pig -useHCatalog
+</code></pre>
+#+end_html
+
+
+** Ejercicio III
+
+- Para replicar lo que hicimos con =Spark=:
+
+#+begin_html
+<pre><code data-trim>
+ufos_dic = LOAD 'experimentos/UFO-Dic-2014.tsv' using PigStorage('\t')  \
+           AS (Timestamp:chararray, \
+               City:chararray, State:chararray, \
+               Shape:chararray, Duration:chararray, \
+               Summary:chararray, Posted:chararray);
+DESCRIBE ufos_dic;
+head = LIMIT ufos_dic 5;
+DUMP head;
+</code></pre>
+#+end_html
+
+-  Puedes seguir la ejecución vía web  [[http://0.0.0.0:8088][aquí]].
+
+- Nota el uso de mayúsculas para las palabras clave de =Pig=.
+
+** Ejercicio III
+
+- Ahora usemos los archivos con formato =avro= y observemos como, dado que tienen metadatos, es mucho más fácil.
+  - Nota lo limpio que va a quedar el código ahora...
+
+#+begin_html
+<pre><code data-trim>
+ufos = LOAD 'datasets/ufos' USING org.apache.pig.piggybank.storage.avro.AvroStorage();
+DESCRIBE ufos;
+ILLUSTRATE ufos;
+head = LIMIT ufos 5;
+DUMP head;
+</code></pre>
+#+end_html
+
+- Observa como no hubo problemas con el header del archivo!
+  - ¡En el ejercicio anterior (tanto con =pig= como con =spark=) era la primera línea!
+
+- Para ver los diferentes estados
+#+begin_html
+<pre><code data-trim>
+states = DISTINCT (FOREACH ufos GENERATE State);
+DUMP states;
+</code></pre>
+#+end_html
+
+- Para salir presiona =Ctrl+C= ó =Ctrl+D=.
+
+** Ejercicio III
+
+- Por último usaremos las herramientas parecidas a =SQL= que proveé Hadoop: =Hive= e =Impala=.
+
+- Usaremos el =Hive Metastore=.
+  - Aunque podríamos usar el =hdfs= o =avro= en el =hdfs=.
+
+- Para ejecutar el cliente de =Hive=
+
+#+begin_html
+<pre><code data-trim>
+beeline -u jdbc:hive2://localhost:10000
+</code></pre>
+#+end_html
+
+- Veámos que tablas hay disponibles
+
+#+begin_html
+<pre><code data-trim>
+show tables;
+</code></pre>
+#+end_html
+
+- Obtengamos los primeros 5
+
+#+begin_html
+<pre><code data-trim>
+select * from ufos limit 5;
+</code></pre>
+#+end_html
+
+- Contar los estados diferentes:
+
+#+begin_html
+<pre><code data-trim>
+select count(distinct State) from ufos;
+</code></pre>
+#+end_html
+
+- Ver el plan de ejecución del /query/
+
+#+begin_html
+<pre><code data-trim>
+explain select count(distinct State) from ufos;
+</code></pre>
+#+end_html
+
+
+- Compara con este /query/
+  - ¿Cuál es la diferencia?
+
+#+begin_html
+<pre><code data-trim>
+explain select count(*) from (select distinct State from ufos) as t;
+</code></pre>
+#+end_html
+
+- Para salir presiona =Ctrl+C= ó =Ctrl+D=.
+
+** Ejercicio III
+
+- Para iniciar =Impala=
+
+#+begin_html
+<pre><code data-trim>
+impala-shell
+</code></pre>
+#+end_html
+
+- Debido a que Impala *no* es una abstracción de *MapReduce*, sus tiempos son impresionantemente rápidos
+
+#+begin_html
+<pre><code data-trim>
+invalidate metadata; # Siempre ejecutarlo cuando se modifiquen las tablas fuera de Impala
+show tables;
+describe ufos;
+select * from ufos limit 5; # Este quizá tarde un poco... (warming up)
+select * from ufos limit 15; # Debería de volar
+</code></pre>
+#+end_html
+
+- Top 5 de avistamientos por estado
+
+#+begin_html
+<pre><code data-trim>
+select state, count(*) as conteo from ufos group by state order by conteo desc limit 5;
+</code></pre>
+#+end_html
+
+- Para salir presiona =Ctrl+D=.
+
+** Ejercicio III: Recapitulando
+
+- Vimos diferentes maneras de interactuar con los datos
+  - Lo vamos a profundizar luego.
+
+- Es importante notar que aunque usamos diferentes herramientas para cada tipo de archivo (Texto, Avro, Tabla),  /todas/ las herramientas pueden ver /todos/ los formatos.
+  - Casi...por lo menos los mostrados aquí.
+
+- Es importante notar también, que cada herramienta es para un diferente proceso (ingeniería, analítica, etc.)
+
+- Estamos explorando los datos, aún no establecemos un /workflow/
+  - También lo veremos más adelante.
+
+* YARN
+:PROPERTIES:
+   :reveal_background: #000fff
+ :END:
+
+** YARN
+
+- La infraestructura de Hadoop =0.x= y =1.x= era monolítica, por eso fue rediseñada.
+- =YARN=: /Yet Another Resource Negotiator/.
+- La gestión de recursos es extraída de los paquetes de =MapReduce= para que puedan ser utilizadas por otros componentes.
+- Aportaciones
+  - Escalabilidad.
+  - Compatibilidad con =MapReduce=.
+  - Mejoras en la gestión del /cluster/.
+  - Soporte para otros modelos de programación (además de =MapReduce=).
+    - /Graph processing/
+    - /Message Passing Interface/ (*MPI*).
+    - Soporte para procesamiento /real-time/ o /near real-time/.
+      - =MapReduce= es /batch-oriented/.
+  - Agilidad.
+
+** YARN
+
+- Se dividieron las dos responsabilidades del /JobTracker/:
+  - Gestión de recursos (/Resource Management/)
+  - Asignación y vigilancia de trabajos (/Job scheduling-monitoring/)
+
+- La idea es tener un /ResourceManager/ global y un /NodeManager/ por
+  nodo esclavo, los cuales forman un sistema para la administración de
+  aplicaciones distribuidas.
+
+- El /ResourceManager/ tiene dos componentes principales:
+  - /Scheduler/: Asigna los recursos para las aplicaciones (/pluggeable/).
+  - /Application Manager/: Responsable de aceptar las solicitudes de
+    trabajos, negociando al principio para ejecutar el /Application
+    Master/ específico y provee un servicio de reinicio, por si el
+    /Application Master/ falla.
+
+- En cada nodo:
+
+   - El /Application Master/: Negocia sus recursos con el /Scheduler/,
+  monitorea sus avances y reporta su estatus.
+
+   - El /NodeManager/ es el responsable de los contenedores,
+     monitorear el uso de recursos y reportar todo al
+     /ResourceManager/.
+
+** Arquitectura MapReduce Hadoop 1.x
+
+[[file:./imagenes/MRArch.png]]
+
+** Arquitectura Hadoop 2.x
+
+[[file:./imagenes/Selección_003.png]]
+
+
+** Cambios 1.x -> 2.x
+
+[[file:./imagenes/yarn.png]]
+
+
+** Multiparadigma en Hadoop 2.x
+
+ [[file:./imagenes/YARN.png]]
+
+
+* Procesamiento
+:PROPERTIES:
+   :reveal_background: #000fff
+ :END:
+
+** Tipos
+
+- MapReduce
+- Spark
+- Impala
+
+** MapReduce en Hadoop
+- Principal /framework/ de ejecución de =Apache Hadoop=.
+- Inspirado en las operaciones *MAP* y *REDUCE* de los lenguajes funcionales.
+- Modelo de programación para proceso de datos distribuido  y paralelo.
+- Divide las tareas (/jobs/) en fases de /mapeo/ y fases de /reducción/.
+- Los desarrolladores crean tareas /MapReduce/ para Hadoop usando datos guardados en el =HDFS=.
+
+** MapReduce: Ventajas
+
+   - /Fault-tolerant/.
+   - Esconde los detalles de implementación a los programadores.
+   - Escala con el tamaño de los datos.
+
+
+** MapReduce
+
+- Dos fases de procesamiento:
+  - /key-value/ como Input y Output
+  - El programador especifica:
+    - Tipos de /key-value/
+    - Funciones: =MAP= y =REDUCE=.
+
+
+** Una pequeña regresión...
+
+** map-reduce: Matemáticamente
+
+#+BEGIN_HTML
+<PRE><CODE DATA-TRIM>
+map: (k1, v1) -> list(k2, v2)
+</CODE></PRE>
+#+END_HTML
+
+- =map= Mapea (aplica una función /f/) un conjunto de entrada de pares /key-value/ a otro conjunto intermedio de /key-values/
+
+
+** map-reduce: Matemáticamente
+
+#+BEGIN_HTML
+<PRE><CODE DATA-TRIM>
+reduce: (k2, list(v2)) -> list(k3, v3)
+</CODE></PRE>
+#+END_HTML
+
+- =reduce=  Aplica una función /g/ a todos los valores (/values/) asociados a una llave (/key/) y acumula el resultado. Emite pares de /key-values/.
+
+** Python =map=
+
+#+begin_src python :results output :export both
+# Equivalente en for-loop
+
+items = [1,2,3,4,5]
+cuadrados = []
+for x in items:
+    cuadrados.append(x**2)
+
+print cuadrados
+#+end_src
+
+#+RESULTS:
+: [1, 4, 9, 16, 25]
+
+
+#+begin_src python :results output :export both
+# Usando la funcion map(function, sequence)
+
+items = [1,2,3,4,5]
+
+print list(map((lambda x: x**2), items))
+#+end_src
+
+#+RESULTS:
+: [1, 4, 9, 16, 25]
+
+
+** Python =reduce=
+
+#+begin_src python :results output :export both
+# Equivalente en for-loop
+L = [1,2,3,4]
+result = L[0]
+for x in L[1:]:
+    result = result*x
+
+print result
+
+#+end_src
+
+#+RESULTS:
+: 24
+
+#+begin_src python :results output :export both
+# Usando la funcion reduce(funcion, secuencia)
+print reduce((lambda x,y: x*y), [1,2,3,4])
+#+end_src
+
+#+RESULTS:
+: 24
+
+** Python =map= y =reduce=
+
+#+begin_src python :results output :export both
+a = range(1, 4)
+b = range(4, 9)
+c = range(9, 15)
+print "a ->  %s, b -> %s , c -> %s" % (a, b, c)
+
+L1 = map(lambda x:len(x), [a,b,c])
+print "L1 -> %s" % L1
+
+L2 = reduce(lambda x, y: x+y, L1)
+print "L2 -> %s" % L2
+#+end_src
+
+#+RESULTS:
+: a ->  [1, 2, 3], b -> [4, 5, 6, 7, 8] , c -> [9, 10, 11, 12, 13, 14]
+: L1 -> [3, 5, 6]
+: L2 -> 14
+
+
+
+** MapReduce y map-reduce
+
+- Básicamente es lo mismo, pero...
+- =map=, =reduce= (entre otras) son parte de lenguajes funcionales.
+- =MapReduce= es la aplicación de esta idea aplicada a problemas /vergonzosamente/ /paralelos/.
+  - Ver la carpeta =docs= para el artículo de *Google* sobre =MapReduce=.
+
+
+** GNU Parallel
+
+#+begin_src sh
+find ./data/books -type f | parallel -j0 egrep -i  '\[\[:digit:\]\]' {} | awk '{s+=$1} END {print s}'
+#+end_src
+
+#+RESULTS:
+: 1480715
+
+
+- *¿Puedes identificar las partes =map= y =reduce=?*
+- Esto ya es un =MapReduce=.
+
+
+** MapReduce en Hadoop
+
+- A nivel programático:
+  - /Data/ de entrada
+  - Programa MapReduce
+  - Configuración
+  - Subtareas: =map= y =reduce=
+
+
+** MapReduce: /Mapper/
+
+- Hadoop divide la entrade de datos al /job/ MapReduce en pedazos de tamaño fijo llamados /input splits/.
+- Hadoop crea una tarea =map= para cada /input split/.
+- =map= escribe al /file system/ local.
+  - Si el =reducer= tiene éxito se borra la salida del /mapper/.
+
+** Map only
+
+[[file:./imagenes/map_only.png]]
+
+
+** MapReduce: /Reducer/
+
+- La entrada es la salida de (posiblemente) todos los /mappers/.
+- Estas se transmiten vía red al nodo donde corre el /reducer/.
+- La salida se guarda en el =HDFS=.
+
+** Map, One reduce
+
+[[file:./imagenes/map_one_reduce.png]]
+
+** MapReduce
+
+[[file:./imagenes/map_reduce.png]]
+
+
+** MapReduce: /Combiner/
+
+- Es una medida de optimización.
+- Es para ahorrar ancho de banda.
+- Una especie de /reducer/ local.
+- No es parte (estrictamente) del MapReduce
+  - Por eso no lo había mencionado.
+
+
+** Hello World!: Word count
+
+
+*** Word count
+
+- Es el ejemplo /Hola Mundo/ de Apache Hadoop.
+- No sólo eso, es el ejemplo que se utiliza en el trabajo seminal
+  - *MapReduce: Simplified Data Processing on Large Clusters* /(2006)/.
+  - En la carpeta =docs= como ya había dicho.
+- Solamente 1 =Map= y 1 =Reduce=.
+
+
+*** Word count
+
+- *mapper*
+  - =k1= -> nombre de archivo
+  - =v1= -> texto del archivo
+  - =k2= -> palabra
+  - =v2= -> "1"
+
+- *reducer*
+  - =k2= -> palabra
+  - list(v2) -> (1,1,1,1,1,1,..., 1)
+
+  Suma los "1" y produce una lista de
+
+  - k3 -> palabra
+  - v3 -> suma
+
+*** Word count
+
+[[file:./imagenes/word_count.png]]
+
+*** Pseudocódigo
+
+#+begin_html
+<pre><code data-trim>
+map (String key, String value)
+   for each word w in value
+      Emit(w, 1)
+
+reduce (String key, Iterator values)
+   int wordcount = 0
+   for each v in values
+      wordcount += v
+      Emit(key, wordcount)
+
+</code></pre>
+#+end_html
+
+*** Mockup
+
+- Ver los archivos =word_count.py= y =mapreduce.py= en la carpeta =mock=.
+
+#+begin_html
+<pre><code data-trim>
+chmod +x word_count.py
+python word_count.py
+</code></pre>
+#+end_html
+
+- Este es un ejemplo de mentiritas, no usa Apache Hadoop.
+
+
+
+** Ejercicio
+
+- Diseñe el **MapReduce** para lo siguiente:
+  - Encontrar el máximo de un conjunto de datos.
+  - Encontrar el promedio y desviación estándar de unos datos.
+  - Encontrar el top 10 de una cantidad.
+  - Contar por grupo
+
+
+
+** Spark
+
+*** Spark
+
+- /Framework/ de cómputo general para /clusters/
+- Ejecuta en =YARN=
+  - Aunque también puede hacer /standalone/, o ejecutar sobre =EC2= o =Mesos=.
+
+*** Resilient Distributed Datasets (RDDs)
+
+- Es una de las ideas principales de Spark.
+- =RDDs= es una abstracción que representa una colleción de objetos de sólo lectura que está particionada a lo largo de varias máquinas.
+- Sus ventajas:
+  - Pueden ser reconstruidas a partir de su /lineage/. (Soportan fallos...)
+  - Pueden ser accesadas vía operaciones en paralelo, parecidas a MapReduce.
+  - Son /cached/ en memoria para su uso inmediato.
+  - Fueron construidas para ser almacenadas de manera distribuida.
+
+
+
+* Abstracciones
+:PROPERTIES:
+   :reveal_background: #000fff
+ :END:
+
+** Pig
+
+*** Pig
+
+- Proyecto de Apache
+- Abstracción encima de Hadoop
+  - /Pig Latin/ compila a =MapReduce=
+  - En cierta forma /Pig Latin/ es para analistas, /data scientist/ y estadísticos.
+  - =MapReduce=  es para programadores (aunque los /data scientist/ deberían de poder hacerlo también)
+
+*** Pig
+
+- Pig es un /data flow programming language/
+- Es decir,
+  - Ejecuta paso a paso
+  - Cada paso es una transformación de datos
+- En cambio =SQL= es un conjunto de /constraints/ que en conjunto definen el resultado buscado.
+
+*** Pig
+
+- ¿Qué cosas puede hacer?
+  - =joins=
+  - =sorts=
+  - =filters=
+  - =group by=
+  - /User defined functions/ =UDF='s
+
+*** Pig
+
+- ¿Qué cosas *puedo* hacer?
+
+  - =ETLs=
+    - Limpiar.
+    - /Joins/ gigantes.
+
+  - Búsqueda en /Raw/.
+
+*** Pig
+
+- Componentes
+  - /Pig Latin/
+  - =Grunt=
+    - Local
+    - MapReduce
+  - =Pig compiler=
+
+*** Pig
+
+- Es posible ejecutar también /scripts/ de /Pig Latin/ (terminación =.pig=) sin entrar a =grunt=.
+
+#+begin_html
+<pre><code data-trim>
+pig script_file.pig
+
+# Si quieren pasar parámetros
+pig -p var=bla/bla var2=bla/bla/bla script_file.pig
+</code></pre>
+#+end_html
+
+- Y usarse desde programas en =Java= con la clase =PigServer=.
+  - Como una especie de =JDBC=, pero para /Pig Latin/.
+
+
+*** Pig: /Building blocks/
+
+Fields
+#+begin_html
+<pre><code data-trim>
+'Adolfo'
+</code></pre>
+#+end_html
+
+Tuplas
+#+begin_html
+<pre><code data-trim>
+('Adolfo', 3, 8.17, 23)
+</code></pre>
+#+end_html
+
+/Bags/
+#+begin_html
+<pre><code data-trim>
+{('Adolfo', 3, 8.17, 23), ('Paty', 3.14, 9, 'A')}
+</code></pre>
+#+end_html
+
+
+
+*** Ejercicio
+
+#+begin_html
+<pre><code data-trim>
+ufos = load 'ufos' using org.apache.pig.piggybank.storage.avro.AvroStorage();
+a_imprimir = limit ufos 5;
+por_estado = group ufos by State;
+describe por_estado;
+explain por_estado;
+illustrate por_estado;
+# itera sobre cada elemento del bag
+conteo = foreach por_estado generate group count_star(ufos);
+ordenados = order conteo by $1 desc;
+top_five = limit ordenado 5;
+unicos = distinct conteos;
+muestreo = sample por_estado 0.1;
+filtrados = filter conteos by substring(group, 0, 2) == 'W';
+mayores = filter conteos by $1 > 50;
+</code></pre>
+#+end_html
+
+*** Pig: JOINS
+
+- Cargamos fuente 1
+- Cargamos fuente 2
+- Unimos las fuentes (/bags/) mediante una llave
+- Súper simple
+
+Pig soporta /inner joins/ (valor por omisión), /left outer joins/ (y
+/right/ también) y /full outer/ joins.
+
+
+#+begin_html
+<pre><code data-trim>
+fuentes_unidas = join fuente1 by (keys) [left|right|full outer] fuente2 by (keys);
+</code></pre>
+#+end_html
+
+Además =Pig= soporta =cogroup= además de los =joins= (el =cogroup=
+preserva la estructura de las fuentes y crea tuplas por cada llave)
+
+#+begin_html
+<pre><code data-trim>
+fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
+</code></pre>
+#+end_html
+
+
+*** Pig: Ejemplo de JOINs y COGROUPs
+
+#+begin_html
+<pre><code data-trim>
+
+# Fuentes de datos
+
+mascotas: (dueño, mascotas)
+----------------------
+(Adolfo, tortuga)
+(Adolfo, pez)
+(Adolfo, gato)
+(Paty, perro)
+(Paty, gato)
+
+amigos: (amigo1, amigo2)
+----------------------
+(Diana, Adolfo)
+(Gabriel, Adolfo)
+(Shanti, Paty)
+
+
+COGROUP mascotas by dueño, amigos por amigo2;
+---------------------------------------------
+(Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)}, {(Diana, Adolfo), (Gabriel, Adolfo)})
+(Paty, {(Paty, perro), (Paty, gato)}, {(Shanti, Paty)})
+
+JOIN mascotas by dueño, amigos por amigo2;
+-------------------------------------------
+(Adolfo, tortuga, Diana)
+(Adolfo, tortuga, Gabriel)
+(Adolfo, pez, Diana)
+(Adolfo, pez, Gabriel)
+(Adolfo, gato, Diana)
+(Adolfo, gato, Gabriel)
+(Paty, perro, Shanti)
+(Paty, gato, Shanti)
+</code></pre>
+#+end_html
+
+*** Aclaraciones sobre GROUP y FLATTEN
+
+- =FLATTEN= elimina un nivel anidamiento
+
+#+begin_html
+<pre><code data-trim> pig
+# Datos:
+# (Adolfo, (tortuga, pez, gato))
+# (Paty, (perro, gato))
+# FLATTEN eliminaría los bags internos
+(Adolfo, tortuga)
+(Adolfo, pez)
+(Adolfo, gato)
+(Paty, perro)
+(Paty, gato)
+</code></pre>
+#+end_html
+
+- =GROUP .. BY= organiza los /bags/ en /bags/
+#+begin_html
+<pre><code data-trim> pig
+# Siguiendo con los datos anteriores de mascotas
+GROUP mascotas BY dueño;
+
+# ( Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)} )
+# ( Paty, {(Paty, perro), (Paty, gato)} )
+
+</code></pre>
+#+end_html
+
+- En cierto sentido =FLATTEN= y =GROUP .. BY= son operaciones inversas
+  entre sí.
+
+
+** Hive
+
+*** Hive
+
+- Proyecto de Apache.
+- _Abstracción_ pra modelar y procesar datos en Hadoop.
+- Proveé de una manera de estructurar datos guardados en el =HDFS=.
+- Permite crear _queries_ muy similares a =SQL= (llamado =HQL=) y correrlos contra los datos.
+- Contiene un almacén de metadatos (=HCatalog=), que además puede ser compartido con otras interfaces como =Pig=, =MapReduce=, etc.
+- Da Acceso al =HDFS= y =HBASE=.
+
+*** Bibliografía recomendada
+
+- Sitio web de Hive
+- Hadoop: The Definitive Guide
+- Programming Hive
+
+
+*** Arquitectura de Apache Hive
+
+[[file:./imagenes/hive-remote.jpeg]]
+
+
+
+** Impala
+
+*** Impala
+
+
+
+
+* Disclaimer
+:PROPERTIES:
+   :reveal_data_state: soothe
+:END:
+
+Algunas imágenes se tomaron de los libros /Professional Hadoop Solutions/
+de *Wrox* y de la página de [[http://hortonworks.com/hadoop/yarn/][Hortonworks]]. Las otras son mías.
+
+Las tablas de la sección /cluster/ de Hadoop, se tomaron de [[http://hortonworks.com/][Hortonworks.]]
