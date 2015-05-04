@@ -1567,3 +1567,15 @@ GROUP mascotas BY dueño;
 ** Impala
 
 *** Impala
+
+
+
+* Disclaimer
+:PROPERTIES:
+   :reveal_data_state: soothe
+:END:
+
+Algunas imágenes se tomaron de los libros /Professional Hadoop Solutions/
+de *Wrox* y de la página de [[http://hortonworks.com/hadoop/yarn/][Hortonworks]]. Las otras son mías.
+
+Las tablas de la sección /cluster/ de Hadoop, se tomaron de [[http://hortonworks.com/][Hortonworks.]]
