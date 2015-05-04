@@ -960,7 +960,10 @@ select state, count(*) as conteo from ufos group by state order by conteo desc l
 - Vimos diferentes maneras de interactuar con los datos
   - Lo vamos a profundizar luego.
 
-- Es importante notar que cada herramienta es para un diferente proceso (ingeniería, analítica, etc.)
+- Es importante notar que aunque usamos diferentes herramientas para cada tipo de archivo (Texto, Avro, Tabla),  /todas/ las herramientas pueden ver /todos/ los formatos.
+  - Casi...por lo menos los mostrados aquí.
+
+- Es importante notar también, que cada herramienta es para un diferente proceso (ingeniería, analítica, etc.)
 
 - Estamos explorando los datos, aún no establecemos un /workflow/
   - También lo veremos más adelante.
