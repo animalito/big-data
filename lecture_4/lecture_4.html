@@ -880,7 +880,7 @@ hadoop fs -cat experimentos/UFO-Dic-2014.tsv | head
 </ul>
 
 <pre><code data-trim>
-kite-dataset csv-schema UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
+kite-dataset csv-schema data/UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
 </code></pre>
 
 <ul>
@@ -1307,7 +1307,7 @@ DUMP states;
 </ul>
 
 <pre><code data-trim>
-beeline -u jdbc:hive2://
+beeline -u jdbc:hive2://localhost:10000
 </code></pre>
 
 <ul>
@@ -1417,9 +1417,19 @@ select state, count(*) as conteo from ufos group by state order by conteo desc l
 <li>Es importante notar que aunque usamos diferentes herramientas para cada tipo de archivo (Texto, Avro, Tabla),  <i>todas</i> las herramientas pueden ver <i>todos</i> los formatos.
 <ul>
 <li>Casi&#x2026;por lo menos los mostrados aquí.</li>
+<li>Por ejemplo, podemos usar <code>pig</code> para leer las tablas de <code>hive</code>, cambiando el <code>LOAD</code> como sigue:</li>
 
 </ul></li>
 
+</ul>
+<pre><code data-trim>
+ufos = load 'ufos' using org.apache.hive.hcatalog.pig.HCatLoader();
+describe ufos;
+illustrate ufos;
+...
+</code></pre>
+
+<ul>
 <li>Es importante notar también, que cada herramienta es para un diferente proceso (ingeniería, analítica, etc.)</li>
 
 <li>Estamos explorando los datos, aún no establecemos un <i>workflow</i>
@@ -1429,6 +1439,15 @@ select state, count(*) as conteo from ufos group by state order by conteo desc l
 </ul></li>
 
 </ul>
+
+</section>
+<section id="slide-sec-4-29">
+<h3 id="sec-4-29">Ejercicio IV</h3>
+<ul>
+<li>Repite todo lo anterior para cargar dos archivos de <code>gdelt</code> de tu elección.</li>
+
+</ul>
+
 
 </section>
 </section>

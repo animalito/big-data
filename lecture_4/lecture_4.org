@@ -540,7 +540,7 @@ hadoop fs -cat experimentos/UFO-Dic-2014.tsv | head
 
 #+begin_html
 <pre><code data-trim>
-kite-dataset csv-schema UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
+kite-dataset csv-schema data/UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
 </code></pre>
 #+end_html
 
@@ -962,11 +962,25 @@ select state, count(*) as conteo from ufos group by state order by conteo desc l
 
 - Es importante notar que aunque usamos diferentes herramientas para cada tipo de archivo (Texto, Avro, Tabla),  /todas/ las herramientas pueden ver /todos/ los formatos.
   - Casi...por lo menos los mostrados aquí.
+  - Por ejemplo, podemos usar =pig= para leer las tablas de =hive=, cambiando el =LOAD= como sigue:
+#+begin_html
+<pre><code data-trim>
+ufos = load 'ufos' using org.apache.hive.hcatalog.pig.HCatLoader();
+describe ufos;
+illustrate ufos;
+...
+</code></pre>
+#+end_html
 
 - Es importante notar también, que cada herramienta es para un diferente proceso (ingeniería, analítica, etc.)
 
 - Estamos explorando los datos, aún no establecemos un /workflow/
   - También lo veremos más adelante.
+
+** Ejercicio IV
+
+- Repite todo lo anterior para cargar dos archivos de =gdelt= de tu elección.
+
 
 * YARN
 :PROPERTIES:
@@ -1572,6 +1586,179 @@ GROUP mascotas BY dueño;
 *** Impala
 
 
+
+# ** Ejercicios
+
+# *** RITA, HIVE y PIG
+# #+begin_html
+# <pre><code data-trim> pig
+# register /home/hduser/hadoop-src/pig-0.12.0/contrib/piggybank/java/piggybank.jar;
+# define replace org.apache.pig.piggybank.evaluation.string.REPLACE;
+# define substring org.apache.pig.piggybank.evaluation.string.SUBSTRING;
+# define s_split org.apache.pig.piggybank.evaluation.string.Split;
+# define reverse org.apache.pig.piggybank.evaluation.string.Reverse;
+
+# airports = LOAD '/user/nano/rita_catalogs/airports.csv'
+# USING PigStorage(',')
+# AS
+# (iata:chararray,airport:chararray,city:chararray,
+# state:chararray,country:chararray,latitude:float,longitude:float);
+
+# fixed_airports = foreach airports
+#                  generate replace(iata, '"', ''),
+#                           replace(airport, '"', ''),
+#                           replace(city, '"', ''),
+#                           replace(state, '"', ''),
+#                           replace(country, '"', ''),
+#                           latitude, longitude;
+
+# store fixed_airports into '/user/pig/airports-fixed' using PigStorage(',');
+# </code></pre>
+# #+end_html
+
+# *** RITA y HIVE: Joins
+
+# #+begin_html
+# <pre><code data-trim> sql
+# load data inpath 'pig_fixed/airports/part-m-00000'
+# overwrite into table airports;
+
+# -- ¿Y ahora?
+# select * from airports where iata='SAN';
+
+# select * from rita join airports on (rita.Origin = airports.iata) limit 10;
+# </code></pre>
+# #+end_html
+
+# *** ¡Más ejercicios!
+
+
+# - Usando =RITA= (lo que tengan cargado en su nodo), calcule:
+#   - Con =Pig=:
+#     - El número de vuelos por aeropuerto.
+#     - ¿Cuál es el más activo?
+#   - Con =Hive=:
+#     - Número de =km= por avión.
+#     - ¿Cuál es el /top/ 5?
+#     - ¿Sería más fácil en =Pig=?
+
+
+# * Arquitectura: Workflow
+# :PROPERTIES:
+#    :reveal_background: #000fff
+#  :END:
+
+
+# ** Hive Metastore
+# :PROPERTIES:
+#   :CUSTOM_ID: hive-metastore
+# :END:
+
+# *** HCatalog
+
+# - Está incorporado a =Hive= desde la versión =0.11=.
+
+# - Es una capa administrativa de tablas y almacenamiento que permite
+#   que diferentes herramientas de procesamiento de datos (=Pig=,
+#   =MapReduce=) puedan leer y escribir más fácilmente del =HDFS=.
+# - Contiene una abstracción que presenta una vista relacional de los
+#   datos contenidos en el =HDFS=, asegurando que los usuarios no se
+#   preocupen dónde o en que formato están almacenados los datos.
+
+# *** HCatalog
+
+# - Utiliza el =DDL= de =Hive=.
+# - Provee interfaces de escritura y lectura para =Pig=, =MapReduce= y
+#   =Hive=.
+# - Usa la línea de comandos para manejar la definición de los datos y
+#   metadatos.
+# - =HCatalog= presenta los datos de manera relacional.
+# - Los datos son guardados en tablas y las tablas en bases de datos.
+
+# - =WebHCat= es la interfaz API =REST= de =HCatalog=.
+
+# *** HCatalog: Flujo de datos
+
+# - Usuario 1 copia datos al HDFS
+# #+begin_html
+# <pre><code data-trim>
+# hadoop distcp file:///data/books/pg2047.txt hdfs://data/20140430/books
+# hcat "alter table books add partition (ds='20140430') location 'hdfs://data/20140430/books'"
+# </code></pre>
+# #+end_html
+
+# - Usuario 2 usa =Pig= para limpiar y preparar los datos.
+#   - =HCatalog= mandará al =JMS= un mensaje de que la información está disponible.
+
+
+# #+begin_html
+# <pre><code data-trim>
+# A = load 'books' using HCatLoader();
+# B = filter A by date = '20140430';
+# ...
+# store Z into 'procesados' using HCatStorer("date=20140430");
+# </code></pre>
+# #+end_html
+
+# - Usuario 3 realiza cierta analítica
+
+# #+begin_html
+# <pre><code data-trim>
+# select col1, count(col3)
+# from procesados
+# where date  = '201340430'
+# group by col1;
+# </code></pre>
+# #+end_html
+
+# ** HBase
+
+# *** HBase
+
+# - Es un almacén distribuido =NoSQL=.
+# - Proveé acceso aleatorio a los datos guardados en el =HDFS=.
+#   - A diferencia de =HDFS=, que es secuencial.
+
+# *** Bibliografía
+
+# - Sitio web de HBase
+# - HBase: The definitive Guide
+# - HBase in Action
+
+# ** Apache Sqoop
+
+# *** Apache Sqoop
+
+# - Herramienta para importar eficientemente /data/ desde =RDBMS= a Hadoop (=HDFS,
+#   Hive, Hbase=) y viceversa.
+# - Soporta cualquier =RDBMS= que tenga conexión =JDBC= (=PostgreSQL, MySQL, Oracle, Teradata=, etc.).
+# - Tiene soporte nativo para =MySQL= y =PostgreSQL=.
+
+# *** Apache Sqoop
+
+# [[file:./imagenes/sqoop.png]]
+
+
+# *** Bibliografía
+
+# - Documentación de Apache Sqoop
+# - Apache Sqoop Cookbook
+
+# ** Apache Flume
+
+# *** Apache Flume
+
+# - Componente para la captura (_ingesta_) de datos basados en eventos a Hadoop.
+
+# *** Bibliografía
+
+# - Documentación de Flume
+# - Using Flume
+
+
+# *** Ejercicio: RITA del tingo al tango
+# y
+# ** Apache Flume
 
 
 * Disclaimer
