@@ -1,0 +1,16 @@
+.reveal pre {
+    font-family: Source Code Pro;
+}
+.reveal code {
+    font-family: Source Code Pro;
+}
+
+.reveal ul {
+  padding: 0;
+  text-align: left;
+  display: block;
+}
+
+.reveal p { text-align: left; }
+
+.reveal ul ul { font-size: 20px; }
