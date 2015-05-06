@@ -1326,12 +1326,17 @@ python word_count.py
 
 *** Ejercicio
 
-- Diseñe (en /pseudo código/) el **MapReduce** para lo siguiente:
+- Organízate en grupos de cuatro personas
+
+- Diseñe (en /pseudo código/, imágen, código, lo que sea más fácil) el **MapReduce** para lo siguiente:
   - Encontrar el máximo de un conjunto de datos.
   - Encontrar el promedio y desviación estándar de unos datos.
   - Encontrar el top 10 de una cantidad.
   - Contar por grupo
 
+- Subir el /diseño/ a =github= en la carpeta =grupos=, dentro de una carpeta de equipo (agregar un =README= para saber los participantes)
+
+- *NOTA* Esta carpeta será la usada para el proyecto final.
 
 
 * Abstracciones de MapReduce
@@ -1666,9 +1671,12 @@ mayores = filter conteos by $1 > 50;
 
 *** Ejemplo: Wordcount
 
+- Describe cada línea con comentarios y agrega los esquemas.
 - Averigua (usando la documentación) como guardar la tabla a archivo y compara el =top10= con el resultado de =Pig=.
 - ¿Por qué da diferente?
 - Modifica el código para arreglar la diferencia.
+- Guarda la salida de cada uno de estos en una carpeta =output/wordcount/hive= en tu carpeta =hdfs=.
+- Copia la salida al sistema de archivos local y súbelo a =github=.
 
 #+begin_html
 <pre><code data-trim>
