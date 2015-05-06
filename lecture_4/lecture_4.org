@@ -1393,7 +1393,12 @@ python word_count.py
 #+begin_html
 <pre><code data-trim>
 pig script_file.pig
-# Si quieren pasar parámetros
+</code></pre>
+#+end_html
+
+- Si quieren pasar parámetros
+#+begin_html
+<pre><code data-trim>
 pig -p var=bla/bla var2=bla/bla/bla script_file.pig
 </code></pre>
 #+end_html
