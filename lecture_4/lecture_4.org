@@ -1531,11 +1531,9 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 
 *** Pig: Ejemplo de JOINs y COGROUPs
 
+- Fuentes de datos
 #+begin_html
 <pre><code data-trim>
-
-# Fuentes de datos
-
 mascotas: (dueño, mascotas)
 ----------------------
 (Adolfo, tortuga)
@@ -1549,8 +1547,13 @@ amigos: (amigo1, amigo2)
 (Diana, Adolfo)
 (Gabriel, Adolfo)
 (Shanti, Paty)
+</code></pre>
+#+end_html
 
+- Ejemplos de transformaciones
 
+#+begin_html
+<pre><code data-trim>
 COGROUP mascotas by dueño, amigos por amigo2;
 ---------------------------------------------
 (Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)}, {(Diana, Adolfo), (Gabriel, Adolfo)})
