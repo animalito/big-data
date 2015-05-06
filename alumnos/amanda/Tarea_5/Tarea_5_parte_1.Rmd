@@ -1,0 +1,135 @@
+---
+title: "Métodos de Gran Escala Tarea 5 Parte 1"
+author: "Amanda Balderas M."
+date: "Marzo 2015"
+output: html_document
+---
+
+#### Instalando y Configurando Postgresql
+
+Para la instalación de Postgresql se realizaron los siguientes pasos:
+
+* Corremos un contenedor con la imagen de ubuntu 14.10
+
+```
+docker run -i -t ubuntu:14.10 /bin/bash
+```
+
+* Intalamos un editor de texto
+
+```
+apt-get update
+apt-get install vim-tiny
+```
+
+* Instalamos Postgresql 9.4
+
+```
+apt-get update
+apt-get -y install python-software-properties
+apt-get install postgresql-9.4 libpq-dev postgresql-contrib
+```
+
+* Instalamos Postgis
+
+```
+apt-get update
+apt-get install postgis
+exit
+```
+
+* Guardamos la imagen 
+
+```
+docker commit CONTENEDOR_ID amanda/postgresql-9.4
+```
+
+* Creamos y Configuramos el directorio para el uso de Postgresql
+
+```
+mkdir -p $HOME/postgresdata
+docker run -v="$HOME/postgresdata":"/data" -i -t -p 5432 amanda/postgresql-9.4 /bin/bash
+```
+
+* Configuarando los archivos _.conf_ y _.hba_
+
+```
+cp /etc/postgresql/9.4/main/postgresql.conf /data/postgresql.conf
+cp /etc/postgresql/9.4/main/pg_hba.conf /data/pg_hba.conf
+sed -i '/^data_directory*/ s|/var/lib/postgresql/9.4/main|/data/main|' /data/postgresql.conf
+sed -i '/^hba_file*/ s|/etc/postgresql/9.4/main/pg_hba.conf|/data/pg_hba.conf|' /data/postgresql.conf
+```
+
+* Creando directorio /data/main/ y configurando
+
+```
+mkdir -p /data/main
+chown postgres /data/*
+chgrp postgres /data/*
+chmod 700 /data/main
+su postgres --command "/usr/lib/postgresql/9.4/bin/initdb -D /data/main"
+# cp /postgresql.conf /data/postgresql.conf
+# cp /pg_hba.conf /data/pg_hba.conf
+```
+
+* Para accesar de cualquier dirección ip
+
+```
+sed -i "/^#listen_addresses/i listen_addresses='*'" /data/postgresql.conf
+sed -i "/^# DO NOT DISABLE\!/i # Allow access from any IP address" /data/pg_hba.conf
+sed -i "/^# DO NOT DISABLE\!/i host all all 0.0.0.0/0 md5\n\n\n" /data/pg_hba.conf
+```
+
+* Iniciando Postgresql
+
+```
+su postgres --command "/usr/lib/postgresql/9.4/bin/postgres -D /data/main -c config_file=/data/postgresql.conf" &
+```
+
+* Creando usuario
+
+```
+su postgres
+psql
+create role amanda login password 'bameam29' 
+superuser valid until 'infinity';
+#su postgres --command 'createuser -P -d -r -s amanda'
+```
+
+* Saliendo de Postgresql
+
+```
+su postgres --command '/usr/lib/postgresql/9.4/bin/pg_ctl --pgdata=/data/main stop'
+exit
+```
+
+* Guardamos la imagen final
+
+```
+docker commit CONTAINER_ID amanda/postgresql-9.4 final
+```
+
+* Corriendo el repositorio final
+
+```
+docker run -v="$HOME/postgresdata":"/data" -d -p 5432 amanda/postgresql-9.4:final su postgres --command "/usr/lib/postgresql/9.4/bin/postgres -D /data/main -c config_file=/data/postgresql.conf"
+```
+
+* Verificando que existe nuestro repositorio con Postgresql
+
+```
+docker ps -a
+```
+
+* Para iniciar y detener el repositorio utilizamos:
+
+```
+docker start CONTAINER_ID
+docker stop CONTAINER_ID
+```
+
+Para verificar el puerto usamos:
+
+```
+docker port CONTAINER_ID
+```

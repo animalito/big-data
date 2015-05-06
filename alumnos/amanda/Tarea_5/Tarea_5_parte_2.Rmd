@@ -1,0 +1,160 @@
+---
+title: "MÃ©todos de Gran Escala Tarea 5 Parte 2"
+author: "Amanda Balderas M."
+date: "Marzo 2015"
+output: html_document
+---
+
+#### Creando las bases UFO y GDELT
+
+* Iniciamos el repositorio donde tenemos instalado Postgresql
+
+```
+docker start CONTAINER_ID
+```
+
+* Creando base UFO
+
+```
+su postgres
+psql
+create database ufo owner amanda;
+#su postgres --command 'createdb -O ufo amanda'
+```
+
+* Creando base GDELT
+
+```
+create database gdelt owner amanda;
+#su postgres --command 'createdb -O ufo amanda'
+```
+
+* Cambiando a usuario amanda
+
+```
+ctrl + d
+su amanda
+```
+
+* Entrando a la base UFO
+
+```
+\connect ufo
+# psql -d ufo
+```
+
+* Creando esquemas para la base ufo
+
+```
+create schema "$user";
+create schema dirty;
+create schema clean;
+create schema shameful;
+create schema playground;
+create schema output;
+create schema mining;
+create schema ml;
+create schema mis_extensiones;
+```
+
+* Modificando el path de bÃºsqueda
+
+```
+altr database ufo set search_path="$user", dirty, clean, shameful, playground, output, mining, ml, mis_extensiones;
+```
+
+* Permisos en los esquemas
+
+```
+grant usage on schema dirty to public;
+
+alter default privileges in schema dirty 
+grant select, references on tables to public;
+
+alter default privileges in schema dirty
+grant select, update on sequences to public;
+
+alter default privileges in schema dirty
+grant execute on functions to public;
+
+alter default privileges in schema dirty
+grant usage on types to public;
+```
+
+* Creando extensiones
+
+```
+create extension dblink schema mis_extensiones;
+create extension file_fdw schema mis_extensiones;
+create extension fuzzystrmatch schema mis_extensiones;
+create extension hstore schema mis_extensiones;
+create extension pgcrypto schema mis_extensiones;
+create extension postgres_fdw schema mis_extensiones;
+create extension tablefunc schema mis_extensiones;
+create extension auto_explain schema mis_extensiones;
+create extension cube schema mis_extensiones;
+create extension dict_xsyn schema mis_extensiones;
+create extension pg_trgm schema mis_extensiones;
+create extension "uuid-ossp" schema mis_extensiones;
+```
+
+* Entrando a la base GDELT
+
+```
+\connect gdelt
+```
+
+* Creando esquemas para la base gdelt
+
+```
+create schema "$user";
+create schema dirty;
+create schema clean;
+create schema shameful;
+create schema playground;
+create schema output;
+create schema mining;
+create schema ml;
+create schema mis_extensiones;
+```
+
+* Modificando el path de bÃºsqueda
+
+```
+alter database gdelt set search_path="$user", dirty, clean, shameful, playground, output, mining, ml, mis_extensiones;
+```
+
+* Permisos en los esquemas
+
+```
+grant usage on schema dirty to public;
+
+alter default privileges in schema dirty 
+grant select, references on tables to public;
+
+alter default privileges in schema dirty
+grant select, update on sequences to public;
+
+alter default privileges in schema dirty
+grant execute on functions to public;
+
+alter default privileges in schema dirty
+grant usage on types to public;
+```
+
+* Creando extensiones
+
+```
+create extension dblink schema mis_extensiones;
+create extension file_fdw schema mis_extensiones;
+create extension fuzzystrmatch schema mis_extensiones;
+create extension hstore schema mis_extensiones;
+create extension pgcrypto schema mis_extensiones;
+create extension postgres_fdw schema mis_extensiones;
+create extension tablefunc schema mis_extensiones;
+create extension auto_explain schema mis_extensiones;
+create extension cube schema mis_extensiones;
+create extension dict_xsyn schema mis_extensiones;
+create extension pg_trgm schema mis_extensiones;
+create extension "uuid-ossp" schema mis_extensiones;
+```
