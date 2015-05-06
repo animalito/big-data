@@ -1393,7 +1393,6 @@ python word_count.py
 #+begin_html
 <pre><code data-trim>
 pig script_file.pig
-
 # Si quieren pasar parámetros
 pig -p var=bla/bla var2=bla/bla/bla script_file.pig
 </code></pre>
@@ -1467,6 +1466,7 @@ dump procesados; -- Imprime en pantalla la relación
 
 - =parallel=
   - Afecta la cantidad de =reducers= que hay.
+
 
 *** ¿Qué funciones hay?
 
