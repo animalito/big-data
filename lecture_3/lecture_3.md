@@ -251,7 +251,7 @@ psql
 
 - Algunas mejoras (ejecuta un `select * from pg_tables` entre cada uno de los siguientes.)
 
-```{sql}
+```
 \pset linestyle unicode  -- Mejora la línea de presentación
 
 \pset border 2  -- Borde a 2 px
@@ -329,7 +329,7 @@ Arreglos
 Arreglos
 =======================================================
 
-```{sql}
+```
 create table cosas (
   id serial not null,
   nombre varchar,
@@ -341,7 +341,7 @@ create table cosas (
 
 * Insertamos de la siguiente manera:
 
-```{sql}
+```
 insert into cosas
 values (1, 'Cosa 1', '{"Algo", "Otra cosa"}', now(), now());
 insert into cosas
@@ -356,7 +356,7 @@ Arreglos
 * Seleccionamos usando el operador de contención `@>`
   - Más operadores [aquí](http://www.postgresql.org/docs/9.4/static/functions-array.html).
 
-```{sql}
+```
 select nombre from cosas
 where etiquetas @> '{Algo}';
 ```
@@ -365,7 +365,7 @@ where etiquetas @> '{Algo}';
 
 * Seleccionamos usando unnest
 
-```{sql}
+```
 select unnest(etiquetas) from cosas;
 ```
 
@@ -387,7 +387,7 @@ Rangos
 Rangos
 =======================================================
 
-```{sql}
+```
 create table clases (
   salon varchar,
   periodo tsrange
@@ -396,7 +396,7 @@ create table clases (
 
 * Insertamos de la siguiente manera:
 
-```{sql}
+```
 insert into clases
 values ('Sala de video 2', '[2015-03-04 08:00, 2015-03-04 11:00]');
 ```
@@ -406,7 +406,7 @@ Tipos compuestos
 
 - El ejemplo paradigmático es el de los números complejos $\mathbf{C}$
 
-```{sql}
+```
 create type complejo as (
   real double precision,
   img double precision
@@ -425,7 +425,7 @@ Tipos compuestos
 
 - ¿Cómo se usa?
 
-```{sql}
+```
 -- Insertar
 insert into test values (row(1.0, 32), 1000);
 insert into test values ((1.234, 2), 0);
@@ -504,25 +504,25 @@ Administración básica
 
 - Crear usuarios:
 
-```{sql}
+```
 create role leonidas login password 'king0fSpart4'
 createdb valid until 'infinity';
 ```
 
-```{sql}
+```
 create role dario login password 'persianRuler'
 superuser valid until '2020-10-20 03:00:00';
 ```
 
 - Grupo
 
-```{sql}
+```
 create role persians inherit;
 ```
 
 - Agregando alguien al grupo
 
-```{sql}
+```
 grant persians to some_guy_about_to_die;
 ```
 
@@ -531,7 +531,7 @@ Administración básica
 
 - Crear una base de datos:
 
-```{sql}
+```
 create database ufo;
 
 -- Pueden agregar OWNER dueño y TABLESPACE table_space
@@ -539,7 +539,7 @@ create database ufo;
 
 - Esquemas (para organizar la base de datos)
 
-```{sql}
+```
 create schema dirty;
 
 -- Podemos agregar un dueño con AUTHORIZATION dueño
@@ -553,7 +553,7 @@ Administración básica
 
 - Modifica el `path` de búsqueda
 
-```{sql}
+```
 alter database ufo set search_path="$user", dirty, clean, shameful, playground, output, mining, ml;
 ```
 
@@ -562,7 +562,7 @@ Administración básica
 
 - Permisos en el esquema
 
-```{sql}
+```
 grant usage on schema dirty to public;
 
 alter default privileges in schema dirty
@@ -588,7 +588,7 @@ Administración básica
 
 - Si el esquema ya está poblado:
 
-```{sql}
+```
 grant usage on schema clean to public;
 
 grant select, references, trigger
@@ -622,7 +622,7 @@ Extensiones
 
 - Instalar extensiones
 
-```{sql}
+```
 create extension fuzzystrmatch schema mis_extensiones;
 ```
 
@@ -656,7 +656,7 @@ SELECT
 - En teoría es sencillo, pero ejecuta lo que sigue
     - En pantalla completa
 
-```{sql}
+```
 
 postgres=# \help select
 
@@ -713,7 +713,7 @@ Joins
 
 - `INNER JOIN`
 
-```{sql}
+```
 select ... from tabla1 INNER JOIN tabla2 ON condicion;
 
 select ... from tabla1 INNER JOIN tabla2 USING (lista columnas);
@@ -727,7 +727,7 @@ Joins
 - `OUTER JOIN`
     - Agrega renglones sin _match_ llenándolas con valores `NULL`.
 
-```{sql}
+```
 select ... from tabla1
   LEFT/RIGHT/FULL  OUTER JOIN tabla2 ON condicion;
 
@@ -808,7 +808,7 @@ Generar queries
 
 - Unir varias tablas con **bulk inserts**
 
-```{sql}
+```
 select 'insert into myschema.mynewtable select * from ' || table_schema || '.' || table_name || ';'
 from information_schema.tables
 where table_schema='myschema' and table_name like 'old%';
@@ -816,7 +816,7 @@ where table_schema='myschema' and table_name like 'old%';
 
 - Transformar una tabla de *wide* a *long*
 
-```{sql}
+```
 select
 'insert into output_table (pais, entidad, variable, valor) select pais, entidad, entidad, modelo, "' || column_name::varchar || '", ' || column_name::varchar || ';' as query
 from information_schema.columns
@@ -828,7 +828,7 @@ Generar queries
 
 - Generar *queries* para `MongoDB`
 
-```{sql}
+```
 select
     'db.foo.findOne({_id: ObjectId("' || _id || '")})'
 from foo;
@@ -836,7 +836,7 @@ from foo;
 - Generar una tabla con muchas columnas de un tipo
   - por ejemplo vas a importar un archivo MSExcel para un **LET**.
 
-```{sql}
+```
 SELECT 'CREATE TABLE data_import('
 || string_agg('field' || i::text || ' varchar(255)', ',') || ');'
 FROM generate_series(1,100) As i;
@@ -845,21 +845,21 @@ FROM generate_series(1,100) As i;
 Fechas
 =======================================================
 
-```{sql}
+```
 select
 date_trunc('year', '2014-02-25'::date) as year,
 date_trunc('month', '2014-02-25'::date) as month,
 date_trunc('day', '2014-02-25'::date) as day;
 ```
 
-```{sql}
+```
 select
 to_char('2013-02-25'::date, 'YYYY') as year,
 to_char('2013-02-25'::date, 'MM-YYYY') as month,
 to_char('2013-02-25'::date, 'YYYYMMDD') as day;
 ```
 
-```{sql}
+```
 select
 date_part('day', '2013-02-25'::date);
 ```
@@ -869,20 +869,20 @@ Generar secuencias
 
 * Ejemplo básico
 
-```{sql}
+```
 select * from generate_series(0,100,5);
 ```
 
 * Usándola con funciones
 
-```{sql}
+```
 select avg(val)
 from generate_series(0,100,5) as val;
 ```
 
 * Una serie de fechas
 
-```{sql}
+```
 select
 current_date + step.i as date_series
 from
@@ -909,7 +909,7 @@ create extension "uuid-ossp"; -- También la usaremos
 
 - Generemos una tabla transaccional
 
-```{sql}
+```
 select
 generate_series as fecha,
 cus.tarjeta as tarjeta,
@@ -923,7 +923,7 @@ from generate_series((now() - '100 days'::interval)::date, now()::date, '1 day':
 "Pivotear" tablas
 ========================================================
 
-```{sql}
+```
 select *
 from crosstab(
 'select                      -- source sql
@@ -959,7 +959,7 @@ Estadísticas muy loca
 
 - Promedio y desviación estandar...
 
-```{sql}
+```
 SELECT
     tarjeta,
     tipo_comercio,
@@ -977,7 +977,7 @@ Feature engineering
 
 - Top 5 colonias por gasto
 
-```{sql}
+```
 SELECT
     ...
     (array_agg( colonia ORDER BY monto DESC))[1:5] AS top5_colonias
@@ -987,7 +987,7 @@ FROM
 
 - ¿Si los queremos ordenados?
 
-```{sql}
+```
 (SELECT
     (array_agg(colonia ORDER BY cnt DESC))[1:5]
 FROM
@@ -1004,7 +1004,7 @@ Feature engineering
 - ¿Y un histograma de horas en los lugares?
 
 
-```{sql}
+```
 (SELECT
     array_agg(cnt ORDER BY hour DESC)
 FROM
@@ -1032,36 +1032,36 @@ Tamaños...
 
 - Tamaño de la base de datos
 
-```{sql}
+```
 SELECT pg_database_size(current_database());
 ```
 
 - En formato bonito
 
-```{sql}
+```
 select pg_size_pretty(pg_database_size(current_database()));
 ```
 
 - Tamaño de una tabla
 
-```{sql}
+```
 select pg_relation_size('libros');
 ```
 
 Eliminar duplicados
 ===========================================================
 
-```{sql}
+```
 SELECT * FROM libros WHERE ctid NOT IN
 (SELECT max(ctid) FROM libros GROUP BY libro) -- ver cuales están duplicadas
 ```
 
-```{sql}
+```
 DELETE FROM libros WHERE ctid NOT IN
 (SELECT max(ctid) FROM libros GROUP BY libro);  -- Sólo un campo
 ```
 
-```{sql}
+```
 DELETE FROM libros WHERE ctid NOT IN
 (SELECT max(ctid) FROM libros GROUP BY libros.*) ;  -- Línea completa
 ```
@@ -1100,7 +1100,7 @@ Un poco de Text Mining
 
 - Y una tabla **`habtm`**:
 
-```{sql}
+```
   create table movies_actors (
     movie_id integer references movies not null,
     actor_id integer references actors not null,
@@ -1113,7 +1113,7 @@ Un poco de Text Mining
 
 - Índices
 
-```{sql}
+```
 create index movies_actors_movie_id on movies_actors (movie_id);
 create index movies_actors_actor_id on movies_actors (actor_id);
 create index movies_genres_cube on movies using gist (genre);
@@ -1126,11 +1126,11 @@ Un poco de Text Mining
 
 - ¿Qué hace lo siguiente?
 
-```{sql}
+```
 select title from movies where title ilike 'stardust%';
 ```
 
-```{sql}
+```
 -- Regex
 -- ~ operador de matching
 -- ! No matching
@@ -1139,7 +1139,7 @@ select count(*) from movies where title !~* '^the.*';
 ```
 - Índice para `regex`
 
-```{sql}
+```
 create index movies_title_pattern on movies (lower(title) text_pattern_ops);
 -- Alternativas: varchar_pattern_ops, bpchar_pattern_ops, tern_ops, name_pattern_ops
 ```
@@ -1149,7 +1149,7 @@ Un poco de Text Mining
 
 - Levenshtein
 
-```{sql}
+```
 select movie_id title from movies
 where levenshtein(lower(title), lower('a hard day nght')) <= 3;
 ```
@@ -1158,7 +1158,7 @@ where levenshtein(lower(title), lower('a hard day nght')) <= 3;
 
 -Trigramas
 
-```{sql}
+```
 select show_trgm('Avatar');
 
 -- Buscar parecidos simplemente se reduce a contar el número de trigramas que coinciden.
@@ -1178,7 +1178,7 @@ Un poco de Text Mining
 
 -- Metafonemas
 
-```{sql}
+```
 select title
 from movies NATURAL join movies_actors NATURAL join actors
 where metaphone(name, 6) = metaphone('Broos Wils', 6);
@@ -1193,7 +1193,7 @@ Un poco de Text Mining
 
 - El campo `genre` es un vector multidimensional...
 
-```{sql}
+```
 select name,
 cube_ur_coord('(0,7,0,0,0,0,0,0,0,7,0,0,0,0,10,0,0,0)', position) as score
 FROM genres g
@@ -1202,7 +1202,7 @@ WHERE cube_ur_coord('(0,7,0,0,0,0,0,0,0,7,0,0,0,0,10,0,0,0)', position) > 0;
 
 - Cercanas
 
-```{sql}
+```
 SELECT *,
 cube_distance(genre, '(0,7,0,0,0,0,0,0,0,7,0,0,0,0,10,0,0,0)') dist
 FROM movies
@@ -1214,7 +1214,7 @@ Un poco de Text Mining
 
 - Dentro del cubo
 
-```{sql}
+```
 SELECT title, cube_distance(genre, '(0,7,0,0,0,0,0,0,0,7,0,0,0,0,10,0,0,0)') dist
 FROM movies
 WHERE cube_enlarge('(0,7,0,0,0,0,0,0,0,7,0,0,0,0,10,0,0,0)'::cube, 5, 18) @> genre
@@ -1239,7 +1239,7 @@ Agregaciones
 
 - Películas por actor
 
-```{sql}
+```
 select
 actors.name,
 array_to_string(array_agg(movies.title), ',') as movies
@@ -1256,7 +1256,7 @@ Agregaciones: JSON
 
 - Películas por actor (en JSON)
 
-```{sql}
+```
 select row_to_json(tabla)
 from (
      select actor_id, name,
@@ -1285,13 +1285,13 @@ Ejecutar Python dentro de PostgreSQL
 
 - Instalar la librería
 
-```{bash}
+```
 sudo apt-get install postgresql-plpython-9.4
 ```
 
 - En la base de datos
 
-```{sql}
+```
 create language plpythonu;
 ```
 
@@ -1301,7 +1301,7 @@ Ejecutar Python dentro de PostgreSQL
 
 - Crear una función
 
-```{sql}
+```
 create function hola(name text)
   returns text as $$
     return 'hola %s!' % name
@@ -1310,7 +1310,7 @@ $$ language plpythonu;
 
 - Usar la función
 
-```{sql}
+```
 select hola('Adolfo');
 ```
 
@@ -1374,7 +1374,7 @@ JSONB
 
 - Nos da más operadores:
 
-```{sql}
+```
 -- Contención derecha
 select '{"a":1, "b": 2}'::jsonb @> '{"a": 1}'::jsonb;
 
@@ -1394,13 +1394,13 @@ select '{"a":1, "b": 2}'::jsonb ?& ARRAY['a', 'b'];
 JSON
 =======================================================
 
-```{sql}
+```
 create table json_test (
   data JSONB
 );
 ```
 
-```{sql}
+```
 insert into json_test (data)
   values
     ('
@@ -1415,7 +1415,7 @@ insert into json_test (data)
 JSON
 ========================================================
 
-```{sql}
+```
 -- Observa el operador
 select distinct data->>'nombre' as nombres from json_test;
 
@@ -1438,7 +1438,7 @@ JSON
 ========================================================
 - Operadores
 
-```{sql}
+```
 -- existencia
 select * from json_test where data ? 'nombre';
 
@@ -1457,9 +1457,9 @@ JSON
 
 - Como todo en la vida, hay que crearle índices:
 
-```{sql}
+```
 create index idx_nombre_gin
-  on json_test using gin(nombre);
+  on json_test using gin(data);
 ```
 
 - Nota que es de tipo `gin` y no `btree`.
@@ -1473,7 +1473,7 @@ JSON
 - Se puede extraer la información de una tabla relacional como JSON
     - para mandar a un servicio, por ejemplo
 
-```{sql}
+```
 select
   row_to_json(transacciones)
   from transacciones
@@ -1487,7 +1487,7 @@ JSON: Últimas cosas
     - Tiene que haber alguna estructura, convención y validación
     - Aquí puede entrar el `V8`
 
-    ```{sql}
+    ```
     create extension plv8;
 
     create or replace function tiene_llave(doc json)
@@ -1739,12 +1739,12 @@ Divide et impera
     - Tablas grandes
     - Tablas e índices más usados
 
-    ```{sql}
+    ```
      create tablespace bigdata-space owner su_nombre_de_usuario location 'path_a_/bigdata-disk';
     ```
 * ¿Y si ahora quiero cambiar de lugar una tabla ya existente?
 
-    ```{sql}
+    ```
     alter table tablota set tablespace = 'newstorage';
     ```
 
@@ -1773,7 +1773,7 @@ GNU/Linux: Tamaño de las páginas
 
 * Incrementar (súper importante) `shmmax`,  `shmall`  en el kernel
 
-    ```{shell}
+    ```
     #!/bin/bash
 
     page_size=`getconf PAGE_SIZE`
@@ -1846,7 +1846,7 @@ Modificar, modificar
 Modificar, modificar
 ========================================================
 - [Mitigar el costo de escritura a disco](http://www.postgresql.org/docs/9.2/static/runtime-config-query.html)
-  - `fysnc`, `synchronous_commit`
+  - `fsync`, `synchronous_commit`
     - Determina si todas las páginas `WAL` deben grabarse a disco antes de que se considere terminada la transacción.
     - Ponerlo en `off` puede causar corrupción de datos si se cae el servidor
     - En un `dwh` puede apagarse, y aumentar el rendimiento...
@@ -1934,7 +1934,7 @@ Estadísticas
 
 * Registra las estadísticas de todos los SQL ejecutados en el servidor.
 
-```{sql}
+```
 create extension pg_stat_statements;
 ```
 
@@ -1956,7 +1956,7 @@ pg_stat_statements.track = all
 Estadísticas
 ========================================================
 
-```{sql}
+```
 SELECT
   -- Tiempo total respecto al sistema (minutos)
   (total_time / 1000 / 60) as total_minutes,
@@ -1978,7 +1978,7 @@ Cache
 - `PostgreSQL` mantendrá los datos que se accesan mucho en `cache`.
 - Queremos que el cache esté usándose cerca del 99%.
 
-```{sql}
+```
 SELECT
   sum(heap_blks_read) as heap_read,
   sum(heap_blks_hit)  as heap_hit,
@@ -2008,7 +2008,7 @@ Queries
 Queries: EXPLAIN ANALYZE
 ========================================================
 
-```{sql}
+```
 explain [analyze]
 select * from ...
 ```
@@ -2020,7 +2020,7 @@ select * from ...
 Queries: EXPLAIN ANALYZE
 ========================================================
 
-```{sql}
+```
 postgres=# explain select * from transacciones;
                  QUERY PLAN
 --------------------------------------------------
@@ -2118,7 +2118,7 @@ Indexing
 Indexing
 ========================================================
 
-```{sql}
+```
 select amname from pg_am;
 
  amname
@@ -2154,7 +2154,7 @@ create index where var = valor
 
 * Recuerda que hay otro costo relacionado: su tamaño en disco.
 
-```{sql}
+```
 select pg_size_pretty(pg_total_relation_size('idx'));
 ```
 
@@ -2164,13 +2164,13 @@ Indexing
 - Índices compuestos
   - Debe de incluir el `query` todas las columnas
 
-```{sql}
+```
 create index idx_nombre on tabla (col1, col2, col3);
 ```
 
 - Es diferente a un índice combinado...
 
-```{sql}
+```
 create index idx_nombre1 on tabla (col1);
 create index idx_nombre2 on tabla (col2);
 create index idx_nombre3 on tabla (col3);
@@ -2193,7 +2193,7 @@ Indexing
 
 - Por ejemplo, para ver una lista de todas las tablas con las más grandes primero y el porcentaje de las veces que se accesan por índice:
 
-```{sql}
+```
 SELECT
   relname,
   100 * idx_scan / (seq_scan + idx_scan)
@@ -2252,7 +2252,7 @@ Partitioning
 
 Partitioning
 ========================================================
-```{sql}
+```
 CREATE TABLE ufo_2001 (
 CONSTRAINT partition_date_range
 CHECK (report_date >=   '2001-01-01'
@@ -2263,7 +2263,7 @@ AND report_date <= '2001-12-31 23:59:59')
 
 Partitioning
 ========================================================
-```{sql}
+```
 CREATE FUNCTION ufo_insert ()
 RETURNS trigger
 LANGUAGE plpgsql AS $f$
@@ -2285,7 +2285,7 @@ END;$f$;
 
 Partitioning
 ========================================================
-```{sql}
+```
 CREATE TRIGGER ufo_insert BEFORE INSERT ON ufo
 FOR EACH ROW EXECUTE PROCEDURE ufo_insert();
 ```
@@ -2368,7 +2368,7 @@ INSERTs
 ========================================================
 * _Bulk inserts_
 
-```{sql}
+```
 UPDATE  mytable
 SET     s.s_start = 1
 FROM    (
@@ -2381,7 +2381,7 @@ WHERE   …
 ```
 
 
-```{sql}
+```
 INSERT INTO mytable (mykey, mytext, myint)
 VALUES
 (1, 'text1', 11),
@@ -2392,13 +2392,13 @@ VALUES
 
 INSERTs
 ========================================================
-```{sql}
+```
 INSERT INTO bar (a, b, c)
 SELECT d, e, f FROM foo
 WHERE  foo.d not in (SELECT a FROM bar);
 ```
 
-```{sql}
+```
 UPDATE bar
 SET    b = foo.e, c = foo.f
 FROM   (SELECT d, e, f FROM foo) AS foo
@@ -2440,7 +2440,7 @@ COPY
 ========================================================
 * En `SQL`
 
-```{sql}
+```
 COPY airports
 FROM
 'airports.csv'
@@ -2450,7 +2450,7 @@ delimiter ',' nulls as 'NA' header csv;
 
 * Usando `psql`
 
-```{sql}
+```
 \copy airports
 FROM
 'airports.csv' with
@@ -2508,12 +2508,12 @@ FDW: Foreign Data Wrappers
 * Soporta: Oracle, MySQL, ODBC, NoSQL, Archivos, twitter, ldap, www, etc.
     - [Docs](http://wiki.postgresql.org/wiki/Foreign_data_wrappers)
 
-```{sql}
+```
 CREATE EXTENSION file_fdw;  -- Habilitamos la extensión
 CREATE SERVER file_server FOREIGN DATA WRAPPER file_fdw;  -- Una formalidad
 ```
 
-```{sql}
+```
 CREATE FOREIGN TABLE carriers
 ( Code varchar, Description varchar )
 SERVER file_server
@@ -2525,7 +2525,7 @@ OPTIONS \
 
 FDW
 ========================================================
-```{sql}
+```
 ALTER FOREIGN TABLE carriers OPTIONS ( SET filename '../ufo.csv' );
 -- Cambiamos la localización del archivo
 ```
@@ -2539,7 +2539,7 @@ Tablas temporales
 ========================================================
 * Yo las uso principalmente dentro de funciones (como pasos intermedios)
 
-```{sql}
+```
 CREATE TEMPORARY TABLE
 ON COMMIT DROP  -- Comenten esto o desaparecerá
 rita_rollup AS
@@ -2557,7 +2557,7 @@ Unlogged tables
 ========================================================
 * Hasta 40% más rápidas (no usan el wal)
 
-```{sql}
+```
 CREATE UNLOGGED TABLE
 cleaned_ufo
 AS SELECT ...
@@ -2591,7 +2591,7 @@ Tips
 
 - En **`postgres.conf`**
 
-```{bash}
+```
 log_destination = 'csvlog'
 log_directory = 'pg_log'
 logging_collector = on
@@ -2684,7 +2684,7 @@ LATERAL JOIN
 
 - Top-N
 
-```{sql}
+```
 select t.*
   from tabla  t
   join otra_tabla ot
@@ -2694,7 +2694,7 @@ select t.*
   limit 10
 ```
 
-```{sql}
+```
 select t.*
   from otra_tabla ot
   join LATERAL (
@@ -2789,7 +2789,7 @@ Window
 
 Todo junto
 ========================================================
-```{sql}
+```
   select ...
   window_function()
   over (
@@ -2866,7 +2866,7 @@ Otras funciones
 - Otro subconjunto: **inverse distribution functions**:
     - `percentile_cont`,  `percentile_disc`
 
-    ```{sql}
+    ```
     select percentile_disc(0.5) -- mediana
     within group(order by algo)
     from tabla
@@ -2875,7 +2875,7 @@ Otras funciones
 Otras funciones
 =======================================================
 
-```{sql}
+```
 select
   aggfnoid, aggkind
   from pg_aggregate
@@ -2894,7 +2894,7 @@ Agregados y acumuladores
     - `sum`, `avg`, `max`, etc,
     - Se pueden checar desde `psql`, con   `\da[S+]`
 
-```{sql}
+```
 select col, sum(col) over() from tabla;
 ```
 
@@ -2906,7 +2906,7 @@ Agregados y acumuladores
 
 * Regresa diferentes valores a lo largo del marco.
 
-```{sql}
+```
 select carrier, tail_num,
 air_time,
 sum(air_time) over (
@@ -2925,7 +2925,7 @@ order by carrier
 Agregar una función de agregación
 ========================================================
 
-```{sql}
+```
 CREATE OR REPLACE FUNCTION _final_median(anyarray)
   RETURNS float8 as
   $$
@@ -2955,7 +2955,7 @@ LANGUAGE sql IMMUTABLE;
 Agregar una función de agregación
 ========================================================
 
-```{sql}
+```
 CREATE AGGREGATE median(anyelement)
 (
 SFUNC = array_append,
@@ -2965,7 +2965,7 @@ INITCOND= '{}'
 );
 ```
 
-```{sql}
+```
 select median(score), avg(score)
 from game_results;
 ```
@@ -2990,7 +2990,7 @@ CTEs
 
 CTE estándar
 ========================================================
-```{sql}
+```
 with  ciudad_forma as (
   select
   city as ciudad, state as estado, shape as forma, count(*) as conteo
@@ -3016,7 +3016,7 @@ CTEs escribibles
 ========================================================
 * Se pueden usar para reparticionar las tablas, por ejemplo extraer un carrier
 
-```{sql}
+```
 -- ¡NO EJECUTAR!
 with
 deleted_countries as (
@@ -3038,7 +3038,7 @@ CTEs recursivos
 
 * Secuencias:
 
-```{sql}
+```
 with recursive seq(n)
 as (
   -- término no recursivo
@@ -3061,7 +3061,7 @@ CTEs recursivos
 
 * Secuencias:
 
-```{sql}
+```
 with recursive seq(n)  -- 2. Se envía el resultado aquí
 as (
   -- término no recursivo
@@ -3084,7 +3084,7 @@ CTEs recursivos
 
 * Secuencias:
 
-```{sql}
+```
 with recursive seq(n)
 as (
   -- término no recursivo
@@ -3107,7 +3107,7 @@ CTEs recursivos
 
 * Secuencias:
 
-```{sql}
+```
 with recursive seq(n)
 as (
   -- término no recursivo
@@ -3130,7 +3130,7 @@ CTEs recursivos
 
 * Secuencias:
 
-```{sql}
+```
 with recursive seq(n)   -- 5. se vuelve a mandar
 
 as (
@@ -3162,7 +3162,7 @@ CTEs recursivos
 
 - Simple
 
-```{sql}
+```
 with recursive t as (
 select *
 from arbol
@@ -3184,7 +3184,7 @@ CTEs recursivos
 ========================================================
 ## **Árboles**
 
-```{sql}
+```
 with recursive t(node, path) as (
 -- Inicialización
 select id, array[id] from arbol where parent_id is null
@@ -3210,7 +3210,7 @@ CTEs recursivos
 
 - Con `path`
 
-```{sql}
+```
 with recursive t as (
   select *,
   1 as lvl,
@@ -3237,7 +3237,7 @@ CTEs recursivos
 ========================================================
 ## **Transitive Closure**
 
-```{sql}
+```
 -- Suponiendo que existe una tabla nodes y edges...
 with recursive transitive_closure (a, b, distance, path_string) as
 (
@@ -3261,7 +3261,7 @@ FILTER
 
 - sustituto del `CASE WHEN... THEN ... ELSE... END`
 
-```{sql}
+```
 select year,
 sum(duration) filter (where month = 1) as enero,
 sum(duration) filter (where month = 1) as febrero,
@@ -3272,7 +3272,7 @@ group by year;
 
 La alternativa es
 
-```{sql}
+```
 ...sum(case when month = 1 then duration else 0 end ) as enero...
 ```
 
@@ -3282,7 +3282,7 @@ Vistas materializadas
 - El `query` es ejecutado y usado para popular la vista materializada.
 - Puede ser actualizada (a diferencia de una tabla normal)
 
-```{sql}
+```
 create materialized view vista_mat_nombre
 as query;
 ```
@@ -3299,7 +3299,7 @@ refresh materialized view vista_mat_nombre;
 - Esto causa un `lock` en la tabla.
   - `> 9.4`:
 
-    ```{sql}
+    ```
     refresh materialized view concurrently ...
     ```
 
@@ -3312,7 +3312,7 @@ Muestreo
 * Obtenido de [Best way to select random rows PostgreSQL](http://stackoverflow.com/questions/8674718/best-way-to-select-random-rows-postgresql)
 
 
-```{sql}
+```
 -- Obtener estimados:
 -- SELECT count(*) AS check_count,min(id)  AS min_id,max(id)
 -- AS max_id,max(id) - min(id) AS min_id_span FROM bigtbl
@@ -3328,7 +3328,7 @@ WITH params AS (
 
 Muestreo
 ========================================================
-```{sql}
+```
 -- continua
 
 SELECT *
@@ -3488,7 +3488,7 @@ Grafos
 
 - **Nodos**
 
-```{sql}
+```
 create table nodes (
 id integer primary key,
 name varchar,
@@ -3503,7 +3503,7 @@ Grafos
 
 - **Edges**
 
-```{sql}
+```
 create table edges (
 a integer not null references nodes(id)
 on update cascade
@@ -3517,14 +3517,14 @@ primary key(a,b)
 
 - **Índices**
 
-```{sql}
+```
 create index a_idx on edges(a);
 create index b_idx on edges(b);
 ```
 
 - Otros
 
-```{sql}
+```
 -- - Si el grafo no es direccionado
 create unique index pair_unique_idx
 on edges (least(a,b), greatest(a,b));
@@ -3550,7 +3550,7 @@ Tarea
 Árboles
 ========================================================
 
-```{sql}
+```
 
 create table arbol (
   id integer not null,

@@ -1,0 +1,60 @@
+---
+title: "Métodos de Gran Escala Tarea 6 Parte 2"
+author: "Amanda Balderas M."
+date: "Marzo 2015"
+output: html_document
+---
+
+#### Función en Phyton para crear tabla mejorada `transacciones`.
+
+La función `tabla_transacciones` genera la tabla mejorada de transacciones con:
+
+* Fecha de transacción aleatoria en el rango de hoy y 100 días hacia atrás.
+* Tarjeta usada seleccionada con distribución normal.
+* Tipo de comercio seleccionado aleatoriamente de 3 tipos disponibles.
+* Colonia seleccionada aleatoriamente de 10 colonias disponibles.
+* Gasto distribuido normalmente con media 10,000 y desviación estándar 500.
+
+La función pedirá como parámetro el número de tarjetas a utilizar y número de registros que se incluíran en la tabla que se va a generar.
+
+Para correr la función primero verificamos si existe y la borramos
+
+```
+DROP FUNCTION if exists tabla_transacciones(integer, integer);
+```
+
+Ahora creamos nuestra función:
+
+```
+CREATE FUNCTION tabla_transacciones(no_tarjetas integer, no_registros integer)
+  RETURNS TABLE (fecha timestamp, tarjeta varchar, tipo_comercio char, colonia char, monto int) 
+AS $$
+
+  import random
+  import uuid
+  from datetime import datetime, timedelta
+  
+  lista_comercio = ["ATM", "COMERCIO", "INTERNET"]
+  lista_colonia = ["COL_1", "COL_2", "COL_3", "COL_4", "COL_5", "COL_6", "COL_7", "COL_8", "COL_9", "COL_10"]
+  lista_tarjetas = list(range(no_tarjetas))
+  for i in range(no_tarjetas):
+    lista_tarjetas[i] = uuid.uuid4()
+    
+  return ( 
+    dict(
+      fecha = datetime.now() - timedelta(days = random.randint(0, 100)),
+      tarjeta = lista_tarjetas[int(random.gauss(no_tarjetas, 1)) % no_tarjetas],
+      tipo_comercio = random.choice(lista_comercio),
+      colonia = random.choice(lista_colonia),
+      monto = int(random.gauss(10000, 500)))
+    for j in range(no_registros)
+  )
+
+$$ LANGUAGE plpython3u;
+```
+
+Creamos la tabla `transacciones_2` con uso de 20 tarjetas y 50 transacciones.
+
+```
+SELECT * FROM tabla_transacciones(20, 50);
+```
