@@ -1919,7 +1919,6 @@ order by conteo desc limit 10;
 :PROPERTIES:
    :reveal_background: #e95d3c
 :END:
-- Algunas imágenes se tomaron de los libros /Professional Hadoop Solutions/
-de *Wrox* y de la página de [[http://hortonworks.com/hadoop/yarn/][*Hortonworks*]]. Las otras son mías.
+- Algunas imágenes se tomaron de los libros /Professional Hadoop Solutions/ de *Wrox* y de la página de [[http://hortonworks.com/hadoop/yarn/][*Hortonworks*]]. Las otras son mías.
 - Debería de ser claro cuales son cuales. =(^_^)=
 - Para otras imágenes, en la lámina se indica de dónde fueron tomadas.
