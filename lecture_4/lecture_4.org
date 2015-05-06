@@ -1531,7 +1531,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 
 *** Pig: Ejemplo de JOINs y COGROUPs
 
-- Fuente de datos: mascotas (dueño, mascotas)
+- Fuente de datos: =mascotas (dueño, mascotas)=
 #+begin_html
 <pre><code data-trim>
 (Adolfo, tortuga)
@@ -1542,7 +1542,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 </code></pre>
 #+end_html
 
-- Fuente de datos: amigos(amigo1, amigo2)
+- Fuente de datos: =amigos(amigo1, amigo2)=
 #+begin_html
 <pre><code data-trim>
 (Diana, Adolfo)
@@ -1551,7 +1551,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 </code></pre>
 #+end_html
 
-- COGROUP mascotas by dueño, amigos por amigo2;
+- =COGROUP mascotas by dueño, amigos por amigo2;=
 #+begin_html
 <pre><code data-trim>
 (Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)}, {(Diana, Adolfo), (Gabriel, Adolfo)})
@@ -1559,7 +1559,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 </code></pre>
 #+end_html
 
-- JOIN mascotas by dueño, amigos por amigo2;
+- =JOIN mascotas by dueño, amigos por amigo2;=
 #+begin_html
 <pre><code data-trim>
 (Adolfo, tortuga, Diana)
@@ -1575,14 +1575,18 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 
 *** Aclaraciones sobre GROUP y FLATTEN
 
-- =FLATTEN= elimina un nivel anidamiento
 
+- =FLATTEN= elimina un nivel anidamiento
+  - Ejemplo
 #+begin_html
 <pre><code data-trim> pig
-# Datos:
-# (Adolfo, (tortuga, pez, gato))
-# (Paty, (perro, gato))
-# FLATTEN eliminaría los bags internos
+(Adolfo, (tortuga, pez, gato))
+(Paty, (perro, gato))
+</code></pre>
+#+end_html
+  - FLATTEN eliminaría los bags internos
+#+begin_html
+<pre><code data-trim>
 (Adolfo, tortuga)
 (Adolfo, pez)
 (Adolfo, gato)
@@ -1592,14 +1596,12 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 #+end_html
 
 - =GROUP .. BY= organiza los /bags/ en /bags/
+  - Siguiendo con los datos anteriores de mascotas:
+    - GROUP mascotas BY dueño;
 #+begin_html
-<pre><code data-trim> pig
-# Siguiendo con los datos anteriores de mascotas
-GROUP mascotas BY dueño;
-
-# ( Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)} )
-# ( Paty, {(Paty, perro), (Paty, gato)} )
-
+<pre><code data-trim>
+( Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)} )
+( Paty, {(Paty, perro), (Paty, gato)} )
 </code></pre>
 #+end_html
 

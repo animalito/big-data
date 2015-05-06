@@ -2286,7 +2286,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 <section id="slide-sec-8-1-13">
 <h4 id="sec-8-1-13">Pig: Ejemplo de JOINs y COGROUPs</h4>
 <ul>
-<li>Fuente de datos: mascotas (dueño, mascotas)</li>
+<li>Fuente de datos: <code>mascotas (dueño, mascotas)</code></li>
 
 </ul>
 <pre><code data-trim>
@@ -2298,7 +2298,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 </code></pre>
 
 <ul>
-<li>Fuente de datos: amigos(amigo1, amigo2)</li>
+<li>Fuente de datos: <code>amigos(amigo1, amigo2)</code></li>
 
 </ul>
 <pre><code data-trim>
@@ -2308,7 +2308,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 </code></pre>
 
 <ul>
-<li>COGROUP mascotas by dueño, amigos por amigo2;</li>
+<li><code>COGROUP mascotas by dueño, amigos por amigo2;</code></li>
 
 </ul>
 <pre><code data-trim>
@@ -2317,7 +2317,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 </code></pre>
 
 <ul>
-<li>JOIN mascotas by dueño, amigos por amigo2;</li>
+<li><code>JOIN mascotas by dueño, amigos por amigo2;</code></li>
 
 </ul>
 <pre><code data-trim>
@@ -2335,15 +2335,22 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 <section id="slide-sec-8-1-14">
 <h4 id="sec-8-1-14">Aclaraciones sobre GROUP y FLATTEN</h4>
 <ul>
-<li><code>FLATTEN</code> elimina un nivel anidamiento</li>
+<li><code>FLATTEN</code> elimina un nivel anidamiento
+<ul>
+<li>Ejemplo</li>
+
+</ul></li>
 
 </ul>
-
 <pre><code data-trim> pig
-# Datos:
-# (Adolfo, (tortuga, pez, gato))
-# (Paty, (perro, gato))
-# FLATTEN eliminaría los bags internos
+(Adolfo, (tortuga, pez, gato))
+(Paty, (perro, gato))
+</code></pre>
+<ul>
+<li>FLATTEN eliminaría los bags internos</li>
+
+</ul>
+<pre><code data-trim>
 (Adolfo, tortuga)
 (Adolfo, pez)
 (Adolfo, gato)
@@ -2352,16 +2359,20 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 </code></pre>
 
 <ul>
-<li><code>GROUP .. BY</code> organiza los <i>bags</i> en <i>bags</i></li>
+<li><code>GROUP .. BY</code> organiza los <i>bags</i> en <i>bags</i>
+<ul>
+<li>Siguiendo con los datos anteriores de mascotas:
+<ul>
+<li>GROUP mascotas BY dueño;</li>
+
+</ul></li>
+
+</ul></li>
 
 </ul>
-<pre><code data-trim> pig
-# Siguiendo con los datos anteriores de mascotas
-GROUP mascotas BY dueño;
-
-# ( Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)} )
-# ( Paty, {(Paty, perro), (Paty, gato)} )
-
+<pre><code data-trim>
+( Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)} )
+( Paty, {(Paty, perro), (Paty, gato)} )
 </code></pre>
 
 <ul>
