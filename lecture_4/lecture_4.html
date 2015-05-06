@@ -2398,7 +2398,7 @@ por_estado = group ufos by State;
 describe por_estado;
 explain por_estado;
 illustrate por_estado;
-# itera sobre cada elemento del bag
+-- itera sobre cada elemento del bag
 conteo = foreach por_estado generate group count_star(ufos);
 ordenados = order conteo by $1 desc;
 top_five = limit ordenado 5;
