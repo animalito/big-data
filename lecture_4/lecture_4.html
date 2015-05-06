@@ -2495,6 +2495,7 @@ order by conteo desc limit 10;
 
 
 
+
 </section>
 </section>
 <section>
@@ -2508,6 +2509,17 @@ order by conteo desc limit 10;
 <li>Ejecuta en <code>YARN</code>
 <ul>
 <li>Aunque también puede hacer <i>standalone</i>, o ejecutar sobre <code>EC2</code> o <code>Mesos</code>.</li>
+
+</ul></li>
+<li>Soporta varios lenguajes
+<ul>
+<li><code>Python</code>, <code>Java</code> o <code>Scala</code></li>
+<li>Hay soporte experimental para <code>R</code>: <a href="https://spark-summit.org/2014/wp-content/uploads/2014/07/SparkR-SparkSummit.pdf"><code>SparkR</code></a>
+<ul>
+<li>Esta presentación tiene un excelente chiste sobre los <b>RDDs</b>.</li>
+
+</ul></li>
+<li>En esta clase usaremos <code>Python</code>, pero es necesario mencionar que para explotar esta herramienta al máximo habría que aprender <code>Scala</code>.</li>
 
 </ul></li>
 
@@ -2525,12 +2537,133 @@ order by conteo desc limit 10;
 <li>Pueden ser accesadas vía operaciones en paralelo, parecidas a MapReduce.</li>
 <li>Son <i>cached</i> en memoria para su uso inmediato.</li>
 <li>Fueron construidas para ser almacenadas de manera distribuida.</li>
+<li>Contienen cualquier tipo de dato (ya sea de <code>Python</code>, <code>Java</code> o <code>Scala</code>) incluidos tipos definidos por el programador.</li>
 
 </ul></li>
 
 </ul>
 
+</section>
+<section id="slide-sec-9-3">
+<h3 id="sec-9-3">Resilient Distributed Datasets (RDDs)</h3>
+<ul>
+<li>Soportan dos tipos de operaciones
+<ul>
+<li><b>Transformaciones</b></li>
+<li><b>Acciones</b>.</li>
 
+</ul></li>
+
+<li>Las <i>transformaciones</i> construyen un <code>RDD</code> nuevo a partir del anterior.
+<ul>
+<li>Muy similar a lo que hace cada paso de <code>Pig</code>.</li>
+<li>Cada transformación queda guardada por <code>Spark</code> en el <i>lineage graph</i> un <b>DAG</b>.</li>
+
+</ul></li>
+
+<li>Las <i>acciones</i> calculan un resultado basado en el <code>RDD</code>.</li>
+
+<li>La diferencia es que las <code>RDD</code> son computadas en forma <i>lazy</i>, sólo son ejecutadas hasta la acción.</li>
+
+<li>Si quieres usarlo una <code>RDD</code> varias veces debes de persistirla (con <code>persist()</code>).</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-9-4">
+<h3 id="sec-9-4">Flujo típico</h3>
+<ol>
+<li>Crear un <code>RDD</code> a partir de datos externos.</li>
+<li>Transformarlo a nuevos <code>RDDs</code>.</li>
+<li>Persistir algunos <code>RDDs</code> para su uso posterior.</li>
+<li>Lanzar acciones.</li>
+
+</ol>
+
+</section>
+<section id="slide-sec-9-5">
+<h3 id="sec-9-5">Transformaciones</h3>
+<ul>
+<li><code>map</code>
+<ul>
+<li>Usa una función y la aplica a cada elemento del <code>RDD</code>, el resultado se guarda en un nuevo <code>RDD</code>.</li>
+
+</ul></li>
+<li><code>filter</code>
+<ul>
+<li>Usa una función y devuelve sólo los elementos que pasan la función (que devuelven verdadero) en el nuevo <code>RDD</code>.</li>
+
+</ul></li>
+<li><code>flatMap</code>
+<ul>
+<li>Como el <code>map</code> pero regresa un iterador por cada elemento
+<ul>
+<li>Por ejemplo una función que divide una cadena.</li>
+
+</ul></li>
+
+</ul></li>
+<li><code>distinct</code>, <code>sample</code></li>
+<li><code>union</code>, <code>intersection</code>, <code>substract</code>, <code>cartesian</code></li>
+
+</ul>
+
+</section>
+<section id="slide-sec-9-6">
+<h3 id="sec-9-6">Acciones</h3>
+<ul>
+<li><code>reduce</code>
+<ul>
+<li>Opera en dos elementos del mismo tipo del <code>RDD</code> y regresa un elemento del mismo tipo.</li>
+
+</ul></li>
+<li><code>aggregate</code>
+<ul>
+<li>Nos permite implementar acumuladores.</li>
+
+</ul></li>
+<li><code>collect</code>
+<ul>
+<li>Regresa el <code>RDD</code> completo.</li>
+
+</ul></li>
+<li><code>take</code>
+<ul>
+<li>Regresa un número <code>n</code> de elementos del  <code>RDD</code>.</li>
+
+</ul></li>
+<li><code>count</code>, <code>countByValue</code>, <code>top</code>, <code>foreach</code>.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-9-7">
+<h3 id="sec-9-7">Ejemplo: WordCount</h3>
+<pre><code data-trim>
+
+def tokenize(texto):
+    texto.split()
+
+shakespeare = sc.textFile("hdfs://localhost/user/itam/books/pg100.txt")
+
+wordcount = shakespeare.flatMap(tokenize).\
+                        map(lambda x: (x,1)).\
+                        reduceByKey(add).\
+                        map(lambda x: (x[1], x[0])).\
+                        sortByKey(False)
+
+wordcount.take(10)
+</code></pre>
+
+</section>
+<section id="slide-sec-9-8">
+<h3 id="sec-9-8">Ejercicio</h3>
+<ul>
+<li>Explica el código anterior</li>
+<li>Modifica el código de <code>Spark</code> y <code>Python</code> para que reproduzca el resultado de <code>Pig</code> y <code>Hive</code>.</li>
+<li>Súbelo a github</li>
+
+</ul>
 
 </section>
 </section>
@@ -2540,6 +2673,55 @@ order by conteo desc limit 10;
 </section>
 <section id="slide-sec-10-1">
 <h3 id="sec-10-1">Impala</h3>
+<ul>
+<li>Cloudera basó este desarrollo en dos <i>white papers</i> de Google describiendo <i>baja latencia</i> en consultas con tecnologías llamadas <b>F1</b> y <b>Dremel</b>.</li>
+<li>No está basado en el motor de procesamiento <code>MapReduce</code>.</li>
+<li>Optimizado en <i>latencia</i>.</li>
+<li>Usa <code>SQL</code> y utiliza <code>Hive Metastore</code>.</li>
+<li>Soporta el <code>hdfs</code> y <code>HBase</code>.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-10-2">
+<h3 id="sec-10-2">Impala</h3>
+<ul>
+<li>Todo está en memoria
+<ul>
+<li>No escribe a disco como <code>MapReduce</code>.</li>
+
+</ul></li>
+<li>Tiene los demonios siempre corriendo.
+<ul>
+<li>No levanta procesos para cada tarea, como <code>MapReduce</code>.</li>
+
+</ul></li>
+<li>Escrito en <code>C++</code> no en <code>Java</code>.</li>
+
+<li><b>Nota</b>: Con la aparición de <a href="https://cwiki.apache.org/confluence/display/Hive/Hive+on+Spark:+Getting+Started?cmp=ex-data-na-na-na_architectural_considerations_for_hadoop_applications_2"><code>Hive on Spark</code></a>, habrá que ver cual <i>framework</i> gana.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-10-3">
+<h3 id="sec-10-3">¿Qué funciones hay?</h3>
+<p>
+<a href="http://www.cloudera.com/content/cloudera/en/documentation/cloudera-impala/latest/topics/impala_functions.html">Built-in Functions de Impala</a>
+</p>
+
+</section>
+<section id="slide-sec-10-4">
+<h3 id="sec-10-4">Ejercicio</h3>
+<ul>
+<li>Escribe el wordcount en Impala.
+<ul>
+<li>Deberás averiguar que funciones utilizar para reproducir la salida de <code>Pig</code> y <code>Hive</code>.</li>
+
+</ul></li>
+
+<li>Súbelo a github el código y el resultado, así como la comparación con las otras salidas.</li>
+
+</ul>
 
 
 
@@ -2549,7 +2731,13 @@ order by conteo desc limit 10;
 <section id="slide-sec-11" data-background="#000fff">
 <h2 id="sec-11">Arquitectura: Orquestación</h2>
 
+</section>
+<section id="slide-sec-11-1">
+<h3 id="sec-11-1">Orquestación</h3>
+<ul>
+<li>En proceso&#x2026;</li>
 
+</ul>
 
 </section>
 </section>

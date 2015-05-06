@@ -1703,6 +1703,7 @@ order by conteo desc limit 10;
 
 
 
+
 * Procesamiento: Spark
 :PROPERTIES:
    :reveal_background: #000fff
@@ -1712,6 +1713,11 @@ order by conteo desc limit 10;
 - /Framework/ de cómputo general para /clusters/
 - Ejecuta en =YARN=
   - Aunque también puede hacer /standalone/, o ejecutar sobre =EC2= o =Mesos=.
+- Soporta varios lenguajes
+  - =Python=, =Java= o =Scala=
+  - Hay soporte experimental para =R=: [[https://spark-summit.org/2014/wp-content/uploads/2014/07/SparkR-SparkSummit.pdf][=SparkR=]]
+    - Esta presentación tiene un excelente chiste sobre los *RDDs*.
+  - En esta clase usaremos =Python=, pero es necesario mencionar que para explotar esta herramienta al máximo habría que aprender =Scala=.
 
 ** Resilient Distributed Datasets (RDDs)
 
@@ -1722,15 +1728,111 @@ order by conteo desc limit 10;
   - Pueden ser accesadas vía operaciones en paralelo, parecidas a MapReduce.
   - Son /cached/ en memoria para su uso inmediato.
   - Fueron construidas para ser almacenadas de manera distribuida.
+  - Contienen cualquier tipo de dato (ya sea de =Python=, =Java= o =Scala=) incluidos tipos definidos por el programador.
 
+** Resilient Distributed Datasets (RDDs)
 
+- Soportan dos tipos de operaciones
+  - *Transformaciones*
+  - *Acciones*.
+
+- Las /transformaciones/ construyen un =RDD= nuevo a partir del anterior.
+  - Muy similar a lo que hace cada paso de =Pig=.
+  - Cada transformación queda guardada por =Spark= en el /lineage graph/ un *DAG*.
+
+- Las /acciones/ calculan un resultado basado en el =RDD=.
+
+- La diferencia es que las =RDD= son computadas en forma /lazy/, sólo son ejecutadas hasta la acción.
+
+- Si quieres usarlo una =RDD= varias veces debes de persistirla (con =persist()=).
+
+** Flujo típico
+
+1. Crear un =RDD= a partir de datos externos.
+2. Transformarlo a nuevos =RDDs=.
+3. Persistir algunos =RDDs= para su uso posterior.
+4. Lanzar acciones.
+
+** Transformaciones
+
+  - =map=
+    - Usa una función y la aplica a cada elemento del =RDD=, el resultado se guarda en un nuevo =RDD=.
+  - =filter=
+    - Usa una función y devuelve sólo los elementos que pasan la función (que devuelven verdadero) en el nuevo =RDD=.
+  - =flatMap=
+    - Como el =map= pero regresa un iterador por cada elemento
+      - Por ejemplo una función que divide una cadena.
+  - =distinct=, =sample=
+  - =union=, =intersection=, =substract=, =cartesian=
+
+** Acciones
+
+- =reduce=
+  - Opera en dos elementos del mismo tipo del =RDD= y regresa un elemento del mismo tipo.
+- =aggregate=
+  - Nos permite implementar acumuladores.
+- =collect=
+  - Regresa el =RDD= completo.
+- =take=
+  - Regresa un número =n= de elementos del  =RDD=.
+- =count=, =countByValue=, =top=, =foreach=.
+
+** Ejemplo: WordCount
+
+#+begin_html
+<pre><code data-trim>
+
+def tokenize(texto):
+    texto.split()
+
+shakespeare = sc.textFile("hdfs://localhost/user/itam/books/pg100.txt")
+
+wordcount = shakespeare.flatMap(tokenize).\
+                        map(lambda x: (x,1)).\
+                        reduceByKey(add).\
+                        map(lambda x: (x[1], x[0])).\
+                        sortByKey(False)
+
+wordcount.take(10)
+</code></pre>
+#+end_html
+
+** Ejercicio
+- Explica el código anterior
+- Modifica el código de =Spark= y =Python= para que reproduzca el resultado de =Pig= y =Hive=.
+- Súbelo a github
 
 * Procesamiento: Impala
 :PROPERTIES:
    :reveal_background: #000fff
 :END:
 ** Impala
+- Cloudera basó este desarrollo en dos /white papers/ de Google describiendo /baja latencia/ en consultas con tecnologías llamadas *F1* y *Dremel*.
+- No está basado en el motor de procesamiento =MapReduce=.
+- Optimizado en /latencia/.
+- Usa =SQL= y utiliza =Hive Metastore=.
+- Soporta el =hdfs= y =HBase=.
 
+** Impala
+
+- Todo está en memoria
+  - No escribe a disco como =MapReduce=.
+- Tiene los demonios siempre corriendo.
+  - No levanta procesos para cada tarea, como =MapReduce=.
+- Escrito en =C++= no en =Java=.
+
+- *Nota*: Con la aparición de [[https://cwiki.apache.org/confluence/display/Hive/Hive+on+Spark:+Getting+Started?cmp=ex-data-na-na-na_architectural_considerations_for_hadoop_applications_2][=Hive on Spark=]], habrá que ver cual /framework/ gana.
+
+** ¿Qué funciones hay?
+
+[[http://www.cloudera.com/content/cloudera/en/documentation/cloudera-impala/latest/topics/impala_functions.html][Built-in Functions de Impala]]
+
+** Ejercicio
+
+- Escribe el wordcount en Impala.
+  - Deberás averiguar que funciones utilizar para reproducir la salida de =Pig= y =Hive=.
+
+- Súbelo a github el código y el resultado, así como la comparación con las otras salidas.
 
 
 # ** Ejercicios
@@ -1913,7 +2015,9 @@ order by conteo desc limit 10;
    :reveal_background: #000fff
 :END:
 
+** Orquestación
 
+- En proceso...
 
 * Disclaimer
 :PROPERTIES:
