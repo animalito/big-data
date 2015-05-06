@@ -1045,7 +1045,19 @@ illustrate ufos;
 
 ** Multiparadigma en Hadoop 2.x
 
- [[file:./imagenes/YARN.png]]
+[[file:imagenes/Hadoop-2.0-Intro-Blog2.jpg
+]]
+
+
+
+Imagen tomada de [[http://www.edureka.co/blog/apache-hadoop-2-0-and-yarn/][edureka!]]
+
+** Procesadores y Abstracciones
+
+[[file:imagenes/HDFS.jpg]]
+
+
+Imagen tomada de [[http://radar.oreilly.com/2015/02/processing-frameworks-for-hadoop.html][O'reilly]]
 
 
 * Procesamiento
@@ -1059,21 +1071,26 @@ illustrate ufos;
 - Spark
 - Impala
 
-** MapReduce en Hadoop
+
+* Procesamiento: MapReduce
+:PROPERTIES:
+   :reveal_background: #000fff
+:END:
+*** MapReduce en Hadoop
 - Principal /framework/ de ejecución de =Apache Hadoop=.
 - Inspirado en las operaciones *MAP* y *REDUCE* de los lenguajes funcionales.
 - Modelo de programación para proceso de datos distribuido  y paralelo.
 - Divide las tareas (/jobs/) en fases de /mapeo/ y fases de /reducción/.
 - Los desarrolladores crean tareas /MapReduce/ para Hadoop usando datos guardados en el =HDFS=.
 
-** MapReduce: Ventajas
+*** MapReduce: Ventajas
 
-   - /Fault-tolerant/.
-   - Esconde los detalles de implementación a los programadores.
-   - Escala con el tamaño de los datos.
+    - /Fault-tolerant/.
+    - Esconde los detalles de implementación a los programadores.
+    - Escala con el tamaño de los datos.
 
 
-** MapReduce
+*** MapReduce
 
 - Dos fases de procesamiento:
   - /key-value/ como Input y Output
@@ -1082,9 +1099,9 @@ illustrate ufos;
     - Funciones: =MAP= y =REDUCE=.
 
 
-** Una pequeña regresión...
+*** Una pequeña regresión...
 
-** map-reduce: Matemáticamente
+*** map-reduce: Matemáticamente
 
 #+BEGIN_HTML
 <PRE><CODE DATA-TRIM>
@@ -1095,7 +1112,7 @@ map: (k1, v1) -> list(k2, v2)
 - =map= Mapea (aplica una función /f/) un conjunto de entrada de pares /key-value/ a otro conjunto intermedio de /key-values/
 
 
-** map-reduce: Matemáticamente
+*** map-reduce: Matemáticamente
 
 #+BEGIN_HTML
 <PRE><CODE DATA-TRIM>
@@ -1105,7 +1122,7 @@ reduce: (k2, list(v2)) -> list(k3, v3)
 
 - =reduce=  Aplica una función /g/ a todos los valores (/values/) asociados a una llave (/key/) y acumula el resultado. Emite pares de /key-values/.
 
-** Python =map=
+*** Python =map=
 
 #+begin_src python :results output :export both
 # Equivalente en for-loop
@@ -1134,7 +1151,7 @@ print list(map((lambda x: x**2), items))
 : [1, 4, 9, 16, 25]
 
 
-** Python =reduce=
+*** Python =reduce=
 
 #+begin_src python :results output :export both
 # Equivalente en for-loop
@@ -1158,7 +1175,7 @@ print reduce((lambda x,y: x*y), [1,2,3,4])
 #+RESULTS:
 : 24
 
-** Python =map= y =reduce=
+*** Python =map= y =reduce=
 
 #+begin_src python :results output :export both
 a = range(1, 4)
@@ -1180,7 +1197,7 @@ print "L2 -> %s" % L2
 
 
 
-** MapReduce y map-reduce
+*** MapReduce y map-reduce
 
 - Básicamente es lo mismo, pero...
 - =map=, =reduce= (entre otras) son parte de lenguajes funcionales.
@@ -1188,7 +1205,7 @@ print "L2 -> %s" % L2
   - Ver la carpeta =docs= para el artículo de *Google* sobre =MapReduce=.
 
 
-** GNU Parallel
+*** GNU Parallel
 
 #+begin_src sh
 find ./data/books -type f | parallel -j0 egrep -i  '\[\[:digit:\]\]' {} | awk '{s+=$1} END {print s}'
@@ -1202,7 +1219,7 @@ find ./data/books -type f | parallel -j0 egrep -i  '\[\[:digit:\]\]' {} | awk '{
 - Esto ya es un =MapReduce=.
 
 
-** MapReduce en Hadoop
+*** MapReduce en Hadoop
 
 - A nivel programático:
   - /Data/ de entrada
@@ -1211,43 +1228,40 @@ find ./data/books -type f | parallel -j0 egrep -i  '\[\[:digit:\]\]' {} | awk '{
   - Subtareas: =map= y =reduce=
 
 
-** MapReduce: /Mapper/
+*** MapReduce: /Mapper/
 
 - Hadoop divide la entrade de datos al /job/ MapReduce en pedazos de tamaño fijo llamados /input splits/.
 - Hadoop crea una tarea =map= para cada /input split/.
 - =map= escribe al /file system/ local.
   - Si el =reducer= tiene éxito se borra la salida del /mapper/.
 
-** Map only
+*** Map only
 
 [[file:./imagenes/map_only.png]]
 
 
-** MapReduce: /Reducer/
+*** MapReduce: /Reducer/
 
 - La entrada es la salida de (posiblemente) todos los /mappers/.
 - Estas se transmiten vía red al nodo donde corre el /reducer/.
 - La salida se guarda en el =HDFS=.
 
-** Map, One reduce
+*** Map, One reduce
 
 [[file:./imagenes/map_one_reduce.png]]
 
-** MapReduce
+*** MapReduce
 
 [[file:./imagenes/map_reduce.png]]
 
 
-** MapReduce: /Combiner/
+*** MapReduce: /Combiner/
 
 - Es una medida de optimización.
 - Es para ahorrar ancho de banda.
 - Una especie de /reducer/ local.
 - No es parte (estrictamente) del MapReduce
   - Por eso no lo había mencionado.
-
-
-** Hello World!: Word count
 
 
 *** Word count
@@ -1257,7 +1271,6 @@ find ./data/books -type f | parallel -j0 egrep -i  '\[\[:digit:\]\]' {} | awk '{
   - *MapReduce: Simplified Data Processing on Large Clusters* /(2006)/.
   - En la carpeta =docs= como ya había dicho.
 - Solamente 1 =Map= y 1 =Reduce=.
-
 
 *** Word count
 
@@ -1311,10 +1324,9 @@ python word_count.py
 - Este es un ejemplo de mentiritas, no usa Apache Hadoop.
 
 
+*** Ejercicio
 
-** Ejercicio
-
-- Diseñe el **MapReduce** para lo siguiente:
+- Diseñe (en /pseudo código/) el **MapReduce** para lo siguiente:
   - Encontrar el máximo de un conjunto de datos.
   - Encontrar el promedio y desviación estándar de unos datos.
   - Encontrar el top 10 de una cantidad.
@@ -1322,32 +1334,12 @@ python word_count.py
 
 
 
-** Spark
+* Abstracciones de MapReduce
 
-*** Spark
-
-- /Framework/ de cómputo general para /clusters/
-- Ejecuta en =YARN=
-  - Aunque también puede hacer /standalone/, o ejecutar sobre =EC2= o =Mesos=.
-
-*** Resilient Distributed Datasets (RDDs)
-
-- Es una de las ideas principales de Spark.
-- =RDDs= es una abstracción que representa una colleción de objetos de sólo lectura que está particionada a lo largo de varias máquinas.
-- Sus ventajas:
-  - Pueden ser reconstruidas a partir de su /lineage/. (Soportan fallos...)
-  - Pueden ser accesadas vía operaciones en paralelo, parecidas a MapReduce.
-  - Son /cached/ en memoria para su uso inmediato.
-  - Fueron construidas para ser almacenadas de manera distribuida.
-
-
-
-* Abstracciones
+** Abstracciones: Pig
 :PROPERTIES:
-   :reveal_background: #000fff
- :END:
-
-** Pig
+   :reveal_data_state: soothe
+:END:
 
 *** Pig
 
@@ -1388,6 +1380,7 @@ python word_count.py
 
 - Componentes
   - /Pig Latin/
+    - Los =keywords= no son /case-sensitive/, pero las relaciones y los =UDFs= si lo son.
   - =Grunt=
     - Local
     - MapReduce
@@ -1400,8 +1393,12 @@ python word_count.py
 #+begin_html
 <pre><code data-trim>
 pig script_file.pig
+</code></pre>
+#+end_html
 
-# Si quieren pasar parámetros
+- Si quieren pasar parámetros
+#+begin_html
+<pre><code data-trim>
 pig -p var=bla/bla var2=bla/bla/bla script_file.pig
 </code></pre>
 #+end_html
@@ -1410,23 +1407,30 @@ pig -p var=bla/bla var2=bla/bla/bla script_file.pig
   - Como una especie de =JDBC=, pero para /Pig Latin/.
 
 
-*** Pig: /Building blocks/
+*** Pig latin: /Building blocks/
 
-Fields
+- Escalares
+  - Son interfaces a clases =java.lang=
+    - =int=, , =long=, =float=, =double=
+  - Por ejemplo:
 #+begin_html
 <pre><code data-trim>
 'Adolfo'
 </code></pre>
 #+end_html
 
-Tuplas
+- Tuplas
+  - Colleción ordenada de tamaño fijo de datos.
+  - Están divididos en /fields/, cada uno conteniendo un elemento.
+  - Como son ordenados, se pueden referir por posición.
 #+begin_html
 <pre><code data-trim>
 ('Adolfo', 3, 8.17, 23)
 </code></pre>
 #+end_html
 
-/Bags/
+- /Bags/
+  - Colección sin ordenar de tuplas.
 #+begin_html
 <pre><code data-trim>
 {('Adolfo', 3, 8.17, 23), ('Paty', 3.14, 9, 'A')}
@@ -1434,27 +1438,69 @@ Tuplas
 #+end_html
 
 
+*** Pig latin: /Operaciones/
 
-*** Ejercicio
+- =load=, =store=, =dump=
+#+begin_html
+<pre><code data-trim>
+store procesados into 'output/procesados'; -- Guarda la relación en el  HDFS
+dump procesados; -- Imprime en pantalla la relación
+</code></pre>
+#+end_html
+
+- =foreach=
+  - Aplica un conjunto de expresiones a cada elemento del /data pipeline/.
+  - Es el operador de proyección de =Pig latin=.
+
+- =filter=
+  - Seleccionar que registros se mantendrán en el /data pipeline/.
+
+- =group=
+  - Agrupa registros con la misma llave en un /bag/.
+  - La sintaxis es parecida a la de =sql=, pero son muy diferentes.
+    - No hay relación entre el agrupamiento y las funciones de agregación (recuerden sus clases de =sql=).
+
+- =order by=
+  - Ordena los datos.
+
+- =distinct=
+  - Remueve duplicados.
+
+- =limit=, =sample=
+  - Limita la cantidad de información que se ve.
+
+- =parallel=
+  - Afecta la cantidad de =reducers= que hay.
+
+
+*** ¿Qué funciones hay?
+
+[[http://www.qubole.com/resources/cheatsheet/pig-function-cheat-sheet/][Pig Cheatsheet]]
+
+
+*** Expresiones Regulares de Java
+
+En los siguientes ejercicios llegaremos a usar expresiones regulares =Pig= y =hive= soportan las =regex= de =Java=,
+[[http://docs.oracle.com/javase/7/docs/api/java/util/regex/Pattern.html][aquí]] pueden obtener más información sobre el tema.
+
+*** Ejemplo: Wordcount
+
+- Para comprender bien lo que está pasando te recomiendo usar =illustrate= o =describe= en cada paso.
 
 #+begin_html
 <pre><code data-trim>
-ufos = load 'ufos' using org.apache.pig.piggybank.storage.avro.AvroStorage();
-a_imprimir = limit ufos 5;
-por_estado = group ufos by State;
-describe por_estado;
-explain por_estado;
-illustrate por_estado;
-# itera sobre cada elemento del bag
-conteo = foreach por_estado generate group count_star(ufos);
-ordenados = order conteo by $1 desc;
-top_five = limit ordenado 5;
-unicos = distinct conteos;
-muestreo = sample por_estado 0.1;
-filtrados = filter conteos by substring(group, 0, 2) == 'W';
-mayores = filter conteos by $1 > 50;
+shakespeare = load 'books/pg100.txt' using TextLoader as (line:chararray);
+-- Usando UDFs y expresiones regulares de Java
+palabras = foreach shakespeare generate flatten(TOKENIZE(REPLACE(LOWER(TRIM(line)), '[\\p{Punct}, \\p{Cntrl}]', ' '))) as palabra;
+grupo = group palabras by palabra;
+conteo = foreach grupo generate $0 as palabra, count($1) as cantidad;
+ordenados = order conteo by cantidad desc;
+top10 = limit ordenados 10;
+dump top10;
 </code></pre>
 #+end_html
+
+
 
 *** Pig: JOINS
 
@@ -1485,33 +1531,37 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 
 *** Pig: Ejemplo de JOINs y COGROUPs
 
+- Fuente de datos: =mascotas (dueño, mascotas)=
 #+begin_html
 <pre><code data-trim>
-
-# Fuentes de datos
-
-mascotas: (dueño, mascotas)
-----------------------
 (Adolfo, tortuga)
 (Adolfo, pez)
 (Adolfo, gato)
 (Paty, perro)
 (Paty, gato)
+</code></pre>
+#+end_html
 
-amigos: (amigo1, amigo2)
-----------------------
+- Fuente de datos: =amigos(amigo1, amigo2)=
+#+begin_html
+<pre><code data-trim>
 (Diana, Adolfo)
 (Gabriel, Adolfo)
 (Shanti, Paty)
+</code></pre>
+#+end_html
 
-
-COGROUP mascotas by dueño, amigos por amigo2;
----------------------------------------------
+- =COGROUP mascotas by dueño, amigos por amigo2;=
+#+begin_html
+<pre><code data-trim>
 (Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)}, {(Diana, Adolfo), (Gabriel, Adolfo)})
 (Paty, {(Paty, perro), (Paty, gato)}, {(Shanti, Paty)})
+</code></pre>
+#+end_html
 
-JOIN mascotas by dueño, amigos por amigo2;
--------------------------------------------
+- =JOIN mascotas by dueño, amigos por amigo2;=
+#+begin_html
+<pre><code data-trim>
 (Adolfo, tortuga, Diana)
 (Adolfo, tortuga, Gabriel)
 (Adolfo, pez, Diana)
@@ -1525,14 +1575,18 @@ JOIN mascotas by dueño, amigos por amigo2;
 
 *** Aclaraciones sobre GROUP y FLATTEN
 
-- =FLATTEN= elimina un nivel anidamiento
 
+- =FLATTEN= elimina un nivel anidamiento
+  - Ejemplo
 #+begin_html
-<pre><code data-trim> pig
-# Datos:
-# (Adolfo, (tortuga, pez, gato))
-# (Paty, (perro, gato))
-# FLATTEN eliminaría los bags internos
+<pre><code data-trim>
+(Adolfo, (tortuga, pez, gato))
+(Paty, (perro, gato))
+</code></pre>
+#+end_html
+  - FLATTEN eliminaría los bags internos
+#+begin_html
+<pre><code data-trim>
 (Adolfo, tortuga)
 (Adolfo, pez)
 (Adolfo, gato)
@@ -1542,22 +1596,48 @@ JOIN mascotas by dueño, amigos por amigo2;
 #+end_html
 
 - =GROUP .. BY= organiza los /bags/ en /bags/
+  - Siguiendo con los datos anteriores de mascotas:
+    - GROUP mascotas BY dueño;
 #+begin_html
-<pre><code data-trim> pig
-# Siguiendo con los datos anteriores de mascotas
-GROUP mascotas BY dueño;
-
-# ( Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)} )
-# ( Paty, {(Paty, perro), (Paty, gato)} )
-
+<pre><code data-trim>
+( Adolfo, {(Adolfo, tortuga), (Adolfo, pez), (Adolfo, gato)} )
+( Paty, {(Paty, perro), (Paty, gato)} )
 </code></pre>
 #+end_html
 
 - En cierto sentido =FLATTEN= y =GROUP .. BY= son operaciones inversas
   entre sí.
 
+*** Ejercicio
 
-** Hive
+- Describe cada línea con comentarios y agrega los esquemas.
+- Guarda la salida de cada uno de estos en una carpeta =output/wordcount/pig= en tu carpeta =hdfs=.
+- Copia la salida al sistema de archivos local y súbelo a =github=.
+
+#+begin_html
+<pre><code data-trim>
+ufos = load 'ufos' using org.apache.hive.hcatalog.pig.HCatLoader();
+a_imprimir = limit ufos 5;
+por_estado = group ufos by State;
+describe por_estado;
+explain por_estado;
+illustrate por_estado;
+-- itera sobre cada elemento del bag
+conteo = foreach por_estado generate group count_star(ufos);
+ordenados = order conteo by $1 desc;
+top_five = limit ordenado 5;
+unicos = distinct conteos;
+muestreo = sample por_estado 0.1;
+filtrados = filter conteos by substring(group, 0, 2) == 'W';
+mayores = filter conteos by $1 > 50;
+</code></pre>
+#+end_html
+
+
+** Abstracciones: Hive
+:PROPERTIES:
+   :reveal_data_state: soothe
+:END:
 
 *** Hive
 
@@ -1565,8 +1645,8 @@ GROUP mascotas BY dueño;
 - _Abstracción_ pra modelar y procesar datos en Hadoop.
 - Proveé de una manera de estructurar datos guardados en el =HDFS=.
 - Permite crear _queries_ muy similares a =SQL= (llamado =HQL=) y correrlos contra los datos.
-- Contiene un almacén de metadatos (=HCatalog=), que además puede ser compartido con otras interfaces como =Pig=, =MapReduce=, etc.
-- Da Acceso al =HDFS= y =HBASE=.
+- Contiene un almacén de metadatos (=HCatalog=), que además puede ser compartido con otras interfaces como =Pig=, =MapReduce=, =Impala=, =Spark=, etc.
+- Da Acceso al =HDFS= y =HBase=.
 
 *** Bibliografía recomendada
 
@@ -1580,11 +1660,179 @@ GROUP mascotas BY dueño;
 [[file:./imagenes/hive-remote.jpeg]]
 
 
+*** ¿Qué funciones hay?
+
+[[https://cwiki.apache.org/confluence/display/Hive/LanguageManual+UDF][Apache Hive Docs]]
+
+*** Ejemplo: Wordcount
+
+- Averigua (usando la documentación) como guardar la tabla a archivo y compara el =top10= con el resultado de =Pig=.
+- ¿Por qué da diferente?
+- Modifica el código para arreglar la diferencia.
+
+#+begin_html
+<pre><code data-trim>
+-- Limpiamos el ambiente
+delete table shakespeare;
+delete table wordcount;
+
+-- Creamos la tabla que contendrá las obras de Shakespeare
+create table shakespeare(linea string);
+
+-- Verifiamos
+show tables;
+
+-- Cargamos los datos a la tabla
+load data inpath '/user/itam/books/pg100.txt' overwrite into table shakespeare;
+
+-- Quereamos y guardamos en una tabla
+-- Los símbolos raros '\\p{Punct}' y similares son expresiones regulares de Java
+create table wordcount as
+select palabra, count(*) as conteo from
+(
+select
+explode(split(lcase(regexp_replace(trim(linea),'[\\p{Punct}, \\p{Cntrl}]', ' ')), ' ')) as palabra
+from shakespeare
+) palabras
+group by palabra
+order by conteo desc limit 10;
+-- Este código  se podría hacer más pequeño con LATERAL (¿Recuerdan la clase de PostgreSQL?)
+</code></pre>
+#+end_html
+
+
+
+
+
+* Procesamiento: Spark
+:PROPERTIES:
+   :reveal_background: #000fff
+:END:
+** Spark
+
+- /Framework/ de cómputo general para /clusters/
+- Ejecuta en =YARN=
+  - Aunque también puede hacer /standalone/, o ejecutar sobre =EC2= o =Mesos=.
+- Soporta varios lenguajes
+  - =Python=, =Java= o =Scala=
+  - Hay soporte experimental para =R=: [[https://spark-summit.org/2014/wp-content/uploads/2014/07/SparkR-SparkSummit.pdf][=SparkR=]]
+    - Esta presentación tiene un excelente chiste sobre los *RDDs*.
+  - En esta clase usaremos =Python=, pero es necesario mencionar que para explotar esta herramienta al máximo habría que aprender =Scala=.
+
+** Resilient Distributed Datasets (RDDs)
+
+- Es una de las ideas principales de Spark.
+- =RDDs= es una abstracción que representa una colleción de objetos de sólo lectura que está particionada a lo largo de varias máquinas.
+- Sus ventajas:
+  - Pueden ser reconstruidas a partir de su /lineage/. (Soportan fallos...)
+  - Pueden ser accesadas vía operaciones en paralelo, parecidas a MapReduce.
+  - Son /cached/ en memoria para su uso inmediato.
+  - Fueron construidas para ser almacenadas de manera distribuida.
+  - Contienen cualquier tipo de dato (ya sea de =Python=, =Java= o =Scala=) incluidos tipos definidos por el programador.
+
+** Resilient Distributed Datasets (RDDs)
+
+- Soportan dos tipos de operaciones
+  - *Transformaciones*
+  - *Acciones*.
+
+- Las /transformaciones/ construyen un =RDD= nuevo a partir del anterior.
+  - Muy similar a lo que hace cada paso de =Pig=.
+  - Cada transformación queda guardada por =Spark= en el /lineage graph/ un *DAG*.
+
+- Las /acciones/ calculan un resultado basado en el =RDD=.
+
+- La diferencia es que las =RDD= son computadas en forma /lazy/, sólo son ejecutadas hasta la acción.
+
+- Si quieres usarlo una =RDD= varias veces debes de persistirla (con =persist()=).
+
+** Flujo típico
+
+1. Crear un =RDD= a partir de datos externos.
+2. Transformarlo a nuevos =RDDs=.
+3. Persistir algunos =RDDs= para su uso posterior.
+4. Lanzar acciones.
+
+** Transformaciones
+
+  - =map=
+    - Usa una función y la aplica a cada elemento del =RDD=, el resultado se guarda en un nuevo =RDD=.
+  - =filter=
+    - Usa una función y devuelve sólo los elementos que pasan la función (que devuelven verdadero) en el nuevo =RDD=.
+  - =flatMap=
+    - Como el =map= pero regresa un iterador por cada elemento
+      - Por ejemplo una función que divide una cadena.
+  - =distinct=, =sample=
+  - =union=, =intersection=, =substract=, =cartesian=
+
+** Acciones
+
+- =reduce=
+  - Opera en dos elementos del mismo tipo del =RDD= y regresa un elemento del mismo tipo.
+- =aggregate=
+  - Nos permite implementar acumuladores.
+- =collect=
+  - Regresa el =RDD= completo.
+- =take=
+  - Regresa un número =n= de elementos del  =RDD=.
+- =count=, =countByValue=, =top=, =foreach=.
+
+** Ejemplo: WordCount
+
+#+begin_html
+<pre><code data-trim>
+
+def tokenize(texto):
+    texto.split()
+
+shakespeare = sc.textFile("hdfs://localhost/user/itam/books/pg100.txt")
+
+wordcount = shakespeare.flatMap(tokenize).\
+                        map(lambda x: (x,1)).\
+                        reduceByKey(add).\
+                        map(lambda x: (x[1], x[0])).\
+                        sortByKey(False)
+
+wordcount.take(10)
+</code></pre>
+#+end_html
+
+** Ejercicio
+- Explica el código anterior
+- Modifica el código de =Spark= y =Python= para que reproduzca el resultado de =Pig= y =Hive=.
+- Súbelo a github
+
+* Procesamiento: Impala
+:PROPERTIES:
+   :reveal_background: #000fff
+:END:
+** Impala
+- Cloudera basó este desarrollo en dos /white papers/ de Google describiendo /baja latencia/ en consultas con tecnologías llamadas *F1* y *Dremel*.
+- No está basado en el motor de procesamiento =MapReduce=.
+- Optimizado en /latencia/.
+- Usa =SQL= y utiliza =Hive Metastore=.
+- Soporta el =hdfs= y =HBase=.
 
 ** Impala
 
-*** Impala
+- Todo está en memoria
+  - No escribe a disco como =MapReduce=.
+- Tiene los demonios siempre corriendo.
+  - No levanta procesos para cada tarea, como =MapReduce=.
+- Escrito en =C++= no en =Java=.
 
+- *Nota*: Con la aparición de [[https://cwiki.apache.org/confluence/display/Hive/Hive+on+Spark:+Getting+Started?cmp=ex-data-na-na-na_architectural_considerations_for_hadoop_applications_2][=Hive on Spark=]], habrá que ver cual /framework/ gana.
+
+** ¿Qué funciones hay?
+
+[[http://www.cloudera.com/content/cloudera/en/documentation/cloudera-impala/latest/topics/impala_functions.html][Built-in Functions de Impala]]
+
+** Ejercicio
+
+- Escribe el wordcount en Impala.
+  - Deberás averiguar que funciones utilizar para reproducir la salida de =Pig= y =Hive=.
+
+- Súbelo a github el código y el resultado, así como la comparación con las otras salidas.
 
 
 # ** Ejercicios
@@ -1761,12 +2009,20 @@ GROUP mascotas BY dueño;
 # ** Apache Flume
 
 
-* Disclaimer
+
+* Arquitectura: Orquestación
 :PROPERTIES:
-   :reveal_data_state: soothe
+   :reveal_background: #000fff
 :END:
 
-Algunas imágenes se tomaron de los libros /Professional Hadoop Solutions/
-de *Wrox* y de la página de [[http://hortonworks.com/hadoop/yarn/][Hortonworks]]. Las otras son mías.
+** Orquestación
 
-Las tablas de la sección /cluster/ de Hadoop, se tomaron de [[http://hortonworks.com/][Hortonworks.]]
+- En proceso...
+
+* Disclaimer
+:PROPERTIES:
+   :reveal_background: #e95d3c
+:END:
+- Algunas imágenes se tomaron de los libros /Professional Hadoop Solutions/ de *Wrox* y de la página de [[http://hortonworks.com/hadoop/yarn/][*Hortonworks*]]. Las otras son mías.
+- Debería de ser claro cuales son cuales. =(^_^)=
+- Para otras imágenes, en la lámina se indica de dónde fueron tomadas.
