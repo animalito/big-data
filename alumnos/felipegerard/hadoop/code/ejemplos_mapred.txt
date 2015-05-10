@@ -1,0 +1,71 @@
+##################################################################
+# Máximo
+
+map (String key, String value):
+    for each v in value
+	Emit(1, v)
+
+reduce (String key, Iterator values):
+    float max = -Inf
+    for each v in values
+	if v > max:
+	    max = v
+    Emit(key, max)
+
+##################################################################
+# Promedio
+
+map (String key, String value):
+    for each v in value
+	Emit(1, v)
+
+reduce (String key, Iterator values):
+    int N = 0
+    float sum = 0
+    for each v in values
+	N++
+	sum += v
+    Emit(key, sum/N)
+
+##################################################################
+# Desviación estándar
+
+map (String key, String value):
+    for each v in value
+	Emit(1, v)
+
+reduce (String key, Iterator values):
+    int N = 0
+    float sum = 0, sum2 = 0
+    for each v in values
+	N++
+	sum += v
+	sum2 += v^2
+    Emit(key, (sum2 - sum)/N)
+
+##################################################################
+# Top 10
+# INCOMPLETO!!
+map (String key, String value):
+    for each v in value
+	Emit(1, 1)
+
+reduce (String key, Iterator values):
+    int wordcount = 0
+    for each v in values
+	wordcount += v
+    Emit(key, wordcount)
+
+##################################################################
+# Contar por grupo (entra al map value = group)
+
+map (String key, String value):
+    for each v in value
+	Emit(v, 1)
+
+reduce (String key, Iterator values):
+    int N = 0
+    for each v in values
+	N++
+    Emit(key, N)
+
