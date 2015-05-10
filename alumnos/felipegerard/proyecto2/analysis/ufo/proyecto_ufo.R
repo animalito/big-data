@@ -3,6 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(lubridate)
 library(tidyr)
+library(ggmap)
 
 # Leemos la base que limpiamos en postgres
 ufo <- read.table('output/ufo_usa.psv', header = T, sep = '|', quote = "", stringsAsFactors = F, fill = T,
@@ -163,7 +164,6 @@ state_abbr <-
 names(state_abbr) <- c('region', 'state')
 
 # En total vs población en 1975
-library(ggmap)
 state_info <- state.x77 %>%
   as.data.frame %>%
   mutate(region = tolower(rownames(state.x77)))
@@ -175,25 +175,19 @@ state_sightings <- ufo %>%
     group_by(state) %>%
     summarise(sightings = n())
 us_states <- map_data('state')
-states_df <- fortify(us_states) %>%
+states_df <- us_states %>% # el fortify no es necesario
   left_join(state_abbr) %>%
   left_join(state_sightings) %>%
   left_join(state_info) %>%
   mutate(sightings_per_capita = sightings / population)
 head(states_df)
-centroids <- group_by(states_df, state) %>%
-  mutate(long=mean(long), lat=mean(lat))
-# ggplot(states_df) +
-#   geom_polygon(aes(long,lat,group=group, fill=population)) +
-#   geom_text(data=centroids, aes(long, lat, label=state), color='white') +
-#   labs(title = 'Population')
-# ggplot(states_df) +
-#   geom_polygon(aes(long,lat,group=group, fill=sightings)) +
-#   geom_text(data=centroids, aes(long, lat, label=state), color='white') +
-#   labs(title = 'Sightings')
+# centroids <- group_by(states_df, state) %>%
+#   mutate(long=mean(long), lat=mean(lat))
+centers <- data.frame(state.center, state=state.abb)
+names(centers) <- c('long','lat','state')
 ggplot(states_df) +
   geom_polygon(aes(long,lat,group=group, fill=sightings_per_capita)) +
-  geom_text(data=centroids, aes(long, lat, label=state), color='white') +
+  geom_text(data=centers, aes(long, lat, label=state), color='grey') +
   labs(title = 'Sightings per capita') +
   theme_nothing()
 
@@ -210,7 +204,7 @@ states_df_block <- fortify(us_states) %>%
   mutate(sightings_per_capita = sightings / population)
 ggplot(states_df_block) +
   geom_polygon(aes(long,lat,group=group, fill=sightings_per_capita)) +
-  geom_text(data=centroids, aes(long, lat, label=state), color='white') +
+  geom_text(data=centers, aes(long, lat, label=state), color='grey', size = 3) +
   facet_wrap(~ block) +
   labs(title = 'Sightings per capita') +
   theme(legend.position='none')
@@ -227,7 +221,7 @@ states_df_narr <- left_join(states_df, state_narratives)
 head(states_df_narr)
 ggplot(states_df_narr) +
   geom_polygon(aes(long,lat,group=group, fill=mean_long_desc_len)) +
-  geom_text(data=centroids, aes(long, lat, label=state), color='white') +
+  geom_text(data=centers, aes(long, lat, label=state), color='white') +
   labs(title = 'Mean length of narratives')
 
 # ¿Con características sociales?
@@ -261,16 +255,55 @@ ggplot(states_social_plot, aes(sightings, y)) +
 
 ############ Desarrolla un modelo predictivo.
 ################################################################
+state_abbr <-
+  matrix(c("alabama", "AL", "alaska", "AK", "arizona", "AZ", "arkansas", "AR", "california", "CA",
+           "colorado", "CO", "connecticut", "CT", "district of columbia", "DC", "delaware", "DE", "florida", "FL", "georgia", "GA",
+           "hawaii", "HI", "idaho", "ID", "illinois", "IL", "indiana", "IN", "iowa", "IA", "kansas", "KS",
+           "kentucky", "KY", "louisiana", "LA", "maine", "ME", "maryland", "MD", "massachusetts", "MA",
+           "michigan", "MI", "minnesota", "MN", "mississippi", "MS", "missouri", "MO", "montana", "MT",
+           "nebraska", "NE", "nevada", "NV", "new hampshire", "NH", "new jersey", "NJ", "new mexico", "NM",
+           "new york", "NY", "north carolina", "NC", "north dakota", "ND", "ohio", "OH", "oklahoma", "OK",
+           "oregon", "OR", "pennsylvania", "PA", "rhode island", "RI", "south carolina", "SC",
+           "south dakota", "SD", "tennessee", "TN", "texas", "TX", "utah", "UT", "vermont", "VT",
+           "virginia", "VA", "washington", "WA", "west virginia", "WV", "wisconsin", "WI", "wyoming", "WY"),
+         ncol=2, byrow=T) %>%
+  data.frame(stringsAsFactors = F)
+names(state_abbr) <- c('region', 'state')
 
-x <- ufo %>%
-  filter(shape != '', state != '') %>%
-  dplyr::select(state, shape)
-ggplot(x, aes(shape, fill=state)) +
-  geom_bar(position='fill')
+states_df <- map_data('state')
+centers <- data.frame(state.center, state=state.abb)
+names(centers) <- c('long','lat','state')
+
+parcial <- ufo[-long_vars] %>% 
+  filter(date_time >= '2014-01-01' & date_time <= '2014-12-31') %>%
+  group_by(state) %>%
+  summarise(avistamientos = n()) %>%
+  left_join(centers)
 
 
 
 
+
+# Ejercicio
+# aux <- ufo[-long_vars] %>% 
+#   filter(date_time >= '2014-01-01' & date_time <= '2014-12-31') %>%
+#   group_by(state) %>%
+#   left_join(centers)
+# partial <- aux %>%
+#   mutate(long = long + rnorm(nrow(aux),0,1),
+#          lat = lat + rnorm(nrow(aux),0,1),
+#          date_color = as.numeric(as.Date(date_time) - as.Date("2014-01-01 00:00:00")))
+# partial <- aux
+# partial$long <- partial$long + rnorm(nrow(aux),0,1)
+# partial$lat <- partial$lat + rnorm(nrow(aux),0,1)
+# partial$date_color <- as.numeric(as.Date(partial$date_time) - as.Date("2014-01-01 00:00:00"))
+# ggplot() +
+#   geom_polygon(data=states_df, aes(long, lat, group=group), fill='grey') +
+#   geom_jitter(data=partial, aes(long,lat,color=date_color)) +
+#   geom_text(data=centers, aes(long,lat,label=state)) +
+#   theme_nothing()
+
+# MEJOR KRIGING!
 
 
 
