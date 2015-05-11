@@ -1961,7 +1961,9 @@ python word_count.py
 <section id="slide-sec-7-0-24">
 <h4 id="sec-7-0-24">Ejercicio</h4>
 <ul>
-<li>Diseñe (en <i>pseudo código</i>) el <b><b>MapReduce</b></b> para lo siguiente:
+<li>Organízate en grupos de cuatro personas</li>
+
+<li>Diseñe (en <i>pseudo código</i>, imágen, código, lo que sea más fácil) el <b><b>MapReduce</b></b> para lo siguiente:
 <ul>
 <li>Encontrar el máximo de un conjunto de datos.</li>
 <li>Encontrar el promedio y desviación estándar de unos datos.</li>
@@ -1970,8 +1972,11 @@ python word_count.py
 
 </ul></li>
 
-</ul>
+<li>Subir el <i>diseño</i> a <code>github</code> en la carpeta <code>grupos</code>, dentro de una carpeta de equipo (agregar un <code>README</code> para saber los participantes)</li>
 
+<li><b>NOTA</b> Esta carpeta será la usada para el proyecto final.</li>
+
+</ul>
 
 
 </section>
@@ -2249,11 +2254,23 @@ top10 = limit ordenados 10;
 dump top10;
 </code></pre>
 
-
-
 </section>
 <section id="slide-sec-8-1-12">
-<h4 id="sec-8-1-12">Pig: JOINS</h4>
+<h4 id="sec-8-1-12">Ejercicio</h4>
+<ul>
+<li>Describe cada línea con comentarios y agrega los esquemas.
+<ul>
+<li>i.e. elimina los <code>$0</code>, etc</li>
+
+</ul></li>
+<li>Guarda la salida de cada uno de estos en una carpeta <code>output/wordcount/pig</code> en tu carpeta <code>hdfs</code>.</li>
+<li>Copia la salida al sistema de archivos local y súbelo a <code>github</code>.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-8-1-13">
+<h4 id="sec-8-1-13">Pig: JOINS</h4>
 <ul>
 <li>Cargamos fuente 1</li>
 <li>Cargamos fuente 2</li>
@@ -2283,8 +2300,8 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 
 
 </section>
-<section id="slide-sec-8-1-13">
-<h4 id="sec-8-1-13">Pig: Ejemplo de JOINs y COGROUPs</h4>
+<section id="slide-sec-8-1-14">
+<h4 id="sec-8-1-14">Pig: Ejemplo de JOINs y COGROUPs</h4>
 <ul>
 <li>Fuente de datos: <code>mascotas (dueño, mascotas)</code></li>
 
@@ -2332,8 +2349,8 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 </code></pre>
 
 </section>
-<section id="slide-sec-8-1-14">
-<h4 id="sec-8-1-14">Aclaraciones sobre GROUP y FLATTEN</h4>
+<section id="slide-sec-8-1-15">
+<h4 id="sec-8-1-15">Aclaraciones sobre GROUP y FLATTEN</h4>
 <ul>
 <li><code>FLATTEN</code> elimina un nivel anidamiento
 <ul>
@@ -2382,11 +2399,11 @@ entre sí.</li>
 </ul>
 
 </section>
-<section id="slide-sec-8-1-15">
-<h4 id="sec-8-1-15">Ejercicio</h4>
+<section id="slide-sec-8-1-16">
+<h4 id="sec-8-1-16">Ejercicio</h4>
 <ul>
 <li>Describe cada línea con comentarios y agrega los esquemas.</li>
-<li>Guarda la salida de cada uno de estos en una carpeta <code>output/wordcount/pig</code> en tu carpeta <code>hdfs</code>.</li>
+<li>Guarda la salida de cada uno de estos en una carpeta <code>output/ufos/pig</code> en tu carpeta <code>hdfs</code>.</li>
 <li>Copia la salida al sistema de archivos local y súbelo a <code>github</code>.</li>
 
 </ul>
@@ -2458,9 +2475,12 @@ mayores = filter conteos by $1 > 50;
 <section id="slide-sec-8-2-5">
 <h4 id="sec-8-2-5">Ejemplo: Wordcount</h4>
 <ul>
+<li>Describe cada línea con comentarios y agrega los esquemas.</li>
 <li>Averigua (usando la documentación) como guardar la tabla a archivo y compara el <code>top10</code> con el resultado de <code>Pig</code>.</li>
 <li>¿Por qué da diferente?</li>
 <li>Modifica el código para arreglar la diferencia.</li>
+<li>Guarda la salida de cada uno de estos en una carpeta <code>output/wordcount/hive</code> en tu carpeta <code>hdfs</code>.</li>
+<li>Copia la salida al sistema de archivos local y súbelo a <code>github</code>.</li>
 
 </ul>
 
@@ -2492,7 +2512,13 @@ order by conteo desc limit 10;
 -- Este código  se podría hacer más pequeño con LATERAL (¿Recuerdan la clase de PostgreSQL?)
 </code></pre>
 
+</section>
+<section id="slide-sec-8-2-6">
+<h4 id="sec-8-2-6">Ejercicio</h4>
+<ul>
+<li>Repite el ejercicio de <code>Pig</code> sobre <code>ufos</code>, pero ahora en <code>Hive</code>.</li>
 
+</ul>
 
 
 
@@ -2666,6 +2692,15 @@ wordcount.take(10)
 </ul>
 
 </section>
+<section id="slide-sec-9-9">
+<h3 id="sec-9-9">Ejercicio</h3>
+<ul>
+<li>Repite el ejercicio de <code>Pig</code> sobre <code>ufos</code>, pero ahora en <code>Spark</code>.</li>
+
+</ul>
+
+
+</section>
 </section>
 <section>
 <section id="slide-sec-10" data-background="#000fff">
@@ -2720,6 +2755,14 @@ wordcount.take(10)
 </ul></li>
 
 <li>Súbelo a github el código y el resultado, así como la comparación con las otras salidas.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-10-4-1">
+<h4 id="sec-10-4-1">Ejercicio</h4>
+<ul>
+<li>Repite el ejercicio de <code>Pig</code> sobre <code>ufos</code>, pero ahora en <code>Impala</code>.</li>
 
 </ul>
 

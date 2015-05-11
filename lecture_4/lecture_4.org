@@ -1326,12 +1326,17 @@ python word_count.py
 
 *** Ejercicio
 
-- Diseñe (en /pseudo código/) el **MapReduce** para lo siguiente:
+- Organízate en grupos de cuatro personas
+
+- Diseñe (en /pseudo código/, imágen, código, lo que sea más fácil) el **MapReduce** para lo siguiente:
   - Encontrar el máximo de un conjunto de datos.
   - Encontrar el promedio y desviación estándar de unos datos.
   - Encontrar el top 10 de una cantidad.
   - Contar por grupo
 
+- Subir el /diseño/ a =github= en la carpeta =grupos=, dentro de una carpeta de equipo (agregar un =README= para saber los participantes)
+
+- *NOTA* Esta carpeta será la usada para el proyecto final.
 
 
 * Abstracciones de MapReduce
@@ -1500,7 +1505,11 @@ dump top10;
 </code></pre>
 #+end_html
 
-
+*** Ejercicio
+- Describe cada línea con comentarios y agrega los esquemas.
+  - i.e. elimina los =$0=, etc
+- Guarda la salida de cada uno de estos en una carpeta =output/wordcount/pig= en tu carpeta =hdfs=.
+- Copia la salida al sistema de archivos local y súbelo a =github=.
 
 *** Pig: JOINS
 
@@ -1611,7 +1620,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 *** Ejercicio
 
 - Describe cada línea con comentarios y agrega los esquemas.
-- Guarda la salida de cada uno de estos en una carpeta =output/wordcount/pig= en tu carpeta =hdfs=.
+- Guarda la salida de cada uno de estos en una carpeta =output/ufos/pig= en tu carpeta =hdfs=.
 - Copia la salida al sistema de archivos local y súbelo a =github=.
 
 #+begin_html
@@ -1666,9 +1675,12 @@ mayores = filter conteos by $1 > 50;
 
 *** Ejemplo: Wordcount
 
+- Describe cada línea con comentarios y agrega los esquemas.
 - Averigua (usando la documentación) como guardar la tabla a archivo y compara el =top10= con el resultado de =Pig=.
 - ¿Por qué da diferente?
 - Modifica el código para arreglar la diferencia.
+- Guarda la salida de cada uno de estos en una carpeta =output/wordcount/hive= en tu carpeta =hdfs=.
+- Copia la salida al sistema de archivos local y súbelo a =github=.
 
 #+begin_html
 <pre><code data-trim>
@@ -1700,7 +1712,9 @@ order by conteo desc limit 10;
 </code></pre>
 #+end_html
 
+*** Ejercicio
 
+- Repite el ejercicio de =Pig= sobre =ufos=, pero ahora en =Hive=.
 
 
 
@@ -1802,6 +1816,11 @@ wordcount.take(10)
 - Modifica el código de =Spark= y =Python= para que reproduzca el resultado de =Pig= y =Hive=.
 - Súbelo a github
 
+** Ejercicio
+
+- Repite el ejercicio de =Pig= sobre =ufos=, pero ahora en =Spark=.
+
+
 * Procesamiento: Impala
 :PROPERTIES:
    :reveal_background: #000fff
@@ -1833,6 +1852,13 @@ wordcount.take(10)
   - Deberás averiguar que funciones utilizar para reproducir la salida de =Pig= y =Hive=.
 
 - Súbelo a github el código y el resultado, así como la comparación con las otras salidas.
+
+*** Ejercicio
+
+- Repite el ejercicio de =Pig= sobre =ufos=, pero ahora en =Impala=.
+
+
+
 
 
 # ** Ejercicios
