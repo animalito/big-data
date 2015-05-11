@@ -1,5 +1,5 @@
 -- Leemos el archivo
-shakespeare = load 'experimentos/pg100.txt' using TextLoader as (line:chararray);
+shakespeare = LOAD 'experimentos/pg100.txt' USING TextLoader AS (line:chararray);
 describe;
 -- Usando UDFs y expresiones regulares de Java
 -- Esto es el map. Mapea cada línea a las palabras (equivale a mapear línea --> (palabra, 1))
@@ -24,7 +24,7 @@ STORE top10 INTO '/user/itam/output/wordcount/pig/top10' USING PigStorage('|');
 
 -- Y afuera de Pig... Pasamos los archivos del HDFS al LOCAL FS
 
--- FALTAN LOS ESQUEMAS!!!
+-- FALTAN LOS ESQUEMAS!!! --> Pero en este caso ya no hacen falta, creo?
 hadoop fs -get output/wordcount/pig/shakespeare/part-m-00000 data/output/wordcount/pig/shakespeare
 hadoop fs -get output/wordcount/pig/palabras/part-m-00000 data/output/wordcount/pig/palabras
 hadoop fs -get output/wordcount/pig/grupo/part-r-00000 data/output/wordcount/pig/grupo

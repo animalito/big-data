@@ -67,15 +67,15 @@ INTO output.conteos_gdelt_full
 FROM clean.gdelt_full; -- (SELECT * FROM clean.gdelt_full LIMIT 100000) t;
 --INTO output.conteos_gdelt_full
 
--- ESPACIO-TEMPORAL?
+-- COMPARAR VS OTROS PAISES
 -----------------------------------
 
 EXPLAIN ANALYZE SELECT
     monthyear,
     actor1name,
-    actor1geo_fullname,
-    actor2name,
-    actor2geo_fullname,
+--    actor1geo_fullname,
+--    actor2name,
+--    actor2geo_fullname,
     count(*) as numevents,
     avg(goldsteinscale) as goldsteinscale,
     min(goldsteinscale) as min_goldsteinscale,
@@ -86,8 +86,29 @@ EXPLAIN ANALYZE SELECT
     stddev(avgtone) as sd_avgtone,
     min(avgtone) as min_avgtone,
     max(avgtone) as max_avgtone
-INTO output.monthyear_actors_count_full
-FROM clean.gdelt_full -- (select * from clean.gdelt_full limit 100000) as t1
-WHERE actor1name != '' OR actor1geo_fullname != '' OR actor2name != '' OR actor2geo_fullname != ''
-GROUP BY monthyear, actor1name, actor1geo_fullname, actor2name, actor2geo_fullname
-ORDER BY monthyear, actor1name, actor1geo_fullname, actor2name, actor2geo_fullname;
+--INTO output.monthyear_actors_count_full
+FROM clean.gdelt_full -- (select * from clean.gdelt_full limit 1000000) as t1
+WHERE actor1name != '' -- OR actor1geo_fullname != '' OR actor2name != '' OR actor2geo_fullname != ''
+GROUP BY monthyear, actor1name --, actor1geo_fullname;
+--, actor2name, actor2geo_fullname
+ORDER BY monthyear, actor1name; --, actor1geo_fullname; --, actor1geo_fullname, actor2name, actor2geo_fullname;
+
+
+-- STATS
+SELECT
+    userid,
+    dbid,
+    queryid,
+    --query,
+    rows,
+    round(total_time) as milliseconds,
+    round((total_time / 1000.0)::numeric, 1) as seconds,
+    round((total_time / 1000.0 / 60.0)::numeric, 2) as minutes
+FROM pg_stat_statements LIMIT 100;
+
+
+
+
+
+
+
