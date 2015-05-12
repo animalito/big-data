@@ -93,6 +93,30 @@ GROUP BY monthyear, actor1name --, actor1geo_fullname;
 --, actor2name, actor2geo_fullname
 ORDER BY monthyear, actor1name; --, actor1geo_fullname; --, actor1geo_fullname, actor2name, actor2geo_fullname;
 
+-- PRIMER EVENTO POR PAIS (ACTOR1NAME EN ESTE CASO)
+---------------------------------------------------
+drop table playground.prueba;
+SELECT globaleventid, actor1name, sqldate INTO playground.prueba FROM clean.gdelt_full LIMIT 100000;
+--EXPLAIN SELECT globaleventid, actor1name, sqldate FROM clean.gdelt_full LIMIT 10000;
+
+EXPLAIN ANALYZE WITH grouped as (
+    SELECT
+	globaleventid,
+	actor1name,
+	sqldate,
+	row_number() OVER (PARTITION BY actor1name ORDER BY sqldate) AS row_num
+    FROM playground.prueba --clean.gdelt_full
+)
+(
+    SELECT
+	globaleventid,
+	actor1name,
+	sqldate
+    FROM grouped
+    WHERE row_num = 1
+);
+
+
 
 -- STATS
 SELECT

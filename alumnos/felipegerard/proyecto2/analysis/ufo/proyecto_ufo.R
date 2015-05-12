@@ -4,6 +4,7 @@ library(ggplot2)
 library(lubridate)
 library(tidyr)
 library(ggmap)
+library(RColorBrewer)
 
 # Leemos la base que limpiamos en postgres
 ufo <- read.table('output/ufo_usa.psv', header = T, sep = '|', quote = "", stringsAsFactors = F, fill = T,
@@ -278,9 +279,64 @@ parcial <- ufo[-long_vars] %>%
   filter(date_time >= '2014-01-01' & date_time <= '2014-12-31') %>%
   group_by(state) %>%
   summarise(avistamientos = n()) %>%
-  left_join(centers)
+  left_join(centers) %>%
+  filter(!is.na(long) & !is.na(lat)) %>%
+  data.frame
+ggplot(mapping=aes(long,lat)) +
+  geom_polygon(data=states_df, aes(group=group), fill='grey') +
+  geom_point(data=parcial, aes(size=avistamientos)) +
+  theme_nothing(legend=TRUE)
 
+### Haremos krigging
+library(gstat)
+library(sp)
+#library(spatstat) detach('package:spatstat', unload=T)
+# Quitamos la tendencia
+lm_parcial <- lm(avistamientos ~ long + lat, data = parcial)
+parcial$res_hat <- lm_parcial$residuals
+ggplot(mapping=aes(long,lat)) +
+  geom_polygon(data=states_df, aes(group=group), fill='grey') +
+  geom_point(data=parcial, aes(size=res_hat)) +
+  theme_nothing(legend=TRUE)
 
+# Variograma
+spat <- parcial
+coordinates(spat) = ~ long + lat
+emp_variog <- variogram(res_hat ~ 1, data=spat)
+ggplot(emp_variog, aes(dist, gamma)) +
+  geom_point() +
+  geom_line() +
+  geom_text(aes(label=np), vjust=-0.5) +
+  ylim(0,30000)
+fit_variog <- fit.variogram(emp_variog,
+                            vgm(psill = 1,'Sph',range = 10, nugget = 0.01),
+                            fit.method = 2)
+plot(emp_variog,fit_variog)
+
+# Kriging
+library(geoR)
+spat <- as.geodata(parcial, coords.col = 3:4, data.col = 5)
+v_emp <- variog(spat, max.dist = 50)
+v_emp_df <- data.frame(v_emp[c('u','v','n')])
+names(v_emp_df) <- c('dist','gamma','np')
+ggplot(v_emp_df, aes(dist, gamma)) +
+  geom_point() +
+  geom_line() +
+  geom_text(aes(label=np), vjust=-0.5) +
+  ylim(0,64000)
+v_fit <- variofit(v_emp,  cov.model='exponential', ini.cov.pars = c(40000,20), nugget = T)
+v_fit
+spat.grid <- expand.grid(long=seq(min(states_df$long),max(states_df$long), len = 100),
+                         lat=seq(min(states_df$lat),max(states_df$lat), len = 100))
+krig <- krige.conv(spat, locations=spat.grid, krige=krige.control(obj.model=v_fit))
+krig_df <- data.frame(spat.grid, pred=krig$predict)
+ggplot(mapping=aes(long,lat)) +
+  geom_raster(data=krig_df, aes(fill=pred)) +
+  geom_path(data=states_df, aes(group=group)) +
+  geom_point(data=parcial, aes(size=avistamientos), shape='o') +
+  scale_fill_gradientn(colours = rev(brewer.pal(7,'YlGnBu'))) +
+  scale_size_continuous(range = c(1,10)) +
+  theme_nothing(legend = T)
 
 
 
@@ -303,7 +359,6 @@ parcial <- ufo[-long_vars] %>%
 #   geom_text(data=centers, aes(long,lat,label=state)) +
 #   theme_nothing()
 
-# MEJOR KRIGING!
 
 
 
