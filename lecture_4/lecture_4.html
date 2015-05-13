@@ -76,7 +76,7 @@ docker run -ti --name hadoop-pseudo \
   -p 8033:8033 -p 8088:8088 -p 8040:8040 -p 8042:8042 \
   -p 13562:13562 -p 47784:47784 -p 10020:10020 -p 19888:19888 \
   -p 8000:8000 -p 9999:9999 \
-nanounanue/docker_hadoop
+nanounanue/docker-hadoop
 </code></pre>
 
 
@@ -565,11 +565,17 @@ hadoop fs -rm archivo_hdfs
 
 <li><code>HBase</code>
 <ul>
-<li>Guarda los datos como archivos de HBase en el <code>HDFS</code>.</li>
-<li><i>Scans</i> lentos.</li>
-<li>Rápido acceso aleatorio a lectura y escritura.</li>
+<li>Guarda los datos como archivo</li>
 
 </ul></li>
+
+</ul>
+<p>
+s de HBase en el <code>HDFS</code>.
+</p>
+<ul>
+<li><i>Scans</i> lentos.</li>
+<li>Rápido acceso aleatorio a lectura y escritura.</li>
 
 <li>En esta clase nos enfocaremos a <code>HDFS</code>.</li>
 
@@ -1099,7 +1105,7 @@ SparkContext available as sc, HiveContext available as sqlCtx.
 </ul>
 
 <pre><code data-trim>
-ufos_nov = sc.textfile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
+ufos_nov = sc.textFile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
 </code></pre>
 
 <ul>
@@ -1156,6 +1162,10 @@ ufos_nov.map(lambda line: (line.split('\t')[2]))\
 </ul>
 
 <pre><code data-trim>
+import csv
+from io import StringIO
+
+
 def load_tsv(archivo):
     return csv.reader(StringIO(archivo[1]), delimiter='\t')
 </code></pre>
@@ -1961,7 +1971,9 @@ python word_count.py
 <section id="slide-sec-7-0-24">
 <h4 id="sec-7-0-24">Ejercicio</h4>
 <ul>
-<li>Diseñe (en <i>pseudo código</i>) el <b><b>MapReduce</b></b> para lo siguiente:
+<li>Organízate en grupos de cuatro personas</li>
+
+<li>Diseñe (en <i>pseudo código</i>, imágen, código, lo que sea más fácil) el <b><b>MapReduce</b></b> para lo siguiente:
 <ul>
 <li>Encontrar el máximo de un conjunto de datos.</li>
 <li>Encontrar el promedio y desviación estándar de unos datos.</li>
@@ -1970,8 +1982,11 @@ python word_count.py
 
 </ul></li>
 
-</ul>
+<li>Subir el <i>diseño</i> a <code>github</code> en la carpeta <code>grupos</code>, dentro de una carpeta de equipo (agregar un <code>README</code> para saber los participantes)</li>
 
+<li><b>NOTA</b> Esta carpeta será la usada para el proyecto final.</li>
+
+</ul>
 
 
 </section>
@@ -2249,11 +2264,23 @@ top10 = limit ordenados 10;
 dump top10;
 </code></pre>
 
-
-
 </section>
 <section id="slide-sec-8-1-12">
-<h4 id="sec-8-1-12">Pig: JOINS</h4>
+<h4 id="sec-8-1-12">Ejercicio</h4>
+<ul>
+<li>Describe cada línea con comentarios y agrega los esquemas.
+<ul>
+<li>i.e. elimina los <code>$0</code>, etc</li>
+
+</ul></li>
+<li>Guarda la salida de cada uno de estos en una carpeta <code>output/wordcount/pig</code> en tu carpeta <code>hdfs</code>.</li>
+<li>Copia la salida al sistema de archivos local y súbelo a <code>github</code>.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-8-1-13">
+<h4 id="sec-8-1-13">Pig: JOINS</h4>
 <ul>
 <li>Cargamos fuente 1</li>
 <li>Cargamos fuente 2</li>
@@ -2283,8 +2310,8 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 
 
 </section>
-<section id="slide-sec-8-1-13">
-<h4 id="sec-8-1-13">Pig: Ejemplo de JOINs y COGROUPs</h4>
+<section id="slide-sec-8-1-14">
+<h4 id="sec-8-1-14">Pig: Ejemplo de JOINs y COGROUPs</h4>
 <ul>
 <li>Fuente de datos: <code>mascotas (dueño, mascotas)</code></li>
 
@@ -2332,8 +2359,8 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 </code></pre>
 
 </section>
-<section id="slide-sec-8-1-14">
-<h4 id="sec-8-1-14">Aclaraciones sobre GROUP y FLATTEN</h4>
+<section id="slide-sec-8-1-15">
+<h4 id="sec-8-1-15">Aclaraciones sobre GROUP y FLATTEN</h4>
 <ul>
 <li><code>FLATTEN</code> elimina un nivel anidamiento
 <ul>
@@ -2382,11 +2409,11 @@ entre sí.</li>
 </ul>
 
 </section>
-<section id="slide-sec-8-1-15">
-<h4 id="sec-8-1-15">Ejercicio</h4>
+<section id="slide-sec-8-1-16">
+<h4 id="sec-8-1-16">Ejercicio</h4>
 <ul>
 <li>Describe cada línea con comentarios y agrega los esquemas.</li>
-<li>Guarda la salida de cada uno de estos en una carpeta <code>output/wordcount/pig</code> en tu carpeta <code>hdfs</code>.</li>
+<li>Guarda la salida de cada uno de estos en una carpeta <code>output/ufos/pig</code> en tu carpeta <code>hdfs</code>.</li>
 <li>Copia la salida al sistema de archivos local y súbelo a <code>github</code>.</li>
 
 </ul>
@@ -2458,9 +2485,12 @@ mayores = filter conteos by $1 > 50;
 <section id="slide-sec-8-2-5">
 <h4 id="sec-8-2-5">Ejemplo: Wordcount</h4>
 <ul>
+<li>Describe cada línea con comentarios y agrega los esquemas.</li>
 <li>Averigua (usando la documentación) como guardar la tabla a archivo y compara el <code>top10</code> con el resultado de <code>Pig</code>.</li>
 <li>¿Por qué da diferente?</li>
 <li>Modifica el código para arreglar la diferencia.</li>
+<li>Guarda la salida de cada uno de estos en una carpeta <code>output/wordcount/hive</code> en tu carpeta <code>hdfs</code>.</li>
+<li>Copia la salida al sistema de archivos local y súbelo a <code>github</code>.</li>
 
 </ul>
 
@@ -2492,7 +2522,13 @@ order by conteo desc limit 10;
 -- Este código  se podría hacer más pequeño con LATERAL (¿Recuerdan la clase de PostgreSQL?)
 </code></pre>
 
+</section>
+<section id="slide-sec-8-2-6">
+<h4 id="sec-8-2-6">Ejercicio</h4>
+<ul>
+<li>Repite el ejercicio de <code>Pig</code> sobre <code>ufos</code>, pero ahora en <code>Hive</code>.</li>
 
+</ul>
 
 
 
@@ -2666,6 +2702,15 @@ wordcount.take(10)
 </ul>
 
 </section>
+<section id="slide-sec-9-9">
+<h3 id="sec-9-9">Ejercicio</h3>
+<ul>
+<li>Repite el ejercicio de <code>Pig</code> sobre <code>ufos</code>, pero ahora en <code>Spark</code>.</li>
+
+</ul>
+
+
+</section>
 </section>
 <section>
 <section id="slide-sec-10" data-background="#000fff">
@@ -2723,6 +2768,13 @@ wordcount.take(10)
 
 </ul>
 
+</section>
+<section id="slide-sec-10-4-1">
+<h4 id="sec-10-4-1">Ejercicio</h4>
+<ul>
+<li>Repite el ejercicio de <code>Pig</code> sobre <code>ufos</code>, pero ahora en <code>Impala</code>.</li>
+
+</ul>
 
 
 </section>
@@ -2740,10 +2792,499 @@ wordcount.take(10)
 </ul>
 
 </section>
+<section id="slide-sec-11-2">
+<h3 id="sec-11-2">Apache Flume</h3>
+<div class="outline-text-3" id="text-11-2">
+</div></section>
+<section id="slide-sec-11-2-1">
+<h4 id="sec-11-2-1">¿Por qué?</h4>
+<ul>
+<li>Hasta este momento hemos movido los datos hacia dentro de <code>HDFS</code> de
+manera manual usando <code>hadoop fs ...</code>
+<ul>
+<li>Esto no va a escalar&#x2026;</li>
+
+</ul></li>
+
+<li>Si han puesto atención a la clase, quizá quieran automatizar esto
+usando <code>bash</code>, y una combinación de <code>parallel</code> con <code>scp</code> y
+obviamente <code>hadoop fs ...</code></li>
+
+<li>Si logran armar el <i>script</i> el siguiente paso es ejecutarlo
+"solito", y para eso quizá haya que poner un <code>cron</code></li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-2-2">
+<h4 id="sec-11-2-2">¿Por qué?</h4>
+<ul>
+<li>Esto tampoco va a escalar&#x2026;
+<ul>
+<li><i>hardcodeado</i></li>
+<li>Poca o nula configuración</li>
+<li>Mantenimiento</li>
+<li>Manejo de cargas</li>
+<li>Manejo de datos en masa</li>
+<li>Manejo de fallos y excepciones</li>
+<li>Agreguen su pesadilla favorita</li>
+
+</ul></li>
+
+</ul>
+
+
+</section>
+<section id="slide-sec-11-2-3">
+<h4 id="sec-11-2-3">Apache Flume</h4>
+<ul>
+<li>Componente para la captura (<i>ingesta</i>) de datos basados en eventos a Hadoop.</li>
+<li>Apache Flume es un sistema de alto desempeño para la ingesta de datos.</li>
+<li>Es escalable horizontalmente y muy configurable.</li>
+
+</ul>
+
+
+</section>
+<section id="slide-sec-11-2-4">
+<h4 id="sec-11-2-4">Apache Flume</h4>
+<ul>
+<li>Distribuido
+<ul>
+<li>Agentes en varias máquinas</li>
+
+</ul></li>
+
+<li>Escalable
+<ul>
+<li>Más máquinas, más eventos</li>
+
+</ul></li>
+
+<li>Confiable
+<ul>
+<li>Almacenamiento confiable, <i>failover</i>, replicación, distribución, etc.</li>
+
+</ul></li>
+
+<li>Fácil instalación y configuración.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-2-5">
+<h4 id="sec-11-2-5">¿Cómo funciona?</h4>
+
+<div class="figure">
+<p><img src="./imagenes/Diagramas_1(1).jpg" alt="Diagramas_1(1).jpg" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-11-2-6">
+<h4 id="sec-11-2-6">¿Cómo funciona?</h4>
+
+<div class="figure">
+<p><img src="./imagenes/Diagramas_2(1).jpg" alt="Diagramas_2(1).jpg" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-11-2-7">
+<h4 id="sec-11-2-7">¿Cómo funciona?</h4>
+
+<div class="figure">
+<p><img src="./imagenes/Diagramas_3(1).jpg" alt="Diagramas_3(1).jpg" />
+</p>
+</div>
+
+
+</section>
+<section id="slide-sec-11-2-8">
+<h4 id="sec-11-2-8">¿Cómo funciona?</h4>
+
+<div class="figure">
+<p><img src="./imagenes/Diagramas_4(1).jpg" alt="Diagramas_4(1).jpg" />
+</p>
+</div>
+
+
+</section>
+<section id="slide-sec-11-2-9">
+<h4 id="sec-11-2-9">¿Qué es un evento?</h4>
+<ul>
+<li>Unidad de datos transportada por <code>Flume</code>.</li>
+<li>Compuesta por <code>Header</code> (un mapa: <code>Map &lt;java.lang.String
+  java.lang.String&gt;</code>) y por <code>payload</code> (<code>byte[]</code>)</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-2-10">
+<h4 id="sec-11-2-10">Agente de Flume</h4>
+<ul>
+<li>Responsable de transmitir los <i>eventos</i>.</li>
+<li>Consiste en <i>Fuente</i> (<code>source</code>), <i>Canal</i> (<code>channel</code>) y <i>Sumidero</i> (<code>sink</code>).</li>
+
+</ul>
+
+
+<div class="figure">
+<p><img src="./imagenes/Diagramas_5(1).jpg" alt="Diagramas_5(1).jpg" />
+</p>
+</div>
+
+</section>
+<section id="slide-sec-11-2-11">
+<h4 id="sec-11-2-11">Agente de Flume</h4>
+<ul>
+<li><i>Fuente</i>
+<ul>
+<li><code>http</code>, <code>jms</code>, <code>netcat</code>, etc.</li>
+<li><code>Exec</code>
+<ul>
+<li>Observa un comando de <code>unix</code> y procesa el <code>stdout</code> de este.</li>
+
+</ul></li>
+<li><i>Spooling directory</i>
+<ul>
+<li>Observa un directorio para la aparición de nuevos archivos.</li>
+<li>Procesa los <i>eventos</i> de los nuevos archivos.</li>
+<li>Después de procesarlo, lo borra o lo renombra.</li>
+
+</ul></li>
+<li><code>AvroSource</code></li>
+
+</ul></li>
+
+<li><i>Canal</i>
+<ul>
+<li>Sirve de <i>buffer</i> de los eventos mientras se van extrayendo de la
+fuente.</li>
+<li>Tipos: <code>Memory</code> (no es durable, muy rápido), <code>File</code> (Durable,
+soporta cifrado, Es el canal de mayor capacidad). <code>JDBC</code></li>
+
+</ul></li>
+
+<li><i>Sumidero</i>
+<ul>
+<li>Remueve los eventos del <i>canal</i> y los envía a su siguiente
+destino.</li>
+
+<li><code>hdfs</code>, <code>hbase</code>, <code>solr</code>, <code>elasticsearch</code></li>
+<li><code>AvroSink</code></li>
+
+</ul></li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-2-12">
+<h4 id="sec-11-2-12">Interceptores</h4>
+<ul>
+<li>Proveen capacidad de inspeccionar y modificar <i>al vuelo</i> eventos.</li>
+<li>Está pegado a la <i>fuente</i>.</li>
+<li>Es invocado cada vez que un evento se mueve de la <i>fuente</i> al
+<i>canal</i>.</li>
+<li>Se pueden concatenar varios <i>interceptores</i>.</li>
+
+</ul>
+
+
+</section>
+<section id="slide-sec-11-2-13">
+<h4 id="sec-11-2-13">Ejemplo: Hola Mundo</h4>
+<ul>
+<li>Crea la carpeta <code>ingesta</code> en el <i>file system</i> local.</li>
+<li>En ella crea un archivo llamado <code>hola_mundo.conf</code>. Este será el
+archivo de configuración de nuestro primer ejemplo de <code>Flume</code>.</li>
+
+</ul>
+
+<pre><code data-trim>
+agent.sources=s1
+agent.channels=c1
+agent.sinks=k1
+
+agent.sources.s1.type=netcat
+agent.sources.s1.channels=c1
+agent.sources.s1.bind=0.0.0.0
+agent.sources.s1.port=12345
+
+agent.channels.c1.type=memory
+
+agent.sinks.k1.type=logger
+agent.sinks.k1.channel=c1
+</code></pre>
+
+<ul>
+<li>Ejecuta la siguiente línea de comandos para levantar un agente de
+<code>Flume</code>:</li>
+
+</ul>
+
+<pre><code data-trim>
+flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO,console
+</code></pre>
+
+
+</section>
+<section id="slide-sec-11-2-14">
+<h4 id="sec-11-2-14">Ejemplo: Hola Mundo</h4>
+<ul>
+<li>Ahora abre otra terminal y conéctate a <code>docker</code>
+<ul>
+<li>Recuerda que es con <code>docker exec...</code></li>
+
+</ul></li>
+
+<li>Cámbiate al usuario <code>itam</code>.</li>
+
+<li>Ejecuta <code>nc localhost 12345</code></li>
+
+<li>Y manda mensajes, observa como <code>Flume</code> reacciona.</li>
+
+</ul>
+
+
+</section>
+<section id="slide-sec-11-2-15">
+<h4 id="sec-11-2-15">Ejercicio</h4>
+
+
+</section>
+<section id="slide-sec-11-2-16">
+<h4 id="sec-11-2-16">Bibliografía</h4>
+<ul>
+<li>Documentación de Flume</li>
+<li>Using Flume</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-3">
+<h3 id="sec-11-3">Apache Sqoop</h3>
+<div class="outline-text-3" id="text-11-3">
+</div></section>
+<section id="slide-sec-11-3-1">
+<h4 id="sec-11-3-1">Apache Sqoop</h4>
+<ul>
+<li>Herramienta para importar eficientemente <i>data</i> desde <code>RDBMS</code> a Hadoop (<code>HDFS,
+  Hive, Hbase</code>) y viceversa.</li>
+<li>Soporta cualquier <code>RDBMS</code> que tenga conexión <code>JDBC</code> (<code>PostgreSQL, MySQL, Oracle, Teradata</code>, etc.).</li>
+<li>Tiene soporte nativo para <code>MySQL</code> y <code>PostgreSQL</code>.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-3-2">
+<h4 id="sec-11-3-2">Apache Sqoop</h4>
+<ul>
+<li>Puede importar una tabla o un esquema de la base de datos.</li>
+
+<li>Puede ejecutar <i>queries</i> (y así filtrar la tabla, o hacer <code>joins</code>).</li>
+
+<li>Soporta carga <i>incremental</i>.</li>
+
+</ul>
+
+
+</section>
+<section id="slide-sec-11-3-3">
+<h4 id="sec-11-3-3">Apache Sqoop</h4>
+
+<div class="figure">
+<p><img src="./imagenes/sqoop.png" alt="sqoop.png" />
+</p>
+</div>
+
+
+</section>
+<section id="slide-sec-11-3-4">
+<h4 id="sec-11-3-4">Ejercicio</h4>
+<ul>
+<li>¿Cuál serían los comandos para la Copia la tabla de transacciones de tarjeta bancaria que hiciste
+hacia Hadoop, colócalo en una tabla de <code>Hive</code> y en una carpeta
+dentro de tu usuario.</li>
+
+<li>¿Y para extraer las tablas de tus análisis con <code>Impala</code>? ¿Cómo los
+copias a una base de datos?</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-3-5">
+<h4 id="sec-11-3-5">Bibliografía</h4>
+<ul>
+<li>Documentación de Apache Sqoop</li>
+<li>Apache Sqoop Cookbook</li>
+
+</ul>
+
+</section>
+<section id="slide-hive-metastore">
+<h3 id="hive-metastore"><a id="sec-11-4" name="sec-11-4"></a>Hive Metastore: HCatalog</h3>
+
+</section>
+<section id="slide-sec-11-4-1">
+<h4 id="sec-11-4-1">¿Por qué?</h4>
+<ul>
+<li>Como vimos hay varias herramientas para analizar los datos:
+<code>MapReduce</code>, <code>Hive</code>, <code>Pig</code>, <code>Impala</code> y los varios sabores de
+<code>Spark</code>.</li>
+
+<li>Luego de procesar los datos, se generan o archivos en el <i>file
+system</i> local, o archivos en el <code>hdfs</code> o tablas en <code>hive</code>.</li>
+
+<li>Todo suena muy bien, hasta que nos enfrentamos a que para seguir
+procesándolas necesitamos:
+<ul>
+<li>Recordar y/o comunicar <i>dónde</i> está el <code>dataset</code>.</li>
+<li>En qué <i>formato</i> está.</li>
+<li>El <i>esquema</i>.</li>
+<li>Entre otras cosas.</li>
+
+</ul></li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-4-2">
+<h4 id="sec-11-4-2">¿Por qué?</h4>
+<ul>
+<li>Estos problemas no los tiene <code>hive</code>, ya que el <i>lee</i> el lugar,
+formato y esquema del <code>hive metastore</code>.</li>
+
+<li>Pero <code>MapReduce</code>, <code>Pig</code> y <code>Spark</code> deciden eso en los <i>Scripts</i>
+<ul>
+<li>Por ejemplo, <code>Pig</code> lo hace en la función <code>LOAD</code>.</li>
+
+</ul></li>
+
+<li>Si hay cambios, <code>Pig</code>, <code>MapReduce</code> y <code>Spark</code> sufrirán&#x2026;</li>
+
+<li><code>HCatalog</code> trata de resolver estos problemas, ya que conoce la
+locación, formato y esquema de nuestros <code>datasets</code>.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-4-3">
+<h4 id="sec-11-4-3">HCatalog</h4>
+<ul>
+<li>Está incorporado a <code>Hive</code> desde la versión <code>0.11</code>.</li>
+
+<li>Es una capa administrativa de tablas y almacenamiento que permite
+que diferentes herramientas de procesamiento de datos (<code>Pig</code>,
+<code>MapReduce</code>, <code>Spark</code>) puedan leer y escribir más fácilmente del <code>HDFS</code>.</li>
+<li>Contiene una abstracción que presenta una vista relacional de los
+datos contenidos en el <code>HDFS</code>, asegurando que los usuarios no se
+preocupen dónde o en que formato están almacenados los datos.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-4-4">
+<h4 id="sec-11-4-4">HCatalog</h4>
+<ul>
+<li>Provee una abstracción sobre los <code>datasets</code> guardados en el <code>hdfs</code>.</li>
+<li>Permite realizar <i>data discovery</i>.</li>
+<li>Provee notificaciones sobre disponibilidad de los datos.
+<ul>
+<li>Creación de base de datos, tabla o partición.</li>
+<li>Destrucción de base de datos, tabla o partición.</li>
+
+</ul></li>
+<li><code>HCatalog</code> permite que proyectos diferentes a <code>hive</code> consulten
+tablas de <code>Hive</code>.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-4-5">
+<h4 id="sec-11-4-5">HCatalog</h4>
+<ul>
+<li>Utiliza el <code>DDL</code> de <code>Hive</code>.</li>
+<li>Provee interfaces de escritura y lectura para <code>Pig</code>, <code>MapReduce</code> y
+<code>Hive</code>.</li>
+<li>Usa la línea de comandos para manejar la definición de los datos y
+metadatos.
+<ul>
+<li>Llamada imaginativamente <code>hcat</code>.</li>
+
+</ul></li>
+<li><code>HCatalog</code> presenta los datos de manera relacional.</li>
+<li>Los datos son guardados en tablas y las tablas en bases de datos.</li>
+
+<li><code>WebHCat</code> es la interfaz API <code>REST</code> de <code>HCatalog</code>.</li>
+
+</ul>
+
+</section>
+<section id="slide-sec-11-4-6">
+<h4 id="sec-11-4-6">HCatalog: Flujo de datos</h4>
+<ul>
+<li>Usuario 1 copia datos al HDFS</li>
+
+</ul>
+<pre><code data-trim>
+hadoop distcp file:///data/books/pg2047.txt hdfs://data/20140430/books
+hcat "alter table books add partition (ds='20140430') location 'hdfs://data/20140430/books'"
+</code></pre>
+
+<ul>
+<li>Usuario 2 usa <code>Pig</code> para limpiar y preparar los datos.
+<ul>
+<li><code>HCatalog</code> mandará al <code>JMS</code> un mensaje de que la información está disponible.</li>
+
+</ul></li>
+
+</ul>
+
+
+<pre><code data-trim>
+A = load 'books' using HCatLoader();
+B = filter A by date = '20140430';
+...
+store Z into 'procesados' using HCatStorer("date=20140430");
+</code></pre>
+
+<ul>
+<li>Usuario 3 realiza cierta analítica</li>
+
+</ul>
+
+<pre><code data-trim>
+select col1, count(col3)
+from procesados
+where date  = '201340430'
+group by col1;
+</code></pre>
+
+</section>
+<section id="slide-sec-11-5">
+<h3 id="sec-11-5">Luigi</h3>
+<div class="outline-text-3" id="text-11-5">
+</div></section>
+<section id="slide-sec-11-5-1">
+<h4 id="sec-11-5-1">Luigi</h4>
+<ul>
+<li>En proceso&#x2026;</li>
+
+</ul>
+
+
+</section>
 </section>
 <section>
-<section id="slide-sec-12" data-background="#e95d3c">
-<h2 id="sec-12">Disclaimer</h2>
+<section id="slide-sec-12" data-state="alert">
+<h2 id="sec-12">Proyecto Final</h2>
+
+</section>
+</section>
+<section>
+<section id="slide-sec-13" data-background="#e95d3c">
+<h2 id="sec-13">Disclaimer</h2>
 <ul>
 <li>Algunas imágenes se tomaron de los libros <i>Professional Hadoop Solutions</i> de <b>Wrox</b> y de la página de <a href="http://hortonworks.com/hadoop/yarn/"><b>Hortonworks</b></a>. Las otras son mías.</li>
 <li>Debería de ser claro cuales son cuales. <code>(^_^)</code></li>

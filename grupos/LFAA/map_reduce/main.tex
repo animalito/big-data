@@ -1,0 +1,186 @@
+\documentclass[12pt]{article}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage[]{algorithm2e}
+\usepackage{float}
+\usepackage[spanish, mexico]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[hyphenbreaks]{breakurl}
+\usepackage{authblk}
+\usepackage[hyphens]{url}
+\usepackage[
+    colorlinks=true, 
+    citecolor=red, 
+    urlcolor=blue]{hyperref}
+\usepackage{cite}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{fancyvrb}
+\usepackage{minted}
+\definecolor{listinggray}{gray}{0.95}
+\definecolor{lbcolor}{rgb}{0.95,0.95,0.95}
+\lstset{
+	backgroundcolor=\color{lbcolor},
+	tabsize=4,
+	language=R,
+    basicstyle=\scriptsize,
+    upquote=true,
+    aboveskip={0.5\baselineskip},
+    columns=fixed,
+    showstringspaces=false,
+    extendedchars=true,
+    breaklines=true,
+    prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+    frame=none,
+    showtabs=false,
+    showspaces=false,
+    showstringspaces=false,
+    identifierstyle=\ttfamily,
+    keywordstyle=\color[rgb]{0,0,1},
+    commentstyle=\color[rgb]{0.133,0.545,0.133},
+    stringstyle=\color[rgb]{0.627,0.126,0.941},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    numbers=left,
+    numberstyle=\footnotesize,
+    stepnumber=1,
+    numbersep=0.5cm,
+    xleftmargin=0.2cm,
+    xrightmargin=0.3cm,
+    frame=tlbr,
+    framesep=5pt,
+    framerule=0pt,
+}
+
+\usemintedstyle{fruity}
+
+\definecolor{LightGray}{gray}{0.05}
+
+\title{Tarea: MapReduce}
+
+\author{Luis M. Román, Maria Fernanda Mora, Alfonso Kim, Andrea}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Máximo de un grupo}
+
+\begin{minted}[frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=LightGray,
+fontsize=\footnotesize,
+linenos]{python}
+def calculate_max(numbers):
+    """ Calcula el maximo
+        :param numbers: La lista de enteros
+    """
+    return reduce((lambda x, y: x if x > y else y), numbers) 
+\end{minted} 
+
+La línea \textit{5} evalúa cada elemento de la lista y conserva en memoria el elemento más grande. Al final lo devuelve.\bigskip
+
+
+\section{Promedio y desviación estandar}
+
+\subsection{promedio}
+
+\begin{minted}[frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=LightGray,
+breaklines=true,
+fontsize=\footnotesize,
+linenos]{python}
+def average(numbers):
+    """ Calcula el promedio de la lista
+        :param numbers: La lista de enteros
+    """
+    values = map(lambda x: (1, x), numbers)
+    count, num_sum = reduce(lambda x, y: (x[0] + y[0], x[1] + y[1]), values)
+    return float(num_sum) / count
+\end{minted}  
+
+En la lina \textit{5} simplemente se emite un 1 y el número evaluado. Durante el \textit{reduce} se suman los unos y los números, de tal forma que queda una tupla con el conteo de valores y la suma de valores. El valor final es la división del segundo entre el primero.
+
+\subsection{Desviación Estándar}
+\begin{minted}[frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=LightGray,
+breaklines=true,
+fontsize=\footnotesize,
+linenos]{python}
+def standard_deviation(numbers):
+    """ Calcula la desviacion estandar de la lista
+        :param numbers: La lista de enteros
+    """
+    avg = average(numbers)
+    square_diffs = map(lambda x: (x - avg) ** 2, numbers)
+    return reduce(lambda x, y: x + y, square_diffs) ** 0.5
+\end{minted}  
+
+En la línea \textit{5} se obtiene el promedio usando el método anterior, posteriormente se calcula la diferencia cuadrada del valor al promedio. En la línea \textit{7} se suman las diferencias y se devuelve la raíz cuadrada de la suma.
+
+\section{Top ten de una cantidad}
+\begin{minted}[frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=LightGray,
+breaklines=true,
+fontsize=\footnotesize,
+linenos]{python}
+def top_n(numbers, n):
+    """ Calcula el top n de la lista
+        :param numbers: La lista de enteros
+        :param n: El numero de valores a encontrar
+    """
+    num_set = set(numbers)
+    top = []
+    # No me gusto que sea iterativo, si puedo lo arreglo
+    while len(top) < n and num_set:
+        max_n = calculate_max(num_set)
+        num_set.remove(max_n)
+        top.append(max_n)
+    return top
+\end{minted}
+
+Para este problema simplemente se iteró \textit{N} veces el método \textit{calculate\_max} de la sección 1.
+
+
+\section{Conteo por grupo}
+\begin{minted}[frame=lines,
+framesep=2mm,
+baselinestretch=1.2,
+bgcolor=LightGray,
+breaklines=true,
+fontsize=\footnotesize,
+linenos]{python}
+def world_count(numbers):
+    """ Cuenta las ocurrencias de un numero en la lista
+        :param numbers: La lista de enteros
+        :return: Un diccionario donde las llaves son los numeros
+                  y los valores son las veces que ocurrieron
+    """
+    worlds = {}
+    def sum_reduce(x):
+        """ El reductor: Se actualiza la lista de numeros con las veces que 
+            ocurre cada numero
+        """
+        if x in worlds: worlds[x] += 1
+        else: worlds[x] = 1
+    map(sum_reduce, numbers) # Map no devuelve nada ya que el reductor no devuelve 
+    return worlds
+\end{minted}
+
+
+Se usó un reductor que va guardando los números procesados. Si se encuentra uno que se vió antes le suma uno al contador \textit{línea 12}, si no crea un contador con 1 \textit{línea 13}. La función \textit{map} sólo itera sobre la lista de números usando el reductor definido.
+
+\end{document}

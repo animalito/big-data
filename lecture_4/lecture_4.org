@@ -69,7 +69,7 @@ docker run -ti --name hadoop-pseudo \
   -p 8033:8033 -p 8088:8088 -p 8040:8040 -p 8042:8042 \
   -p 13562:13562 -p 47784:47784 -p 10020:10020 -p 19888:19888 \
   -p 8000:8000 -p 9999:9999 \
-nanounanue/docker_hadoop
+nanounanue/docker-hadoop
 </code></pre>
 #+end_html
 
@@ -363,7 +363,8 @@ hadoop fs -rm archivo_hdfs
   - Malo para acceso aleatorio en escritura y lectura.
 
 - =HBase=
-  -  Guarda los datos como archivos de HBase en el =HDFS=.
+  -  Guarda los datos como archivo
+s de HBase en el =HDFS=.
   - /Scans/ lentos.
   - Rápido acceso aleatorio a lectura y escritura.
 
@@ -711,7 +712,7 @@ SparkContext available as sc, HiveContext available as sqlCtx.
 
 #+begin_html
 <pre><code data-trim>
-ufos_nov = sc.textfile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
+ufos_nov = sc.textFile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
 </code></pre>
 #+end_html
 
@@ -759,6 +760,10 @@ ufos_nov.map(lambda line: (line.split('\t')[2]))\
 
 #+begin_html
 <pre><code data-trim>
+import csv
+from io import StringIO
+
+
 def load_tsv(archivo):
     return csv.reader(StringIO(archivo[1]), delimiter='\t')
 </code></pre>
@@ -1326,12 +1331,17 @@ python word_count.py
 
 *** Ejercicio
 
-- Diseñe (en /pseudo código/) el **MapReduce** para lo siguiente:
+- Organízate en grupos de cuatro personas
+
+- Diseñe (en /pseudo código/, imágen, código, lo que sea más fácil) el **MapReduce** para lo siguiente:
   - Encontrar el máximo de un conjunto de datos.
   - Encontrar el promedio y desviación estándar de unos datos.
   - Encontrar el top 10 de una cantidad.
   - Contar por grupo
 
+- Subir el /diseño/ a =github= en la carpeta =grupos=, dentro de una carpeta de equipo (agregar un =README= para saber los participantes)
+
+- *NOTA* Esta carpeta será la usada para el proyecto final.
 
 
 * Abstracciones de MapReduce
@@ -1500,7 +1510,11 @@ dump top10;
 </code></pre>
 #+end_html
 
-
+*** Ejercicio
+- Describe cada línea con comentarios y agrega los esquemas.
+  - i.e. elimina los =$0=, etc
+- Guarda la salida de cada uno de estos en una carpeta =output/wordcount/pig= en tu carpeta =hdfs=.
+- Copia la salida al sistema de archivos local y súbelo a =github=.
 
 *** Pig: JOINS
 
@@ -1611,7 +1625,7 @@ fuentes_unidas = cogroup fuente1 by (keys) fuente2 by (keys);
 *** Ejercicio
 
 - Describe cada línea con comentarios y agrega los esquemas.
-- Guarda la salida de cada uno de estos en una carpeta =output/wordcount/pig= en tu carpeta =hdfs=.
+- Guarda la salida de cada uno de estos en una carpeta =output/ufos/pig= en tu carpeta =hdfs=.
 - Copia la salida al sistema de archivos local y súbelo a =github=.
 
 #+begin_html
@@ -1666,9 +1680,12 @@ mayores = filter conteos by $1 > 50;
 
 *** Ejemplo: Wordcount
 
+- Describe cada línea con comentarios y agrega los esquemas.
 - Averigua (usando la documentación) como guardar la tabla a archivo y compara el =top10= con el resultado de =Pig=.
 - ¿Por qué da diferente?
 - Modifica el código para arreglar la diferencia.
+- Guarda la salida de cada uno de estos en una carpeta =output/wordcount/hive= en tu carpeta =hdfs=.
+- Copia la salida al sistema de archivos local y súbelo a =github=.
 
 #+begin_html
 <pre><code data-trim>
@@ -1700,7 +1717,9 @@ order by conteo desc limit 10;
 </code></pre>
 #+end_html
 
+*** Ejercicio
 
+- Repite el ejercicio de =Pig= sobre =ufos=, pero ahora en =Hive=.
 
 
 
@@ -1802,6 +1821,11 @@ wordcount.take(10)
 - Modifica el código de =Spark= y =Python= para que reproduzca el resultado de =Pig= y =Hive=.
 - Súbelo a github
 
+** Ejercicio
+
+- Repite el ejercicio de =Pig= sobre =ufos=, pero ahora en =Spark=.
+
+
 * Procesamiento: Impala
 :PROPERTIES:
    :reveal_background: #000fff
@@ -1834,180 +1858,9 @@ wordcount.take(10)
 
 - Súbelo a github el código y el resultado, así como la comparación con las otras salidas.
 
+*** Ejercicio
 
-# ** Ejercicios
-
-# *** RITA, HIVE y PIG
-# #+begin_html
-# <pre><code data-trim> pig
-# register /home/hduser/hadoop-src/pig-0.12.0/contrib/piggybank/java/piggybank.jar;
-# define replace org.apache.pig.piggybank.evaluation.string.REPLACE;
-# define substring org.apache.pig.piggybank.evaluation.string.SUBSTRING;
-# define s_split org.apache.pig.piggybank.evaluation.string.Split;
-# define reverse org.apache.pig.piggybank.evaluation.string.Reverse;
-
-# airports = LOAD '/user/nano/rita_catalogs/airports.csv'
-# USING PigStorage(',')
-# AS
-# (iata:chararray,airport:chararray,city:chararray,
-# state:chararray,country:chararray,latitude:float,longitude:float);
-
-# fixed_airports = foreach airports
-#                  generate replace(iata, '"', ''),
-#                           replace(airport, '"', ''),
-#                           replace(city, '"', ''),
-#                           replace(state, '"', ''),
-#                           replace(country, '"', ''),
-#                           latitude, longitude;
-
-# store fixed_airports into '/user/pig/airports-fixed' using PigStorage(',');
-# </code></pre>
-# #+end_html
-
-# *** RITA y HIVE: Joins
-
-# #+begin_html
-# <pre><code data-trim> sql
-# load data inpath 'pig_fixed/airports/part-m-00000'
-# overwrite into table airports;
-
-# -- ¿Y ahora?
-# select * from airports where iata='SAN';
-
-# select * from rita join airports on (rita.Origin = airports.iata) limit 10;
-# </code></pre>
-# #+end_html
-
-# *** ¡Más ejercicios!
-
-
-# - Usando =RITA= (lo que tengan cargado en su nodo), calcule:
-#   - Con =Pig=:
-#     - El número de vuelos por aeropuerto.
-#     - ¿Cuál es el más activo?
-#   - Con =Hive=:
-#     - Número de =km= por avión.
-#     - ¿Cuál es el /top/ 5?
-#     - ¿Sería más fácil en =Pig=?
-
-
-# * Arquitectura: Workflow
-# :PROPERTIES:
-#    :reveal_background: #000fff
-#  :END:
-
-
-# ** Hive Metastore
-# :PROPERTIES:
-#   :CUSTOM_ID: hive-metastore
-# :END:
-
-# *** HCatalog
-
-# - Está incorporado a =Hive= desde la versión =0.11=.
-
-# - Es una capa administrativa de tablas y almacenamiento que permite
-#   que diferentes herramientas de procesamiento de datos (=Pig=,
-#   =MapReduce=) puedan leer y escribir más fácilmente del =HDFS=.
-# - Contiene una abstracción que presenta una vista relacional de los
-#   datos contenidos en el =HDFS=, asegurando que los usuarios no se
-#   preocupen dónde o en que formato están almacenados los datos.
-
-# *** HCatalog
-
-# - Utiliza el =DDL= de =Hive=.
-# - Provee interfaces de escritura y lectura para =Pig=, =MapReduce= y
-#   =Hive=.
-# - Usa la línea de comandos para manejar la definición de los datos y
-#   metadatos.
-# - =HCatalog= presenta los datos de manera relacional.
-# - Los datos son guardados en tablas y las tablas en bases de datos.
-
-# - =WebHCat= es la interfaz API =REST= de =HCatalog=.
-
-# *** HCatalog: Flujo de datos
-
-# - Usuario 1 copia datos al HDFS
-# #+begin_html
-# <pre><code data-trim>
-# hadoop distcp file:///data/books/pg2047.txt hdfs://data/20140430/books
-# hcat "alter table books add partition (ds='20140430') location 'hdfs://data/20140430/books'"
-# </code></pre>
-# #+end_html
-
-# - Usuario 2 usa =Pig= para limpiar y preparar los datos.
-#   - =HCatalog= mandará al =JMS= un mensaje de que la información está disponible.
-
-
-# #+begin_html
-# <pre><code data-trim>
-# A = load 'books' using HCatLoader();
-# B = filter A by date = '20140430';
-# ...
-# store Z into 'procesados' using HCatStorer("date=20140430");
-# </code></pre>
-# #+end_html
-
-# - Usuario 3 realiza cierta analítica
-
-# #+begin_html
-# <pre><code data-trim>
-# select col1, count(col3)
-# from procesados
-# where date  = '201340430'
-# group by col1;
-# </code></pre>
-# #+end_html
-
-# ** HBase
-
-# *** HBase
-
-# - Es un almacén distribuido =NoSQL=.
-# - Proveé acceso aleatorio a los datos guardados en el =HDFS=.
-#   - A diferencia de =HDFS=, que es secuencial.
-
-# *** Bibliografía
-
-# - Sitio web de HBase
-# - HBase: The definitive Guide
-# - HBase in Action
-
-# ** Apache Sqoop
-
-# *** Apache Sqoop
-
-# - Herramienta para importar eficientemente /data/ desde =RDBMS= a Hadoop (=HDFS,
-#   Hive, Hbase=) y viceversa.
-# - Soporta cualquier =RDBMS= que tenga conexión =JDBC= (=PostgreSQL, MySQL, Oracle, Teradata=, etc.).
-# - Tiene soporte nativo para =MySQL= y =PostgreSQL=.
-
-# *** Apache Sqoop
-
-# [[file:./imagenes/sqoop.png]]
-
-
-# *** Bibliografía
-
-# - Documentación de Apache Sqoop
-# - Apache Sqoop Cookbook
-
-# ** Apache Flume
-
-# *** Apache Flume
-
-# - Componente para la captura (_ingesta_) de datos basados en eventos a Hadoop.
-
-# *** Bibliografía
-
-# - Documentación de Flume
-# - Using Flume
-
-
-# *** Ejercicio: RITA del tingo al tango
-# y
-# ** Apache Flume
-
+- Repite el ejercicio de =Pig= sobre =ufos=, pero ahora en =Impala=.
 
 
 * Arquitectura: Orquestación
@@ -2018,6 +1871,319 @@ wordcount.take(10)
 ** Orquestación
 
 - En proceso...
+
+** Apache Flume
+
+*** ¿Por qué?
+
+- Hasta este momento hemos movido los datos hacia dentro de =HDFS= de
+  manera manual usando =hadoop fs ...=
+  - Esto no va a escalar...
+
+- Si han puesto atención a la clase, quizá quieran automatizar esto
+  usando =bash=, y una combinación de =parallel= con =scp= y
+  obviamente =hadoop fs ...=
+
+- Si logran armar el /script/ el siguiente paso es ejecutarlo
+  "solito", y para eso quizá haya que poner un =cron=
+
+*** ¿Por qué?
+
+- Esto tampoco va a escalar...
+  - /hardcodeado/
+  - Poca o nula configuración
+  - Mantenimiento
+  - Manejo de cargas
+  - Manejo de datos en masa
+  - Manejo de fallos y excepciones
+  - Agreguen su pesadilla favorita
+
+
+*** Apache Flume
+
+- Componente para la captura (/ingesta/) de datos basados en eventos a Hadoop.
+- Apache Flume es un sistema de alto desempeño para la ingesta de datos.
+- Es escalable horizontalmente y muy configurable.
+
+
+*** Apache Flume
+
+- Distribuido
+  - Agentes en varias máquinas
+
+- Escalable
+  - Más máquinas, más eventos
+
+- Confiable
+  - Almacenamiento confiable, /failover/, replicación, distribución, etc.
+
+- Fácil instalación y configuración.
+
+*** ¿Cómo funciona?
+[[file:./imagenes/Diagramas_1(1).jpg]]
+
+*** ¿Cómo funciona?
+[[file:./imagenes/Diagramas_2(1).jpg]]
+
+*** ¿Cómo funciona?
+[[file:./imagenes/Diagramas_3(1).jpg]]
+
+
+*** ¿Cómo funciona?
+[[file:./imagenes/Diagramas_4(1).jpg]]
+
+
+*** ¿Qué es un evento?
+
+- Unidad de datos transportada por =Flume=.
+- Compuesta por =Header= (un mapa: =Map <java.lang.String
+  java.lang.String>=) y por =payload= (=byte[]=)
+
+*** Agente de Flume
+
+- Responsable de transmitir los /eventos/.
+- Consiste en /Fuente/ (=source=), /Canal/ (=channel=) y /Sumidero/ (=sink=).
+
+[[file:./imagenes/Diagramas_5(1).jpg]]
+
+*** Agente de Flume
+
+- /Fuente/
+  - =http=, =jms=, =netcat=, etc.
+  - =Exec=
+    - Observa un comando de =unix= y procesa el =stdout= de este.
+  - /Spooling directory/
+    - Observa un directorio para la aparición de nuevos archivos.
+    - Procesa los /eventos/ de los nuevos archivos.
+    - Después de procesarlo, lo borra o lo renombra.
+  - =AvroSource=
+
+- /Canal/
+  - Sirve de /buffer/ de los eventos mientras se van extrayendo de la
+    fuente.
+  - Tipos: =Memory= (no es durable, muy rápido), =File= (Durable,
+    soporta cifrado, Es el canal de mayor capacidad). =JDBC=
+
+- /Sumidero/
+  - Remueve los eventos del /canal/ y los envía a su siguiente
+    destino.
+
+  - =hdfs=, =hbase=, =solr=, =elasticsearch=
+  - =AvroSink=
+
+*** Interceptores
+
+- Proveen capacidad de inspeccionar y modificar /al vuelo/ eventos.
+- Está pegado a la /fuente/.
+- Es invocado cada vez que un evento se mueve de la /fuente/ al
+  /canal/.
+- Se pueden concatenar varios /interceptores/.
+
+
+*** Ejemplo: Hola Mundo
+
+- Crea la carpeta =ingesta= en el /file system/ local.
+- En ella crea un archivo llamado =hola_mundo.conf=. Este será el
+  archivo de configuración de nuestro primer ejemplo de =Flume=.
+
+#+begin_html
+<pre><code data-trim>
+agent.sources=s1
+agent.channels=c1
+agent.sinks=k1
+
+agent.sources.s1.type=netcat
+agent.sources.s1.channels=c1
+agent.sources.s1.bind=0.0.0.0
+agent.sources.s1.port=12345
+
+agent.channels.c1.type=memory
+
+agent.sinks.k1.type=logger
+agent.sinks.k1.channel=c1
+</code></pre>
+#+end_html
+
+- Ejecuta la siguiente línea de comandos para levantar un agente de
+  =Flume=:
+
+#+begin_html
+<pre><code data-trim>
+flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO,console
+</code></pre>
+#+end_html
+
+
+*** Ejemplo: Hola Mundo
+
+- Ahora abre otra terminal y conéctate a =docker=
+  - Recuerda que es con =docker exec...=
+
+- Cámbiate al usuario =itam=.
+
+- Ejecuta =nc localhost 12345=
+
+- Y manda mensajes, observa como =Flume= reacciona.
+
+
+*** Ejercicio
+
+
+*** Bibliografía
+
+- Documentación de Flume
+- Using Flume
+
+** Apache Sqoop
+
+*** Apache Sqoop
+
+- Herramienta para importar eficientemente /data/ desde =RDBMS= a Hadoop (=HDFS,
+  Hive, Hbase=) y viceversa.
+- Soporta cualquier =RDBMS= que tenga conexión =JDBC= (=PostgreSQL, MySQL, Oracle, Teradata=, etc.).
+- Tiene soporte nativo para =MySQL= y =PostgreSQL=.
+
+*** Apache Sqoop
+
+- Puede importar una tabla o un esquema de la base de datos.
+
+- Puede ejecutar /queries/ (y así filtrar la tabla, o hacer =joins=).
+
+- Soporta carga /incremental/.
+
+
+*** Apache Sqoop
+
+[[file:./imagenes/sqoop.png]]
+
+
+*** Ejercicio
+
+- ¿Cuál serían los comandos para la Copia la tabla de transacciones de tarjeta bancaria que hiciste
+  hacia Hadoop, colócalo en una tabla de =Hive= y en una carpeta
+  dentro de tu usuario.
+
+- ¿Y para extraer las tablas de tus análisis con =Impala=? ¿Cómo los
+  copias a una base de datos?
+
+*** Bibliografía
+
+- Documentación de Apache Sqoop
+- Apache Sqoop Cookbook
+
+** Hive Metastore: HCatalog
+:PROPERTIES:
+  :CUSTOM_ID: hive-metastore
+:END:
+
+*** ¿Por qué?
+
+- Como vimos hay varias herramientas para analizar los datos:
+  =MapReduce=, =Hive=, =Pig=, =Impala= y los varios sabores de
+  =Spark=.
+
+- Luego de procesar los datos, se generan o archivos en el /file
+  system/ local, o archivos en el =hdfs= o tablas en =hive=.
+
+- Todo suena muy bien, hasta que nos enfrentamos a que para seguir
+  procesándolas necesitamos:
+  - Recordar y/o comunicar /dónde/ está el =dataset=.
+  - En qué /formato/ está.
+  - El /esquema/.
+  - Entre otras cosas.
+
+*** ¿Por qué?
+
+- Estos problemas no los tiene =hive=, ya que el /lee/ el lugar,
+  formato y esquema del =hive metastore=.
+
+- Pero =MapReduce=, =Pig= y =Spark= deciden eso en los /Scripts/
+  - Por ejemplo, =Pig= lo hace en la función =LOAD=.
+
+- Si hay cambios, =Pig=, =MapReduce= y =Spark= sufrirán...
+
+- =HCatalog= trata de resolver estos problemas, ya que conoce la
+  locación, formato y esquema de nuestros =datasets=.
+
+*** HCatalog
+
+- Está incorporado a =Hive= desde la versión =0.11=.
+
+- Es una capa administrativa de tablas y almacenamiento que permite
+  que diferentes herramientas de procesamiento de datos (=Pig=,
+  =MapReduce=, =Spark=) puedan leer y escribir más fácilmente del =HDFS=.
+- Contiene una abstracción que presenta una vista relacional de los
+  datos contenidos en el =HDFS=, asegurando que los usuarios no se
+  preocupen dónde o en que formato están almacenados los datos.
+
+*** HCatalog
+
+- Provee una abstracción sobre los =datasets= guardados en el =hdfs=.
+- Permite realizar /data discovery/.
+- Provee notificaciones sobre disponibilidad de los datos.
+  - Creación de base de datos, tabla o partición.
+  - Destrucción de base de datos, tabla o partición.
+- =HCatalog= permite que proyectos diferentes a =hive= consulten
+  tablas de =Hive=.
+
+*** HCatalog
+
+- Utiliza el =DDL= de =Hive=.
+- Provee interfaces de escritura y lectura para =Pig=, =MapReduce= y
+  =Hive=.
+- Usa la línea de comandos para manejar la definición de los datos y
+  metadatos.
+  - Llamada imaginativamente =hcat=.
+- =HCatalog= presenta los datos de manera relacional.
+- Los datos son guardados en tablas y las tablas en bases de datos.
+
+- =WebHCat= es la interfaz API =REST= de =HCatalog=.
+
+*** HCatalog: Flujo de datos
+
+- Usuario 1 copia datos al HDFS
+#+begin_html
+<pre><code data-trim>
+hadoop distcp file:///data/books/pg2047.txt hdfs://data/20140430/books
+hcat "alter table books add partition (ds='20140430') location 'hdfs://data/20140430/books'"
+</code></pre>
+#+end_html
+
+- Usuario 2 usa =Pig= para limpiar y preparar los datos.
+  - =HCatalog= mandará al =JMS= un mensaje de que la información está disponible.
+
+
+#+begin_html
+<pre><code data-trim>
+A = load 'books' using HCatLoader();
+B = filter A by date = '20140430';
+...
+store Z into 'procesados' using HCatStorer("date=20140430");
+</code></pre>
+#+end_html
+
+- Usuario 3 realiza cierta analítica
+
+#+begin_html
+<pre><code data-trim>
+select col1, count(col3)
+from procesados
+where date  = '201340430'
+group by col1;
+</code></pre>
+#+end_html
+
+** Luigi
+
+*** Luigi
+
+- En proceso...
+
+
+* Proyecto Final
+:PROPERTIES:
+   :reveal_data_state: alert
+:END:
 
 * Disclaimer
 :PROPERTIES:
