@@ -712,7 +712,7 @@ SparkContext available as sc, HiveContext available as sqlCtx.
 
 #+begin_html
 <pre><code data-trim>
-ufos_nov = sc.textfile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
+ufos_nov = sc.textFile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
 </code></pre>
 #+end_html
 
