@@ -1,0 +1,6 @@
+---
+title: "Modelo"
+author: "Adolfo De Unánue T."
+date: "03/11/2014"
+output: html_document
+---

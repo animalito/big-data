@@ -1,0 +1,339 @@
+---
+title: "Preparación de los Datos"
+author: "Adolfo De Unánue T."
+date: "29/10/2014"
+output: html_document
+---
+
+```{r, warning=FALSE, message=FALSE, error=FALSE, echo=TRUE, eval=FALSE}
+
+# Este bloque debería de tener la bandera de echo a FALSE
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(lubridate)
+library(stringr)
+
+```
+
+
+
+```{r, eval=FALSE, echo=TRUE}
+
+# Este bloque debería de tener la bandera de echo a FALSE
+
+# NOTA: Todos los bloques de este documento, tienen eval a FALSE, se debería de eliminar
+
+# Cargamos el dataset
+
+ds.path <- "" # Puede ser un URL o una dirección en el directorio
+
+ds.name <- "" # Nombre de nuestro conjunto de datos, e.g. algas, german
+
+ds # <- # Leemos el dataset, usando readRDS (ya que ya lo tenemos en disco debido a nuestro EDA)
+   # Hay que utilizar el data set al que no se le han removido las observaciones NAs
+   # Lo guardamos en la variable ds para hacer más genérico los pasos.
+
+ds <- tbl_df(ds) # Para obtener un print mejorado
+```
+
+
+# Introducción
+
+Explicamos la procedencia del archivo, como lo obtuvimos, indicar si es una muestra, etc.
+
+Si es una muestra indicar el método de muestreo y el algoritmo para generar los números aleatorios
+
+## Variables
+
+Explicación de las variables que componen (o que deberían de componer) el dataset
+
+
+# Estructura General
+
+```{r, eval=FALSE}
+ds
+```
+
+
+## Tamaño
+```{r, eval=FALSE}
+dim(ds)
+```
+
+## Columnas
+
+```{r, eval=FALSE}
+names(ds)
+```
+
+## Estructura
+
+```{r, eval=FALSE}
+str(ds)
+```
+
+_NOTA: Indicar si hay una discrepancia entre las clases de las variables en el data set y en su significado, i.e. fechas que no son fechas, si no factores, etc._
+
+## Observaciones
+
+```{r, eval=FALSE}
+head(ds)
+```
+
+```{r, eval=FALSE}
+tail(ds)
+```
+
+```{r, eval=FALSE}
+ds[sample(ds,6),]
+```
+
+
+# Sumario Estadístico
+
+```{r, eval=FALSE}
+summary(ds)
+```
+
+
+# Limpieza de metadatos
+
+```{r, eval=FALSE}
+
+# Usaremos la función que hiciste de ejercicio
+names(ds) <- normalizarNombres(names(ds))
+```
+
+
+Además de normalizar los nombres de variables, este es el lugar para poner nombres que tengan significado como que la columna que tenga datos de fecha, se llame `fecha` o `date`.
+
+```{r, eval=FALSE}
+names(ds)
+```
+
+# Ajuste de formatos
+
+Las clases de las variables son
+
+```{r, eval=FALSE}
+sapply(ds, class)
+```
+
+
+En esta sección arreglamos los formatos de los datos. Un ejemplo típico son las fechas.
+
+Otros problemas con variables son: categóricas/numéricas que no lo son, booleanas que no lo son, ordenar variables nominales, reetiquetar las variables categóricas, etc.
+
+Para arreglar las fechas, utiliza el paquete `lubridate`.
+
+El formato de fechas debe de ser `YMD` y si es `timestamp` debe de serlo hasta la precisión que den los datos, no más, no menos.
+
+```{r, eval=FALSE}
+# Ejemplo hipotético
+
+ds$fecha <- ymd(as.character(ds$fecha))
+```
+
+*NOTA: Es recomendable hacer todas las transformaciones en un solo `mutate` y no una por una (a menos que haya problemas de memoria, y hay que usar otras técnicas).*
+
+Así quedan las variables corregidas:
+
+```{r, eval=FALSE}
+sapply(ds, class)  
+```
+
+# Transformación de variables
+
+En esta sección incluímos la transformación de las variables necesarias (normalización, estandarización, _binning_, `log`, etc.)
+
+
+*NOTA: Es recomendable hacer todas las transformaciones en un solo `mutate` y no una por una (a menos que haya problemas de memoria, y hay que usar otras técnicas).*
+# Identificación de variables
+
+```{r, eval=FALSE}
+vars <- names(ds) # Guardamos los nombres de variables
+
+target <- ""  # Si el modelo es supervisado
+risk <- "" # Si se proveé, es la importancia de la observación respecto a la variable (es una variable de salida)
+costo <- "" # Costo de equivocarse en la predicción (Si se proveé) (es una variable de salida)
+id <- "" # Armar una id con columnas, o seleccionar el id del dataset
+```
+
+# Recodificación
+
+Antes de pasar a la etapa de ignorar variables, es importante **recodificar**. 
+
+- Hay métodos como el  `randomForest` que no soporta variables categóricas con más de 32 niveles, habría que agruparlos (e.g. si son países se pueden reagrupar por región, similitud -esto requiere otra base de datos, etc.)
+
+- Si las fechas son `timestamp` hay que extraer variables categóricas como `mes`, `día.de.la.semana`, `fin.de.semana`, `temporada`, etc. claro que depende del tipo del problema al que nos estemos enfrentando.
+
+
+# Variables a ignorar
+
+Identificamos en una variable, las columnas a ignorar en el entrenamiento del modelo.
+
+### IDs y variables de salida
+
+```{r, eval=FALSE}
+vars.a.ignorar <- union(id, if (exists("risk")) risk, if (exists("costo")) costo)
+```
+
+### Constantes y valores únicos por observación
+
+```{r, eval=FALSE}
+# Ignoramos las que tengan un único valor por cada observación, pueden ser IDs
+# IMPORTANTE: Esto puede eliminar fechas, ver sección anterior
+
+ids <- names(which(sapply(ds, function(x) length(unique(x)) == nrow(ds)))
+
+# Ignoramos los factores que tengan muchos niveles
+# IMPORTANTE: ver sección anterior
+
+factors <- which(sapply(ds[vars], is.factor))
+niveles <- sapply(factors, function(x) length(levels(ds[[x]])))
+(muchos.niveles <- names(which(niveles > 20)))
+
+vars.a.ignorar <- union(vars.a.ignorar, muchos.niveles)
+
+# Constantes
+constantes <- names(which(sapply(ds[vars], function(x) all(x == x[1L]))))
+
+var.a.ignorar <- union(vars.a.ignorar, ids, constantes
+```
+
+
+### Faltantes
+
+```{r, eval=FALSE}
+# Las que sean puros NAs
+ids.nas.count <- sapply(ds[vars], function(x) sum(is.na(x)))
+ids.nas <- names(which(ids.nas.count == nrow(ds)))
+
+vars.a.ignorar <- union(ids.nas, vars.a.ignorar)
+
+# Las que tengan muchos NAs (un 70% o más)
+ids.many.nas <- names(which(ids.nas.count >= 0.7*nrow(ds)))
+
+vars.a.ignorar <- union(ids.many.nas, vars.a.ignorar)
+```
+
+### Variable de salida (`target`) 
+
+Si el problema de minado, es supervisado, removemos las observaciones que tengan `NA` en la variable `target`
+
+```{r, eval=FALSE}
+dim(ds)
+ds <- ds[!is.na(ds[target]),]
+dim(ds)
+```
+
+Si el problema es de clasificación, hay que convertir la variable `target` a categórica.
+
+```{r, eval=FALSE}
+ds[target] <- as.factor(ds[[target]])
+table(ds[target])
+```
+
+Mostramos la distribución (esto nos indicará si el problema no está balanceado)
+
+```{r, eval=FALSE}
+ggplot(data=ds, aes_string(x=target)) + geom_bar(width=0.3)
+```
+
+
+# Variables correlacionadas
+
+```{r, eval=FALSE}
+vars.cor <- cor(ds[which(sapply(ds, is.numeric))], use="complete.obs")
+vars.cor[upper.tri(vars.cor, diag=TRUE)] <- NA
+
+vars.cor <- vars.cor                                  %>%
+            abs()                                     %>%   
+            data.frame()                              %>%
+            mutate(var1=row.names(vars.cor))          %>%
+            gather(var2, cor, -var1)                  %>%
+            na.omit()
+            
+
+vars.cor <- vars.cor[order(-abs(vars.cor$cor)), ]
+
+(muy.cor <- filter(vars.cor, cor > 0.95)) # Mostramos las que tengan más del 95% de correlación
+
+# Habría que decidir si se remueven y cuales se remueven (var1 o var2)
+vars.a.ignorar <- union(vars.a.ignorar, muy.cor$var2)
+```
+
+_NOTA: ¿Qué pasa con las categóricas? ¿Usamos asociación o independencia?_
+
+# Valores faltantes
+
+En esta sección hay que poner la estrategia de manejo de valores faltantes elegida durante la etapa del EDA.
+
+Hay muy pocas ocasiones donde es recomendable dejar que el modelo se encargue de las imputaciones.
+
+Las observaciones a omitir, guárdalas en `observaciones.omitidas`.
+
+# Normalizar niveles
+
+Removemos espacios, puntuaciones, camelCase, etc. en los niveles de los factores supervivientes.
+
+```{r, eval=FALSE}
+factors <- which(sapply(ds[vars], is.factor))
+for (f in factors) levels(ds[[f]]) <- normalizarNombres(levels(ds[[f]]))
+```
+
+```{r, eval=FALSE, echo=TRUE}
+
+# Este paso debería de tener la bandera de echo a FALSE
+
+# Removemos las variables
+vars <- setdiff(vars, vars.a.ignorar)
+
+```
+
+# Identificación de Variables
+
+```{r, eval=FALSE}
+(vars.input <- setdiff(vars, target))
+idxs.input <- sapply(vars.input, function(x) which(x == names(ds)), USE.NAMES=FALSE)
+
+idxs.numericas <- intersect(idxs.input, which(sapply(ds, is.numeric)))
+(vars.numericas <- names(ds)[idxs.numericas])
+
+idxs.categoricas <- intersect(idxs.input, which(sapply(ds, is.factor)))
+(vars.categoricas <- names(ds)[idxs.categoricas])
+
+# Por conveniencia guardamos el número de observaciones supervivientes
+num.observaciones <- nrow(ds)
+
+```
+
+```{r, eval=FALSE, echo=TRUE}
+
+# Este paso debería de tener la bandera de echo a FALSE
+
+# Guardamos todo en la carpeta 
+ds.date <- paste0("_", format(Sys.Date(), "%y%m%d"))
+ds.rdata <- paste0(dsname, dsdate, ".RData") # Guardamos todo en un RData para poder automatizar el modelado
+
+if (!file.exists("clean")) dir.create("clean") # Creamos la carpeta clean, si no existe
+
+save(ds, ds.name, ds.path, ds.date, target, risk, costo, 
+     id, vars.a.ignorar, vars, num.observaciones, 
+     vars.input, idxs.input,
+     observaciones.omitidas,
+     vars.numericas, idxs.numericas,
+     vars.categoricas, idxs.categoricas,
+     file=paste0("/", "clean", ds.rdata)
+     )
+```
+
+
+### Apéndice: Ambiente
+
+```{r, echo=FALSE}
+sessionInfo()
+```
+

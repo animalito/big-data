@@ -1,0 +1,131 @@
+############################################################################
+# Kite
+
+# En el HDFS
+kite-dataset csv-schema data/UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
+kite-dataset create dataset:hdfs:/user/itam/datasets/ufos --schema ufos.avsc
+kite-dataset schema dataset:hdfs:/user/itam/datasets/ufos
+kite-dataset csv-import data/UFO-Nov-2014.tsv dataset:hdfs:/user/itam/datasets/ufos --delimiter "\t"
+kite-dataset csv-import data/UFO-Dic-2014.tsv dataset:hdfs:/user/itam/datasets/ufos --delimiter "\t"
+kite-dataset show dataset:hdfs:/user/itam/datasets/ufos
+# kite-dataset delete dataset:hdfs:/user/itam/datasets/ufos
+
+# En el HIVE Metastore
+kite-dataset csv-schema data/UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
+kite-dataset create dataset:hive:/user/itam/datasets/ufos --schema ufos.avsc
+kite-dataset schema dataset:hive:/user/itam/datasets/ufos
+kite-dataset csv-import data/UFO-Nov-2014.tsv dataset:hive:/user/itam/datasets/ufos --delimiter "\t"
+kite-dataset csv-import data/UFO-Dic-2014.tsv dataset:hive:/user/itam/datasets/ufos --delimiter "\t"
+kite-dataset show dataset:hive:/user/itam/datasets/ufos
+# kite-dataset delete dataset:hive:/user/itam/datasets/ufos
+
+
+
+############################################################################
+### (py)Spark
+# ufo
+pyspark
+import csv
+from io import StringIO
+ufos_nov = sc.textFile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
+ufos_nov.count()
+ufos_nov.take(5)
+ufos_nov.first()
+ufos_nov.map(lambda line: (line.split('\t')[2]))\
+.distinct()\
+.count()
+def load_tsv(archivo):
+    return csv.reader(StringIO(archivo[1]), delimiter='\t')
+ufos_nov = sc.textFile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv").flatMap(load_tsv)
+ufos_nov.take(3)[2]
+
+# gdelt
+pyspark
+import csv
+from io import StringIO
+gdelt_20130930 = sc.textFile("hdfs://localhost/user/itam/experimentos/20130930.export.CSV")
+gdelt_20130930.count()
+gdelt_20130930.take(5)
+gdelt_20130930.first()
+gdelt_20130930.map(lambda line: (line.split('\t')[17]))\
+.distinct()\
+.count()
+def load_tsv(archivo):
+    return csv.reader(StringIO(archivo[1]), delimiter='\t')
+gdelt_20130930 = sc.textFile("hdfs://localhost/user/itam/experimentos/20130930.export.CSV").flatMap(load_tsv)
+gdelt_20130930.take(3)[2]
+
+
+############################################################################
+### Pig
+# ufo
+pig -useHCatalog
+ufos_dic = LOAD 'experimentos/UFO-Dic-2014.tsv' using PigStorage('\t')
+	    AS (Timestamp:chararray,
+		City:chararray, State:chararray,
+		Shape:chararray, Duration:chararray,
+		Summary:chararray, Posted:chararray);
+
+DESCRIBE ufos_dic;
+head = LIMIT ufos_dic 5;
+DUMP head;
+
+states = DISTINCT (FOREACH ufos_dic GENERATE State);
+DUMP states;
+
+ufos = LOAD 'datasets/ufos' USING org.apache.pig.piggybank.storage.avro.AvroStorage();
+DESCRIBE ufos;
+ILLUSTRATE ufos;
+head = LIMIT ufos 5;
+DUMP head;
+
+# gdelt
+pig -useHCatalog
+#gdelt_20130930 = LOAD 'experimentos/gdelt_20130930' using PigStorage('\t')
+#	    AS (Timestamp:chararray,
+#		City:chararray, State:chararray,
+#		Shape:chararray, Duration:chararray,
+#		Summary:chararray, Posted:chararray);
+#
+#DESCRIBE gdelt_20130930;
+#head = LIMIT gdelt_20130930 5;
+#DUMP head;
+#
+#states = DISTINCT (FOREACH gdelt_20130930 GENERATE State);
+#DUMP states;
+#
+
+############################################################################
+### Hive
+beeline -u jdbc:hive2://localhost:10000
+show tables;
+select Date_Time, City, State, Shape from ufos limit 10;
+select * from ufos limit 5;
+select count(distinct State) from ufos;
+explain select count(distinct State) from ufos; # Usa un solo paso de MapReduce
+# Comparamos ^ con v 
+explain select count(*) from (select distinct State from ufos) as t; # Usa dos pasos de MapReduce
+
+
+############################################################################
+### Impala (AÚN NO FUNCIONA)
+impala-shell
+invalidate metadata; # Siempre ejecutarlo cuando se modifiquen las tablas fuera de Impala
+show tables;
+describe ufos;
+select * from ufos limit 5; # Este quizá tarde un poco... (warming up)
+select * from ufos limit 15; # Debería de volar
+select state, count(*) as conteo from ufos group by state order by conteo desc limit 5;
+
+
+
+
+
+
+
+
+
+
+
+
+
