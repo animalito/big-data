@@ -1,0 +1,30 @@
+-- Inicializamos HIVE
+beeline -u jdbc:hive2://localhost:10000
+
+-- Limpiamos el ambiente
+delete table shakespeare;
+delete table wordcount;
+
+-- Creamos la tabla que contendrá las obras de Shakespeare
+create table shakespeare(linea string);
+
+-- Verifiamos
+show tables;
+
+-- Cargamos los datos a la tabla
+load data inpath '/user/itam/books/pg100.txt' overwrite into table shakespeare;
+
+-- Quereamos y guardamos en una tabla
+-- Los símbolos raros '\\p{Punct}' y similares son expresiones regulares de Java
+create table wordcount as
+select palabra, count(*) as conteo from
+(
+select
+explode(split(lcase(regexp_replace(trim(linea),'[\\p{Punct}, \\p{Cntrl}]', ' ')), ' ')) as palabra
+from shakespeare
+) palabras
+group by palabra
+order by conteo desc limit 10;
+-- Este código  se podría hacer más pequeño con LATERAL (¿Recuerdan la clase de PostgreSQL?)
+
+

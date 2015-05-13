@@ -1,0 +1,3 @@
+
+* https://rstudio-pubs-static.s3.amazonaws.com/28372_58da8790feac4e2dbd20a654f8966129.html#/4
+* http://data.gdeltproject.org/documentation/GDELT-Data_Format_Codebook.pdf

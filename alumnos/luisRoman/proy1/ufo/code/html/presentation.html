@@ -1,0 +1,650 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Proyecto-Métodos de gran escala</title>
+    <style>
+h1 {
+        color:#0D47A1;
+         text-align: justify;
+}
+h2 {
+        color:#1A237E;
+         text-align: justify;
+}
+h3 {
+        color:#1976D2;
+        text-align: justify;
+}
+h4{
+        color:#01579B;
+        text-align: justify;
+}
+h5{
+        color:#311B92;
+        text-align: justify;
+}
+h6{
+        color:#C51162;
+        text-align: justify;
+}
+div {
+        text-align:justify;
+        text-justify:inter-word;
+}
+hr{
+        border-width:4px;
+        color:#1A237E;
+}
+p{
+    color:#212121;
+}
+br{
+        line-height:100%;
+}
+body{
+    margin: 0 auto;
+    font-family: Georgia, Palatino, serif;
+    color: #444444;
+    line-height: 1;
+    max-width: 860px;
+    padding: 30px;
+    margin-left: 24px;
+}
+code {
+    font-family: Consolas, Monaco, Andale Mono, monospace;
+    line-height: 1.5;
+    font-size: 13px;
+}
+aside {
+    display: block;
+    float: right;
+    width: 390px;
+}
+p, ul, ol {
+    font-size: 16px;
+    line-height: 24px;
+    max-width: 540px;
+    text-align: justify;
+}
+hr {
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: inset;
+    border-width: 1px;
+}
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+.boxed {
+  border: 1px solid #9E9E9E ;
+  background-color: #EEEEEE;
+}
+
+</style>
+<script
+src="http://maps.googleapis.com/maps/api/js">
+</script>
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?2.6.0"></script>
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.layout.js?2.6.0"></script>
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.geom.js?2.6.0"></script>
+<script>
+// This example creates circles on the map, representing
+// populations in North America.
+
+// First, create an object containing LatLng and population for each city.
+var citymap = {};
+citymap["AB"]={
+center:new google.maps.LatLng(32.7396323,-86.8434593),
+population:266
+};
+citymap["AK"]={
+center:new google.maps.LatLng(63.346191,-152.8370679),
+population:282
+};
+citymap["AL"]={
+center:new google.maps.LatLng(34.2099643,-111.602401),
+population:593
+};
+citymap["AR"]={
+center:new google.maps.LatLng(34.8955256,-92.4446262),
+population:516
+};
+citymap["AZ"]={
+center:new google.maps.LatLng(37.148573,-119.5406515),
+population:2235
+};
+citymap["BC"]={
+center:new google.maps.LatLng(38.9935752,-105.5077737),
+population:557
+};
+citymap["Ca"]={
+center:new google.maps.LatLng(41.5797842,-72.7466666),
+population:1
+};
+citymap["CA"]={
+center:new google.maps.LatLng(38.9935501,-75.4473739),
+population:7793
+};
+citymap["CO"]={
+center:new google.maps.LatLng(38.9041485,-77.0170942),
+population:1283
+};
+citymap["CT"]={
+center:new google.maps.LatLng(28.4574302,-82.4091478),
+population:824
+};
+citymap["DC"]={
+center:new google.maps.LatLng(32.629384,-83.4232125),
+population:75
+};
+citymap["DE"]={
+center:new google.maps.LatLng(19.809767,-155.5061027),
+population:159
+};
+citymap["FL"]={
+center:new google.maps.LatLng(44.3020948,-114.5956254),
+population:3576
+};
+citymap["GA"]={
+center:new google.maps.LatLng(40.1028754,-89.1526108),
+population:1133
+};
+citymap["HI"]={
+center:new google.maps.LatLng(39.9030256,-86.2839503),
+population:311
+};
+citymap["IA"]={
+center:new google.maps.LatLng(42.0700243,-93.4933473),
+population:570
+};
+citymap["ID"]={
+center:new google.maps.LatLng(38.4985464,-98.3834298),
+population:486
+};
+citymap["IL"]={
+center:new google.maps.LatLng(37.5336807,-85.2929841),
+population:2089
+};
+citymap["IN"]={
+center:new google.maps.LatLng(30.8577705,-91.803273),
+population:1159
+};
+citymap["KS"]={
+center:new google.maps.LatLng(45.3906022,-68.6574869),
+population:508
+};
+citymap["KY"]={
+center:new google.maps.LatLng(38.9466584,-76.6744939),
+population:739
+};
+citymap["LA"]={
+center:new google.maps.LatLng(42.1565196,-71.4895915),
+population:508
+};
+citymap["MA"]={
+center:new google.maps.LatLng(44.8410835,-85.6593197),
+population:1176
+};
+citymap["MB"]={
+center:new google.maps.LatLng(46.3161343,-94.1994801),
+population:128
+};
+citymap["MD"]={
+center:new google.maps.LatLng(32.6864655,-89.6561493),
+population:784
+};
+citymap["ME"]={
+center:new google.maps.LatLng(38.35075,-92.4567826),
+population:508
+};
+citymap["MI"]={
+center:new google.maps.LatLng(47.0511771,-109.6348174),
+population:1652
+};
+citymap["MN"]={
+center:new google.maps.LatLng(41.5438105,-99.8123253),
+population:884
+};
+citymap["MO"]={
+center:new google.maps.LatLng(39.3310928,-116.6151469),
+population:1284
+};
+citymap["MS"]={
+center:new google.maps.LatLng(43.6708595,-71.5811278),
+population:336
+};
+citymap["MT"]={
+center:new google.maps.LatLng(40.1072744,-74.6652012),
+population:414
+};
+citymap["NB"]={
+center:new google.maps.LatLng(34.4391265,-106.1261511),
+population:105
+};
+citymap["NC"]={
+center:new google.maps.LatLng(42.9133974,-75.5962723),
+population:1576
+};
+citymap["ND"]={
+center:new google.maps.LatLng(35.53971,-79.1308636),
+population:109
+};
+citymap["NE"]={
+center:new google.maps.LatLng(47.4569538,-100.4619304),
+population:320
+};
+citymap["NF"]={
+center:new google.maps.LatLng(40.4149297,-82.7119975),
+population:20
+};
+citymap["NH"]={
+center:new google.maps.LatLng(35.5894185,-97.4868683),
+population:474
+};
+citymap["NJ"]={
+center:new google.maps.LatLng(43.9715225,-120.6226269),
+population:1262
+};
+citymap["NM"]={
+center:new google.maps.LatLng(40.9042486,-77.8280624),
+population:646
+};
+citymap["NS"]={
+center:new google.maps.LatLng(41.5978358,-71.5252895),
+population:114
+};
+citymap["NT"]={
+center:new google.maps.LatLng(33.8741769,-80.8542699),
+population:18
+};
+citymap["NV"]={
+center:new google.maps.LatLng(44.4467957,-100.2381762),
+population:746
+};
+citymap["NY"]={
+center:new google.maps.LatLng(35.8585639,-86.3493573),
+population:2716
+};
+citymap["OH"]={
+center:new google.maps.LatLng(31.4347032,-99.2818238),
+population:1991
+};
+citymap["OK"]={
+center:new google.maps.LatLng(39.3349735,-111.6563633),
+population:644
+};
+citymap["ON"]={
+center:new google.maps.LatLng(44.0605475,-72.673354),
+population:1296
+};
+citymap["OR"]={
+center:new google.maps.LatLng(37.5222512,-78.6681938),
+population:1455
+};
+citymap["PA"]={
+center:new google.maps.LatLng(47.4162296,-120.5996231),
+population:2205
+};
+citymap["PE"]={
+center:new google.maps.LatLng(38.6472854,-80.6183274),
+population:17
+};
+citymap["PQ"]={
+center:new google.maps.LatLng(44.628484,-89.7119299),
+population:66
+};
+citymap["PR"]={
+center:new google.maps.LatLng(42.9918024,-107.5419255),
+population:22
+};
+
+var cityCircle;
+
+function initialize() {
+  // Create the map.
+  var mapOptions = {
+    zoom: 4,
+    center: new google.maps.LatLng(39.09024, -99.712891),
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+
+  var map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+
+  // Construct the circle for each value in citymap.
+  // Note: We scale the area of the circle based on the population.
+  for (var city in citymap) {
+    var populationOptions = {
+      strokeColor:'#311B92' ,
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#C51162',
+      fillOpacity: 0.35,
+      map: map,
+      center: citymap[city].center,
+      radius: Math.sqrt(citymap[city].population) * 7000
+    };
+    // Add the circle for this city to the map.
+    cityCircle = new google.maps.Circle(populationOptions);
+  }
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+<meta charset="UTF-8">
+</head>
+<body>
+<h1>Análisis exploratorio  y serie de tiempo  <br> de las observaciones de UFOs en EUA</h1>
+<h2>Luis Manuel Román García</h2>
+<h3>ITAM</h3>
+<hr>
+<h4>Introducción</h4>
+<p>En este proyecto implementamos un flujo de trabajo de análisis de datos que involucra diversos procesos. El contenido podría resumirse en tres etapas básicas. Estas son:</p>
+<ol>
+    <li>Obtención de datos</li>
+    <li>Procesamiento</li>
+    <li>Visualización</li>
+</ol>
+<p>A lo largo de todas las etapas se utilizaron diversos lenguajes de programación y se explotaron sus características para hacer el proceso lo más natural y eficiente posible <i>(posible por mi en todo caso).</i> Los lenguajes más relevantes en cada etapa son los siguientes:</p>
+<ol>
+    <li>Parallel, regex, bash</li>
+    <li>Regex, AWK, sed, R, bash, xpath, javascript</li>
+    <li>R, javascript</li>
+</ol>
+
+<hr>
+<h4>Obtención de datos</h4>
+<p>En esta parte obtenemos los datos de la página web. La liga de interés es la siguiente:</p>
+<div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">http://www.nuforc.org/webreports/ndxevent.html
+</pre></div>
+<p>El problema es que los archivos de interés están repartidos a lo largo de múltiples ligas. Una alternativa factible en este caso sería descargarlos en serie con un pequeño <i>script</i> de <b>bash</b></p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1
+2</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-style: italic">#!/usr/bin/bash</span>
+curl http://www.nuforc.org/webreports/ndxevent.html | grep -oE <span style="color: #BB4444">&#39;ndxe[0-9]{1,8}\.html&#39;</span> | <span style="color: #AA22FF; font-weight: bold">while </span><span style="color: #AA22FF">read </span>line; <span style="color: #AA22FF; font-weight: bold">do </span>wget <span style="color: #BB4444">&quot;http://www.nuforc.org/webreports/$line&quot;</span> ; <span style="color: #AA22FF; font-weight: bold">done</span>
+</pre></td></tr></table></div>
+<p>Si se quiere experimentar un poco con procesamiento en paralelo podemos hacer que el código se baje en varias máquinas simultaneamente (4 en este caso)</p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1
+2</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-style: italic">#!/usr/bin/bash</span>
+curl http://www.nuforc.org/webreports/ndxevent.html | grep -oE <span style="color: #BB4444">&#39;ndxe[0-9]{1,8}\.html&#39;</span> | <span style="color: #AA22FF; font-weight: bold">while </span><span style="color: #AA22FF">read </span>line; <span style="color: #AA22FF; font-weight: bold">do </span><span style="color: #AA22FF">echo</span> <span style="color: #BB4444">&quot;http://www.nuforc.org/webreports/$line&quot;</span> ; <span style="color: #AA22FF; font-weight: bold">done</span> &gt;&gt; urls.txt <span style="color: #666666">&amp;&amp;</span> cat urls.txt  | parallel -S ubuntu@52.11.75.230 -S ubuntu@52.11.75.88 -S ubuntu@52.11.72.238 -S ubuntu@52.11.20.202 wget
+</pre></td></tr></table></div>
+<p>Una vez que se haya completado la descarga, podemos juntar todos  los archivos dentro de una máquina y continuar el procesamiento.</p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1</pre></td><td><pre style="margin: 0; line-height: 125%">scp -i /home/lgarcia/key_pairs/luis/lgarcia-key-pair-oregon.pem  ubuntu@52.11.75.230:/home/ubuntu/*.html .
+</pre></td></tr></table></div>
+<p>En este caso sólo lo muestro para una máquina, sin embargo, se debe hacer para todas.</p>
+<br>
+<h4>Procesamiento</h4>
+<h5>HTML a CSV</h5>
+<p>En esta sección tratamos el problema de pasar los datos de formato <b>html</b> a <b>csv</b> y estructurarlos para el análisis. Sin lugar a dudas esta es la parte más complicada del flujo de trabajo. Después de varias intentos  estructuré el  siguiente código. La buena noticia <b>es prácticamente un <i>one22222222222222222222222222222222222233333333333<<
+liner</i></b></p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-style: italic">#!/bin/bash</span>
+<span style="color: #008800; font-style: italic">#Luis M. Román García</span>
+<span style="color: #008800; font-style: italic">#Script para leer un archivo en html con una tabla y devolverla en formato csv.</span>
+
+<span style="color: #B8860B">file</span><span style="color: #666666">=</span><span style="color: #B8860B">$1</span>
+<span style="color: #B8860B">lines</span><span style="color: #666666">=</span><span style="color: #BB4444">`</span>wc -l <span style="color: #B8860B">$file</span><span style="color: #BB4444">`</span>
+<span style="color: #B8860B">lines1</span><span style="color: #666666">=</span><span style="color: #AA22FF; font-weight: bold">${</span><span style="color: #B8860B">lines</span>/.*<span style="color: #AA22FF; font-weight: bold">}</span>
+<span style="color: #AA22FF; font-weight: bold">for </span>i in <span style="color: #AA22FF; font-weight: bold">$(</span>seq <span style="color: #B8860B">$lines1</span><span style="color: #AA22FF; font-weight: bold">)</span>;
+<span style="color: #AA22FF; font-weight: bold">do</span>
+<span style="color: #AA22FF">echo</span> <span style="color: #B8860B">$i</span>
+cat <span style="color: #B8860B">$file</span> | scrape -b -e <span style="color: #BB4444">&#39;//td&#39;</span> | xml2json | jq <span style="color: #BB4444">&#39;.&#39;</span> | grep <span style="color: #BB4444">&#39;$t&#39;</span> | sed <span style="color: #BB4444">&#39;s/^ *//;s/ *$//&#39;</span> | cut -c6- | /usr/bin/Rscript ./toCsv.R <span style="color: #666666">&amp;&amp;</span> cat test.json | jq -c <span style="color: #666666">{</span><span style="color: #BB4444">&#39;date: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][0], city: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][1], state: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][2], shape: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][3],duration: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][4],description: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][5], posted: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][6]}&#39;</span>| /home/lgarcia/go/bin/json2csv -p -k date,city,state,shape,duration,descripition,posted |header -d &gt;&gt; globalFile.csv
+<span style="color: #AA22FF; font-weight: bold">done</span>
+</pre></td></tr></table></div>
+<p>Vale la pena detenerse un poco en cada componente del <i>pipline</i>. Básicamente este se divide en dos partes. En la primera obtenemos todos los datos relevantes y los pasamos a formato <b>json</b> esto se debe a que es mucho más fácil ir de <b>json</b> a <b>csv</b> que de <b>HTML</b>. En la segunda parte tomamos el archivo en formato <b>json</b> y lo pasamos a <b>csv</b>. </p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1</pre></td><td><pre style="margin: 0; line-height: 125%">cat <span style="color: #B8860B">$file</span> | scrape -b -e <span style="color: #BB4444">&#39;//td&#39;</span> | xml2json | jq <span style="color: #BB4444">&#39;.&#39;</span> | grep <span style="color: #BB4444">&#39;$t&#39;</span> | sed <span style="color: #BB4444">&#39;s/^ *//;s/ *$//&#39;</span> | cut -c6- | /usr/bin/Rscript ./toCsv.R
+</pre></td></tr></table></div>
+<p>El script de R con el q pongo los datos en formato <b>json</b> es el siguiente:</p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></td><td><pre style="margin: 0; line-height: 125%"> <span style="color: #008800; font-style: italic">#! /bin/usr/Rscript</span>
+library(RJSONIO)
+<span style="color: #008800; font-style: italic">#setwd(&quot;~/ITAM/primavera15/projects/ufo&quot;)</span>
+con <span style="color: #666666">&lt;-</span> <span style="color: #AA22FF">file</span>(<span style="color: #BB4444">&#39;stdin&#39;</span>,<span style="color: #BB4444">&#39;r&#39;</span>)
+<span style="color: #AA22FF">file</span>  <span style="color: #666666">&lt;-</span> readLines(con)
+close(con)
+data <span style="color: #666666">&lt;-</span> <span style="color: #AA22FF">list</span>()
+k <span style="color: #666666">&lt;-</span> <span style="color: #666666">1</span>
+<span style="color: #AA22FF; font-weight: bold">for</span>(i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #666666">1</span>:(length(<span style="color: #AA22FF">file</span>)<span style="color: #666666">/7</span>)){
+        registro <span style="color: #666666">&lt;-</span> <span style="color: #AA22FF">list</span>()
+ <span style="color: #AA22FF; font-weight: bold">for</span>(j <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #666666">1</span>:<span style="color: #666666">7</span>){
+    registro[[j]] <span style="color: #666666">&lt;-</span> <span style="color: #AA22FF">file</span>[k]
+    k <span style="color: #666666">&lt;-</span> k <span style="color: #666666">+</span> <span style="color: #666666">1</span>
+ }
+ data[[i]] <span style="color: #666666">&lt;-</span> registro
+}
+data<span style="color: #666666">.</span>js <span style="color: #666666">&lt;-</span> toJSON(data)
+write(data<span style="color: #666666">.</span>js, <span style="color: #BB4444">&quot;test.json&quot;</span>)
+</pre></td></tr></table></div>
+<p>Esta es la segunda parte del <i>pipe</i></p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1</pre></td><td><pre style="margin: 0; line-height: 125%"> cat test.json | jq -c <span style="color: #666666">{</span><span style="color: #BB4444">&#39;date: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][0], city: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][1], state: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][2], shape: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][3],duration: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][4],description: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][5], posted: .[&#39;</span><span style="color: #B8860B">$i</span><span style="color: #BB4444">&#39;][6]}&#39;</span>| /home/lgarcia/go/bin/json2csv -p -k date,city,state,shape,duration,descripition,posted |header -d &gt;&gt; globalFile.csv
+</pre></td></tr></table></div>
+<h6>Output</h6>
+<div style="background: #000000; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1
+2
+3
+4
+5
+6</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #3399cc">[</span>lgarcia@luis code<span style="color: #3399cc">]</span><span style="color: #00cdcd">$ </span>cat ../data/input/ufoFiles/ndxe201502.html | scrape -b -e <span style="color: #cd0000">&#39;//td&#39;</span> | xml2json | jq <span style="color: #cd0000">&#39;.&#39;</span> | grep <span style="color: #cd0000">&#39;$t&#39;</span> | sed <span style="color: #cd0000">&#39;s/^ *//;s/ *$//&#39;</span> | cut -c6- | /usr/bin/Rscript ./toCsv.R <span style="color: #3399cc">&amp;&amp;</span> cat test.json | jq -c <span style="color: #3399cc">{</span><span style="color: #cd0000">&#39;date: .[1][0], city: .[1][1], state: .[1][2], shape: .[1][3],duration: .[1][4],description: .[1][5], posted: .[1][6]}&#39;</span>| /home/lgarcia/go/bin/json2csv -p -k date,city,state,shape,duration,posted | csvlook
+|-------------------+---------+-------+--------------+---------------+-------------|
+|  date             | city    | state | shape        | duration      | posted      |
+|-------------------+---------+-------+--------------+---------------+-------------|
+|   <span style="color: #cd0000">&quot;2/19/15 21:00&quot;</span> |  <span style="color: #cd0000">&quot;Reno&quot;</span> |  <span style="color: #cd0000">&quot;NV&quot;</span> |  <span style="color: #cd0000">&quot;Rectangle&quot;</span> |  <span style="color: #cd0000">&quot;25 seconds&quot;</span> |  <span style="color: #cd0000">&quot;2/20/15&quot;</span>  |
+|-------------------+---------+-------+--------------+---------------+-------------|
+</pre></td></tr></table></div>
+<h5>Estructuración final para análisis</h5>
+<p>Con los datos en el formato adecuado, todavía hace falta llevar a cabo un último proceso de limpieza y estructuración. Este consiste en tratar los valores faltantes, errores de dedo, corrección de formato de registros, etc.</p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #008800; font-style: italic"># Luis Manuel Román García</span>
+<span style="color: #008800; font-style: italic"># Métodos de gran escala</span>
+<span style="color: #008800; font-style: italic"># Proyecto 1</span>
+<span style="color: #008800; font-style: italic">########################</span>
+<span style="color: #008800; font-style: italic"># Este código recibe los datos provenientes de la página web</span>
+<span style="color: #008800; font-style: italic"># y lleva a cabo el proceso de limpieza y estructuración.</span>
+<span style="color: #008800; font-style: italic">########################</span>
+<span style="color: #008800; font-style: italic"># Directorio de trabajo</span>
+setwd(<span style="color: #BB4444">&quot;~/ITAM/primavera15/projects/ufo&quot;</span>)
+<span style="color: #008800; font-style: italic">########################</span>
+<span style="color: #008800; font-style: italic"># Librerías utilizadas</span>
+library(plyr)
+library(dplyr)
+library(stringr)
+library(tm)
+library(tidyr)
+<span style="color: #008800; font-style: italic">########################</span>
+<span style="color: #008800; font-style: italic"># Lectura de datos</span>
+<span style="color: #008800; font-style: italic"># Registros UFO</span>
+data                 <span style="color: #666666">&lt;-</span> read<span style="color: #666666">.</span>table(<span style="color: #BB4444">&quot;./data/input/tabla.txt&quot;</span>,
+                                             header <span style="color: #666666">=</span> TRUE,
+                                             stringsAsFactors <span style="color: #666666">=</span> FALSE,
+                                             na<span style="color: #666666">.</span>strings <span style="color: #666666">=</span> c(<span style="color: #BB4444">&quot;NA&quot;</span>,<span style="color: #BB4444">&quot;&quot;</span>,<span style="color: #BB4444">&quot; &quot;</span>))
+names(data)     <span style="color: #666666">&lt;-</span> tolower(names(data))
+names(data)[<span style="color: #666666">1</span>] <span style="color: #666666">&lt;-</span> <span style="color: #BB4444">&quot;date_time&quot;</span>
+<span style="color: #008800; font-style: italic">########################</span>
+<span style="color: #008800; font-style: italic"># Procesamiento de datos</span>
+<span style="color: #008800; font-style: italic"># Separar hora y fecha</span>
+data                <span style="color: #666666">&lt;-</span> separate(data,date_time,
+                                             c(<span style="color: #BB4444">&quot;date&quot;</span>,<span style="color: #BB4444">&quot;time&quot;</span>),
+                                             sep <span style="color: #666666">=</span> <span style="color: #BB4444">&quot;[[:blank:]]&quot;</span>,
+                                             extra <span style="color: #666666">=</span> <span style="color: #BB4444">&quot;drop&quot;</span>)
+<span style="color: #008800; font-style: italic"># Convertir fechas a tipo fecha</span>
+data<span style="border: 1px solid #FF0000">$</span>date       <span style="color: #666666">&lt;-</span> <span style="color: #AA22FF; font-weight: bold">as</span><span style="color: #666666">.</span>Date(data<span style="border: 1px solid #FF0000">$</span>date,
+                                        <span style="color: #BB4444">&quot;%m/</span><span style="color: #BB6688; font-weight: bold">%d</span><span style="color: #BB4444">/%y&quot;</span>)
+data<span style="border: 1px solid #FF0000">$</span>posted    <span style="color: #666666">&lt;-</span> <span style="color: #AA22FF; font-weight: bold">as</span><span style="color: #666666">.</span>Date(data<span style="border: 1px solid #FF0000">$</span>posted,
+                                      <span style="color: #BB4444">&quot;%m/</span><span style="color: #BB6688; font-weight: bold">%d</span><span style="color: #BB4444">/%y&quot;</span>)
+<span style="color: #008800; font-style: italic"># Poner descripciones en minúsculas</span>
+data<span style="border: 1px solid #FF0000">$</span>shape      <span style="color: #666666">&lt;-</span> tolower(data<span style="border: 1px solid #FF0000">$</span>shape)
+<span style="color: #008800; font-style: italic"># Limpiar datos de duración</span>
+data<span style="border: 1px solid #FF0000">$</span>duration  <span style="color: #666666">&lt;-</span> data<span style="border: 1px solid #FF0000">$</span>duration <span style="color: #666666">%&gt;%</span>
+                    str_trim() <span style="color: #666666">%&gt;%</span>
+                    str_replace(<span style="color: #BB4444">&quot;((min).*)&quot;</span>, <span style="color: #BB4444">&quot;min&quot;</span>) <span style="color: #666666">%&gt;%</span>
+                    str_replace(<span style="color: #BB4444">&quot;((sec).*)&quot;</span>, <span style="color: #BB4444">&quot;sec&quot;</span>) <span style="color: #666666">%&gt;%</span>
+                    str_replace(<span style="color: #BB4444">&quot;((hou).*)&quot;</span>, <span style="color: #BB4444">&quot;hr&quot;</span>) <span style="color: #666666">%&gt;%</span>
+                    str_replace_all(<span style="color: #BB4444">&quot;[[:punct:]].*&quot;</span>, <span style="color: #BB4444">&quot;&quot;</span>) <span style="color: #666666">%&gt;%</span>
+                    str_match(<span style="color: #BB4444">&quot;[[:digit:]]+.*[[:alpha:]]+&quot;</span>)<span style="color: #666666">%&gt;%</span>
+                    str_trim
+<span style="color: #008800; font-style: italic"># Pasar a una misma escala (todo a segundos)</span>
+data                <span style="color: #666666">&lt;-</span> separate(data,duration,
+                                              c(<span style="color: #BB4444">&quot;duration&quot;</span>,<span style="color: #BB4444">&quot;scale&quot;</span>),
+                                              sep <span style="color: #666666">=</span> <span style="color: #BB4444">&quot;[[:blank:]]&quot;</span>,
+                                              extra <span style="color: #666666">=</span> <span style="color: #BB4444">&quot;drop&quot;</span>)
+data<span style="border: 1px solid #FF0000">$</span>duration <span style="color: #666666">&lt;-</span> extract_numeric(data<span style="border: 1px solid #FF0000">$</span>duration)
+<span style="color: #AA22FF; font-weight: bold">for</span>(i <span style="color: #AA22FF; font-weight: bold">in</span> <span style="color: #666666">1</span>:nrow(data)){
+    <span style="color: #AA22FF; font-weight: bold">if</span>(<span style="border: 1px solid #FF0000">!</span><span style="color: #AA22FF; font-weight: bold">is</span><span style="color: #666666">.</span>na(data<span style="border: 1px solid #FF0000">$</span>scale[i])){
+        <span style="color: #AA22FF; font-weight: bold">if</span>(data<span style="border: 1px solid #FF0000">$</span>scale[i] <span style="color: #666666">==</span> <span style="color: #BB4444">&quot;hr&quot;</span>){
+            data<span style="border: 1px solid #FF0000">$</span>duration[i] <span style="color: #666666">&lt;-</span> data<span style="border: 1px solid #FF0000">$</span>duration[i] <span style="color: #666666">*</span> <span style="color: #666666">3600</span>
+        }<span style="color: #AA22FF; font-weight: bold">else</span> <span style="color: #AA22FF; font-weight: bold">if</span>(data<span style="border: 1px solid #FF0000">$</span>scale[i] <span style="color: #666666">==</span> <span style="color: #BB4444">&quot;min&quot;</span>){
+            data<span style="border: 1px solid #FF0000">$</span>duration[i] <span style="color: #666666">&lt;-</span> data<span style="border: 1px solid #FF0000">$</span>duration[i] <span style="color: #666666">*</span> <span style="color: #666666">60</span>
+        }
+    }
+}
+data<span style="border: 1px solid #FF0000">$</span>scale <span style="color: #666666">&lt;-</span> NULL
+<span style="color: #008800; font-style: italic"># Eliminar columnas no necesarias para los fines de este proyecto.</span>
+data <span style="color: #666666">&lt;-</span> data[,c(<span style="color: #666666">1</span>,<span style="color: #666666">2</span>,<span style="color: #666666">4</span>,<span style="color: #666666">5</span>,<span style="color: #666666">6</span>,<span style="color: #666666">8</span>)]
+<span style="color: #008800; font-style: italic"># Seleccionamos únicamente aquellos datos que aparecen en EUA</span>
+data <span style="color: #666666">&lt;-</span> subset(data, state <span style="color: #666666">%</span><span style="color: #AA22FF; font-weight: bold">in</span><span style="color: #666666">%</span> abrev)
+<span style="color: #008800; font-style: italic"># Eliminamos datos faltantes.</span>
+data <span style="color: #666666">&lt;-</span> na<span style="color: #666666">.</span>omit(data)
+<span style="color: #008800; font-style: italic"># Escribimos datos límpios.</span>
+write<span style="color: #666666">.</span>csv(data,<span style="color: #BB4444">&quot;./data/output/data_clean.csv&quot;</span>,row<span style="color: #666666">.</span>names <span style="color: #666666">=</span> FALSE)
+</pre></td></tr></table></div>
+<p>Claro que para automatizar el proceso, podemos correr desde la terminal.</p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1</pre></td><td><pre style="margin: 0; line-height: 125%">cat data.csv | cleanning.R <span style="color: #666666">&amp;&amp;</span> cat ./data_clean.csv | ./tsPlot.R <span style="color: #BB4444">&quot;IN&quot;</span><span style="border: 1px solid #FF0000">&#39;</span>
+</pre></td></tr></table></div>
+
+<br>
+<h4>Estadística descriptiva y serie de tiempo</h4>
+<p>En esta sección exploramos el comportamiento de las observaciones de los <i>UFOs</i> desde distintas perspectivas y trataremos de responder preguntas como:</p>
+<ul>
+    <li>¿Cuáles son  los  estado donde se han registrado el mayor número de observaciones históricamente?</li>
+    <li>¿Cuáles son los estados con mayor número de observaciones por año?</li>
+    <li>¿Cuál es la racha más larga de avistamientos?</li>
+    <li>¿Cuál es el mes con más avistamientos?</li>
+</ul>
+<h5>Serie de tiempo global</h5>
+<p>En esta sección hacemos el análisis de la distribución de las observaciones de <i>UFOs</i> a lo largo de los años.</p>
+<img src =../../graphs/tsGlobal.png style="width:860px;height:550px;" >
+<h5>Serie de tiempo por estado</h5>
+<img src =../../graphs/tsState.png style="width:860px;height:550px;" >
+<h5>Top 6 avistamientos por estado por año</h5>
+<img src =../../graphs/topYear.png style="width:860px;height:550px;" >
+<h5>Avistamientos por estado</h5>
+<img src =../../graphs/histState.png style="width:860px;height:550px;" >
+<h5>Avistamientos por mes </h5>
+<img src =../../graphs/histmonth.png style="width:860px;height:550px;" >
+<h5>Avistamientos por día </h5>
+<img src =../../graphs/histDay.png style="width:860px;height:550px;" >
+<br>
+<h4>Visualización Geográfica</h4>
+<p>Para poder georeferenciar correctamente las observaciones  se tuvo que lidiar con el problema de que sólo contamos con las abreviaciones de los estados y no con sus coordenadas geográficas. Para obtener las coordenadas junto con los nombres utilicé el siguiente código.</p>
+<div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1</pre></td><td><pre style="margin: 0; line-height: 125%">curl https://www.census.gov/geo/reference/state-area.html | grep -E <span style="color: #BB4444">&quot;&lt;td&gt;+.*&quot;</span> | tail -n +9 | head -n -7 |tr -s <span style="color: #BB4444">&#39;\t[:space:]&#39;</span> <span style="color: #BB4444">&#39;_&#39;</span> | grep -oE <span style="color: #BB4444">&quot;((+|-)[0-9]*\.[0-9]*|[A-Z]+[a-z]*_[A-Z]+[a-z]*|[A-Z]+[a-z]*)&quot;</span> &gt; coords.txt
+</pre></td></tr></table></div>
+<p>Al graficar las observiaciones conforme a su estado de procedencia, observamos los siguiente.</p>
+<div id="map-canvas" style="width:860px;height:550px;"></div>
+</body>
+</html>
+
+

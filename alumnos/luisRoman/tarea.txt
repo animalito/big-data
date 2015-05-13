@@ -1,0 +1,3 @@
+- Ejercicios de la clase pasada.
+- Pseudocódigo
+- Correr wordcount con Pig y Hive

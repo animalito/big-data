@@ -118,7 +118,8 @@ CSV
 - En `python`
 
 <small>
-```{python, eval=FALSE}
+
+```python
 def write_psv(file_name, dic, header):
     csv.register_dialect('psv', delimiter='|', quoting=csv.QUOTE_ALL) # Dialecto PSV
     with open(os.path.relpath('../data/'+ file_name), 'a') as csv_output:
@@ -131,7 +132,7 @@ CSV
 ========================================================
 - En `PostgreSQL` (desde `psql`)
 
-```{sql}
+```
 \copy (select * from foo) to '/algun_archivo.psv' with header csv delimiter '|'
 ```
 
@@ -178,7 +179,7 @@ Ejemplos
 - XML
 
 <small>
-```{xml}
+```
 <xml>
 <profesor>
   <nombre>
@@ -203,7 +204,7 @@ Ejemplo
 - JSON
 
 <small>
-```{json}
+```
   {
   "nombre": Adolfo De Unánue
   "fecha_nacimiento": 04/02/1978
@@ -352,7 +353,7 @@ Ejemplo (Continuación)
 ==========================================================
 
 Por último, para sincronizar con los cambios en el `fork` principal
-```{bash}
+```
 > git remote -v # Vemos que remotes tenemos ligados
 
 # Agregamos el repo de la clase
@@ -960,7 +961,7 @@ awk
 
 ¿Qué pasa cuando hay muchas columnas?
 
-```{awk}
+```
 awk -F "|" '
 {
   for (i=1; i<=NF; ++i) sum[i] += $i; j=NF
@@ -1072,7 +1073,7 @@ Utilerías
 
 - `bg` ó  `&` para mandar procesos al *background*
 
-```{python}
+```
 python -m SimpleHTTPServer 8008 &
 # Ejecuto un servidor HTTP
 ```
@@ -1140,7 +1141,7 @@ Usando el truco del `shebang` podemos hacer el siguiente programa:
 
 Recursividad:
 
-```{python}
+```
 #!/usr/bin/env python
 
 def fibonacci(x):
@@ -1165,7 +1166,7 @@ Usando el truco del `shebang` podemos hacer el siguiente programa (otro archivo)
 
 Generadores:
 
-```{python}
+```
 #!/usr/bin/env python
 
 def fibonacci(x):
@@ -1186,7 +1187,7 @@ R programming
 
 El `shebang` para `R` sería
 
-```{R}
+```
 #!/usr/bin/env Rscript
 ...
 ```
@@ -1197,7 +1198,7 @@ Python, leyendo de stdin
 
 - **Python**
 
-```{python}
+```
 #!/usr/bin/env python
 
 import re
@@ -1223,7 +1224,7 @@ R, leyendo de stdin
 
 - **R**
 
-```{R}
+```
 #!/usr/bin/env Rscript
 
 n <- as.integer(commandArgs(trailingOnly = TRUE)) # Leemos un entero como argumento (opcional)
@@ -1831,7 +1832,7 @@ reports_url <- paste0(base_url, daily_urls[1] %>%
                   )
 
 # Finalmente el reporte
-report <- summaries[1] %>%
+report <- reports_url[1] %>%
               html %>%
               html_nodes(xpath='//*/tr[2]') %>%
               html_text
