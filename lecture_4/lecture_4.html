@@ -1105,7 +1105,7 @@ SparkContext available as sc, HiveContext available as sqlCtx.
 </ul>
 
 <pre><code data-trim>
-ufos_nov = sc.textfile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
+ufos_nov = sc.textFile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
 </code></pre>
 
 <ul>
@@ -1162,6 +1162,10 @@ ufos_nov.map(lambda line: (line.split('\t')[2]))\
 </ul>
 
 <pre><code data-trim>
+import csv
+from io import StringIO
+
+
 def load_tsv(archivo):
     return csv.reader(StringIO(archivo[1]), delimiter='\t')
 </code></pre>

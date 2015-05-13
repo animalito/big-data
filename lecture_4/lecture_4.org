@@ -760,6 +760,10 @@ ufos_nov.map(lambda line: (line.split('\t')[2]))\
 
 #+begin_html
 <pre><code data-trim>
+import csv
+from io import StringIO
+
+
 def load_tsv(archivo):
     return csv.reader(StringIO(archivo[1]), delimiter='\t')
 </code></pre>
