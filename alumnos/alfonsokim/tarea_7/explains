@@ -1,0 +1,141 @@
+0: jdbc:hive2://localhost:10000> explain select count(distinct State) from ufos;
++--------------------------------------------------------------------------------------------------------+--+
+|                                                Explain                                                 |
++--------------------------------------------------------------------------------------------------------+--+
+| STAGE DEPENDENCIES:                                                                                    |
+|   Stage-1 is a root stage                                                                              |
+|   Stage-0 depends on stages: Stage-1                                                                   |
+|                                                                                                        |
+| STAGE PLANS:                                                                                           |
+|   Stage: Stage-1                                                                                       |
+|     Map Reduce                                                                                         |
+|       Map Operator Tree:                                                                               |
+|           TableScan                                                                                    |
+|             alias: ufos                                                                                |
+|             Statistics: Num rows: 678 Data size: 67853 Basic stats: COMPLETE Column stats: NONE        |
+|             Select Operator                                                                            |
+|               expressions: state (type: string)                                                        |
+|               outputColumnNames: state                                                                 |
+|               Statistics: Num rows: 678 Data size: 67853 Basic stats: COMPLETE Column stats: NONE      |
+|               Group By Operator                                                                        |
+|                 aggregations: count(DISTINCT state)                                                    |
+|                 keys: state (type: string)                                                             |
+|                 mode: hash                                                                             |
+|                 outputColumnNames: _col0, _col1                                                        |
+|                 Statistics: Num rows: 678 Data size: 67853 Basic stats: COMPLETE Column stats: NONE    |
+|                 Reduce Output Operator                                                                 |
+|                   key expressions: _col0 (type: string)                                                |
+|                   sort order: +                                                                        |
+|                   Statistics: Num rows: 678 Data size: 67853 Basic stats: COMPLETE Column stats: NONE  |
+|       Reduce Operator Tree:                                                                            |
+|         Group By Operator                                                                              |
+|           aggregations: count(DISTINCT KEY._col0:0._col0)                                              |
+|           mode: mergepartial                                                                           |
+|           outputColumnNames: _col0                                                                     |
+|           Statistics: Num rows: 1 Data size: 16 Basic stats: COMPLETE Column stats: NONE               |
+|           Select Operator                                                                              |
+|             expressions: _col0 (type: bigint)                                                          |
+|             outputColumnNames: _col0                                                                   |
+|             Statistics: Num rows: 1 Data size: 16 Basic stats: COMPLETE Column stats: NONE             |
+|             File Output Operator                                                                       |
+|               compressed: false                                                                        |
+|               Statistics: Num rows: 1 Data size: 16 Basic stats: COMPLETE Column stats: NONE           |
+|               table:                                                                                   |
+|                   input format: org.apache.hadoop.mapred.TextInputFormat                               |
+|                   output format: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat            |
+|                   serde: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe                            |
+|                                                                                                        |
+|   Stage: Stage-0                                                                                       |
+|     Fetch Operator                                                                                     |
+|       limit: -1                                                                                        |
+|       Processor Tree:                                                                                  |
+|         ListSink                                                                                       |
+|                                                                                                        |
++--------------------------------------------------------------------------------------------------------+--+
+49 rows selected (0.403 seconds)
+0: jdbc:hive2://localhost:10000> explain select count(*) from (select distinct State from ufos) as t;
++--------------------------------------------------------------------------------------------------------+--+
+|                                                Explain                                                 |
++--------------------------------------------------------------------------------------------------------+--+
+| STAGE DEPENDENCIES:                                                                                    |
+|   Stage-1 is a root stage                                                                              |
+|   Stage-2 depends on stages: Stage-1                                                                   |
+|   Stage-0 depends on stages: Stage-2                                                                   |
+|                                                                                                        |
+| STAGE PLANS:                                                                                           |
+|   Stage: Stage-1                                                                                       |
+|     Map Reduce                                                                                         |
+|       Map Operator Tree:                                                                               |
+|           TableScan                                                                                    |
+|             alias: ufos                                                                                |
+|             Statistics: Num rows: 678 Data size: 67853 Basic stats: COMPLETE Column stats: NONE        |
+|             Select Operator                                                                            |
+|               expressions: state (type: string)                                                        |
+|               outputColumnNames: state                                                                 |
+|               Statistics: Num rows: 678 Data size: 67853 Basic stats: COMPLETE Column stats: NONE      |
+|               Group By Operator                                                                        |
+|                 keys: state (type: string)                                                             |
+|                 mode: hash                                                                             |
+|                 outputColumnNames: _col0                                                               |
+|                 Statistics: Num rows: 678 Data size: 67853 Basic stats: COMPLETE Column stats: NONE    |
+|                 Reduce Output Operator                                                                 |
+|                   key expressions: _col0 (type: string)                                                |
+|                   sort order: +                                                                        |
+|                   Map-reduce partition columns: _col0 (type: string)                                   |
+|                   Statistics: Num rows: 678 Data size: 67853 Basic stats: COMPLETE Column stats: NONE  |
+|       Reduce Operator Tree:                                                                            |
+|         Group By Operator                                                                              |
+|           keys: KEY._col0 (type: string)                                                               |
+|           mode: mergepartial                                                                           |
+|           outputColumnNames: _col0                                                                     |
+|           Statistics: Num rows: 339 Data size: 33926 Basic stats: COMPLETE Column stats: NONE          |
+|           Select Operator                                                                              |
+|             Statistics: Num rows: 339 Data size: 33926 Basic stats: COMPLETE Column stats: NONE        |
+|             Group By Operator                                                                          |
+|               aggregations: count()                                                                    |
+|               mode: hash                                                                               |
+|               outputColumnNames: _col0                                                                 |
+|               Statistics: Num rows: 1 Data size: 8 Basic stats: COMPLETE Column stats: NONE            |
+|               File Output Operator                                                                     |
+|                 compressed: false                                                                      |
+|                 table:                                                                                 |
+|                     input format: org.apache.hadoop.mapred.SequenceFileInputFormat                     |
+|                     output format: org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat           |
+|                     serde: org.apache.hadoop.hive.serde2.lazybinary.LazyBinarySerDe                    |
+|                                                                                                        |
+|   Stage: Stage-2                                                                                       |
+|     Map Reduce                                                                                         |
+|       Map Operator Tree:                                                                               |
+|           TableScan                                                                                    |
+|             Reduce Output Operator                                                                     |
+|               sort order:                                                                              |
+|               Statistics: Num rows: 1 Data size: 8 Basic stats: COMPLETE Column stats: NONE            |
+|               value expressions: _col0 (type: bigint)                                                  |
+|       Reduce Operator Tree:                                                                            |
+|         Group By Operator                                                                              |
+|           aggregations: count(VALUE._col0)                                                             |
+|           mode: mergepartial                                                                           |
+|           outputColumnNames: _col0                                                                     |
+|           Statistics: Num rows: 1 Data size: 8 Basic stats: COMPLETE Column stats: NONE                |
+|           Select Operator                                                                              |
+|             expressions: _col0 (type: bigint)                                                          |
+|             outputColumnNames: _col0                                                                   |
+|             Statistics: Num rows: 1 Data size: 8 Basic stats: COMPLETE Column stats: NONE              |
+|             File Output Operator                                                                       |
+|               compressed: false                                                                        |
+|               Statistics: Num rows: 1 Data size: 8 Basic stats: COMPLETE Column stats: NONE            |
+|               table:                                                                                   |
+|                   input format: org.apache.hadoop.mapred.TextInputFormat                               |
+|                   output format: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat            |
+|                   serde: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe                            |
+|                                                                                                        |
+|   Stage: Stage-0                                                                                       |
+|     Fetch Operator                                                                                     |
+|       limit: -1                                                                                        |
+|       Processor Tree:                                                                                  |
+|         ListSink                                                                                       |
+|                                                                                                        |
++--------------------------------------------------------------------------------------------------------+--+
+78 rows selected (0.312 seconds)
+0: jdbc:hive2://localhost:10000> 
+

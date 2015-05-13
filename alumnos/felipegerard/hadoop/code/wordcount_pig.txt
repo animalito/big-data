@@ -1,0 +1,33 @@
+-- Leemos el archivo
+shakespeare = LOAD 'experimentos/pg100.txt' USING TextLoader AS (line:chararray);
+describe;
+-- Usando UDFs y expresiones regulares de Java
+-- Esto es el map. Mapea cada línea a las palabras (equivale a mapear línea --> (palabra, 1))
+palabras = FOREACH shakespeare GENERATE flatten(TOKENIZE(REPLACE(LOWER(TRIM(line)), '[\\p{Punct}, \\p{Cntrl}]', ' '))) AS palabra;
+-- Agrupa las palabras en bolsas con una repetición por cada vez que aparece la palabra, ie. the the the --> the:(the,the,the)
+grupo = GROUP palabras BY palabra;
+-- Esto es el reduce: (palabra,palabra,palabra) --> palabra:3
+conteo = FOREACH grupo GENERATE group AS palabra, COUNT(palabras) AS cantidad;
+-- Ordena por conteos
+ordenados = ORDER conteo BY cantidad desc;
+-- Toma los primeros valores
+top10 = LIMIT ordenados 10;
+DUMP top10;
+
+-- Guarda los archivos en las "carpetas" correspondientes. Ojo que corre el proceso una vez por STORE. No guarda resultados intermedios en memoria.
+STORE shakespeare INTO '/user/itam/output/wordcount/pig/shakespeare' USING PigStorage('|');
+STORE palabras INTO '/user/itam/output/wordcount/pig/palabras' USING PigStorage('|');
+STORE grupo INTO '/user/itam/output/wordcount/pig/grupo' USING PigStorage('|');
+STORE conteo INTO '/user/itam/output/wordcount/pig/conteo' USING PigStorage('|');
+STORE ordenados INTO '/user/itam/output/wordcount/pig/ordenados' USING PigStorage('|');
+STORE top10 INTO '/user/itam/output/wordcount/pig/top10' USING PigStorage('|');
+
+-- Y afuera de Pig... Pasamos los archivos del HDFS al LOCAL FS
+
+-- FALTAN LOS ESQUEMAS!!! --> Pero en este caso ya no hacen falta, creo?
+hadoop fs -get output/wordcount/pig/shakespeare/part-m-00000 data/output/wordcount/pig/shakespeare
+hadoop fs -get output/wordcount/pig/palabras/part-m-00000 data/output/wordcount/pig/palabras
+hadoop fs -get output/wordcount/pig/grupo/part-r-00000 data/output/wordcount/pig/grupo
+hadoop fs -get output/wordcount/pig/conteo/part-r-00000 data/output/wordcount/pig/conteo
+hadoop fs -get output/wordcount/pig/ordenados/part-r-00000 data/output/wordcount/pig/ordenados
+hadoop fs -get output/wordcount/pig/top10/part-r-00000 data/output/wordcount/pig/top10

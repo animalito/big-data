@@ -1,0 +1,10 @@
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201011.ufo WITH delimiter '|' ;
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201012.ufo WITH delimiter '|' ;
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201101.ufo WITH delimiter '|' ;
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201102.ufo WITH delimiter '|' ;
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201103.ufo WITH delimiter '|' ;
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201104.ufo WITH delimiter '|' ;
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201105.ufo WITH delimiter '|' ;
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201106.ufo WITH delimiter '|' ;
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201107.ufo WITH delimiter '|' ;
+\copy dirty.raw_input FROM /home/felipe/localhost/datos/ufo/ndxe201108.ufo WITH delimiter '|' ;

@@ -1,0 +1,47 @@
+-- Leemos los datos con el esquema que ya habíamos generado
+ufos = LOAD 'ufos' USING org.apache.hive.hcatalog.pig.HCatLoader();
+a_imprimir = LIMIT ufos 5;
+-- Agrupamos por estado: (row1), (row2) --> state:{(row1), (row2)}
+por_estado = GROUP ufos BY state;
+DESCRIBE por_estado;
+EXPLAIN por_estado;
+ILLUSTRATE por_estado;
+-- itera sobre cada elemento del bag
+-- conteo = FOREACH por_estado GENERATE group AS count_star(ufos);
+-- Contamos los elementos de cada bolsa
+conteos = FOREACH por_estado GENERATE group AS state, COUNT(ufos) AS count;
+-- Ordenamos por conteos
+ordenados = ORDER conteos BY count DESC;
+-- Los top 5 estados con más avistamientos
+top_five = LIMIT ordenados 5;
+-- ?????? 
+unicos = DISTINCT conteos;
+muestreo = SAMPLE por_estado 0.1;
+filtrados = FILTER conteos BY SUBSTRING(state, 0, 2) == 'WA';
+mayores = FILTER conteos BY count > 50;
+
+-- Guardamos en el hdfs
+STORE ufos INTO '/user/itam/output/ufos/pig/ufos' USING PigStorage('|');
+STORE a_imprimir INTO '/user/itam/output/ufos/pig/a_imprimir' USING PigStorage('|');
+STORE por_estado INTO '/user/itam/output/ufos/pig/por_estado' USING PigStorage('|');
+STORE conteos INTO '/user/itam/output/ufos/pig/conteos' USING PigStorage('|');
+STORE ordenados INTO '/user/itam/output/ufos/pig/ordenados' USING PigStorage('|');
+STORE top_five INTO '/user/itam/output/ufos/pig/top_five' USING PigStorage('|');
+STORE unicos INTO '/user/itam/output/ufos/pig/unicos' USING PigStorage('|');
+-- FALTA CORRER ESTOS TRES
+STORE muestreo INTO '/user/itam/output/ufos/pig/muestreo' USING PigStorage('|');
+STORE filtrados INTO '/user/itam/output/ufos/pig/filtrados' USING PigStorage('|');
+STORE mayores INTO '/user/itam/output/ufos/pig/mayores' USING PigStorage('|');
+
+-- HDFS --> LFS
+hadoop fs -get output/ufos/pig/ufos/part-m-00000 data/output/ufos/pig/ufos
+hadoop fs -get output/ufos/pig/a_imprimir/part-m-00000 data/output/ufos/pig/a_imprimir
+hadoop fs -get output/ufos/pig/por_estado/part-m-00000 data/output/ufos/pig/por_estado
+hadoop fs -get output/ufos/pig/conteos/part-m-00000 data/output/ufos/pig/conteos
+hadoop fs -get output/ufos/pig/ordenados/part-m-00000 data/output/ufos/pig/ordenados
+hadoop fs -get output/ufos/pig/top_five/part-m-00000 data/output/ufos/pig/top_five
+hadoop fs -get output/ufos/pig/unicos/part-m-00000 data/output/ufos/pig/unicos
+hadoop fs -get output/ufos/pig/muestreo/part-m-00000 data/output/ufos/pig/muestreo
+hadoop fs -get output/ufos/pig/filtrados/part-m-00000 data/output/ufos/pig/filtrados
+hadoop fs -get output/ufos/pig/mayores/part-m-00000 data/output/ufos/pig/mayores
+
