@@ -2059,6 +2059,12 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 
 *** Ejercicio
 
+- ¿Cuál serían los comandos para la Copia la tabla de transacciones de tarjeta bancaria que hiciste
+  hacia Hadoop, colócalo en una tabla de =Hive= y en una carpeta
+  dentro de tu usuario.
+
+- ¿Y para extraer las tablas de tus análisis con =Impala=? ¿Cómo los
+  copias a una base de datos?
 
 *** Bibliografía
 
