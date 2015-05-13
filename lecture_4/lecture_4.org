@@ -1921,6 +1921,31 @@ wordcount.take(10)
   del equipo.
 
 
+
+
+** "Orquestando" la  Ingesta
+
+- ¿Cada cuándo se ingestan?
+  - /super batch/, /batch/, toma de decisiones /near real time/, proceso de eventos /near real time/, /real time/.
+
+- ¿Incremental o /full/?
+  - Recuerda que =hdfs= es casi /read-only/...
+
+- Consideraciones
+  - Del sistema de entrada
+    - Velocidad de los discos
+    - Tipo del archivo de entrada
+    - Base de datos relacional
+    - /Streaming/
+
+  - Transformaciones, Particionado, División
+  - ¿ /On-the-fly/ ?
+  - Cuellos de botella
+  - ¿Push o Pull?
+  - Casos de excepción.
+
+
+
 ** Apache Flume
 
 *** ¿Por qué?
@@ -2120,6 +2145,9 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 
 - Documentación de Apache Sqoop
 - Apache Sqoop Cookbook
+
+
+** Small Files Problem
 
 ** Hive Metastore: HCatalog
 :PROPERTIES:
