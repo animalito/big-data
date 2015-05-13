@@ -1,0 +1,11 @@
+Workflow UFO
+
+Bajar y almacenar.
+Cargar la base en esquema dirty
+Limpiar
+	Quitar todo lo que no es de USA para UFO y Mexico para Gdelt
+	Remover datos faltantes
+	Guardar el dataset filtrado en otro esquema. Por ejemplo Clean
+Importar Avro
+Parque
+Guardar los datos agregados en otra base solo para visualizar (por ejemplo con shiny)
