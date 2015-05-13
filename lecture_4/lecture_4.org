@@ -1980,9 +1980,51 @@ wordcount.take(10)
 - Se pueden concatenar varios /interceptores/.
 
 
-*** Ejemplo
+*** Ejemplo: Hola Mundo
 
-- =Flume= para =UFO=
+- Crea la carpeta =ingesta= en el /file system/ local.
+- En ella crea un archivo llamado =hola_mundo.conf=. Este será el
+  archivo de configuración de nuestro primer ejemplo de =Flume=.
+
+#+begin_html
+<pre><code data-trim>
+agent.sources=s1
+agent.channels=c1
+agent.sinks=k1
+
+agent.sources.s1.type=netcat
+agent.sources.s1.channels=c1
+agent.sources.s1.bind=0.0.0.0
+agent.sources.s1.port=12345
+
+agent.channels.c1.type=memory
+
+agent.sinks.k1.type=logger
+agent.sinks.k1.channel=c1
+</code></pre>
+#+end_html
+
+- Ejecuta la siguiente línea de comandos para levantar un agente de
+  =Flume=:
+
+#+begin_html
+<pre><code data-trim>
+flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO,console
+</code></pre>
+#+end_html
+
+
+*** Ejemplo: Hola Mundo
+
+- Ahora abre otra terminal y conéctate a =docker=
+  - Recuerda que es con =docker exec...=
+
+- Cámbiate al usuario =itam=.
+
+- Ejecuta =nc localhost 12345=
+
+- Y manda mensajes, observa como =Flume= reacciona.
+
 
 *** Ejercicio
 

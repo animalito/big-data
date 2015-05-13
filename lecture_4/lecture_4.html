@@ -2993,20 +2993,68 @@ destino.</li>
 
 </section>
 <section id="slide-sec-11-2-13">
-<h4 id="sec-11-2-13">Ejemplo</h4>
+<h4 id="sec-11-2-13">Ejemplo: Hola Mundo</h4>
 <ul>
-<li><code>Flume</code> para <code>UFO</code></li>
+<li>Crea la carpeta <code>ingesta</code> en el <i>file system</i> local.</li>
+<li>En ella crea un archivo llamado <code>hola_mundo.conf</code>. Este será el
+archivo de configuración de nuestro primer ejemplo de <code>Flume</code>.</li>
 
 </ul>
 
+<pre><code data-trim>
+agent.sources=s1
+agent.channels=c1
+agent.sinks=k1
+
+agent.sources.s1.type=netcat
+agent.sources.s1.channels=c1
+agent.sources.s1.bind=0.0.0.0
+agent.sources.s1.port=12345
+
+agent.channels.c1.type=memory
+
+agent.sinks.k1.type=logger
+agent.sinks.k1.channel=c1
+</code></pre>
+
+<ul>
+<li>Ejecuta la siguiente línea de comandos para levantar un agente de
+<code>Flume</code>:</li>
+
+</ul>
+
+<pre><code data-trim>
+flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO,console
+</code></pre>
+
+
 </section>
 <section id="slide-sec-11-2-14">
-<h4 id="sec-11-2-14">Ejercicio</h4>
+<h4 id="sec-11-2-14">Ejemplo: Hola Mundo</h4>
+<ul>
+<li>Ahora abre otra terminal y conéctate a <code>docker</code>
+<ul>
+<li>Recuerda que es con <code>docker exec...</code></li>
+
+</ul></li>
+
+<li>Cámbiate al usuario <code>itam</code>.</li>
+
+<li>Ejecuta <code>nc localhost 12345</code></li>
+
+<li>Y manda mensajes, observa como <code>Flume</code> reacciona.</li>
+
+</ul>
 
 
 </section>
 <section id="slide-sec-11-2-15">
-<h4 id="sec-11-2-15">Bibliografía</h4>
+<h4 id="sec-11-2-15">Ejercicio</h4>
+
+
+</section>
+<section id="slide-sec-11-2-16">
+<h4 id="sec-11-2-16">Bibliografía</h4>
 <ul>
 <li>Documentación de Flume</li>
 <li>Using Flume</li>
