@@ -38,7 +38,7 @@ kite-dataset csv-import data/data/UFO-Dic-2014.tsv dataset:hdfs:/user/jared27/da
 kite-dataset show dataset:hdfs:/user/jared27/datasets/ufos 
 
 kite-dataset create dataset:hive:/user/jared27/datasets/ufos --schema ufos.avsc
-kite-dataset schema dataset:hivr:/user/jared27/datasets/ufos
+kite-dataset schema dataset:hive:/user/jared27/datasets/ufos
 kite-dataset csv-import data/data/UFO-Nov-2014.tsv dataset:hive:/user/jared27/datasets/ufos --delimiter "\t"
 kite-dataset csv-import data/data/UFO-Dic-2014.tsv dataset:hive:/user/jared27/datasets/ufos --delimiter "\t"
 
