@@ -1,23 +1,23 @@
+**NOTA:** Asumimos que los valores vienen con alguna llave. Pueden ser por ejemplo palabra:conteo, id:valor, etc. Los procedimientos sacan las estadísticas por valor, así que si se quiere sacar las del conjunto completo, hay que dar una llave dummy, como 1 por ejemplo.
+Input: [(k1,v1), (k2,v2), ..., (kn,vn)]
 ##################################################################
-# Máximo
+# Máximo (por grupo)
 
-map (String key, String value):
-    for each v in value
-	Emit(1, v)
+map (String key, Float value):
+    Emit(key, value)
 
 reduce (String key, Iterator values):
     float max = -Inf
     for each v in values
-	if v > max:
+	if v[0] > max:
 	    max = v
     Emit(key, max)
 
 ##################################################################
-# Promedio
+# Promedio (por grupo)
 
-map (String key, String value):
-    for each v in value
-	Emit(1, v)
+map (String key, Float value):
+    Emit(key, value)
 
 reduce (String key, Iterator values):
     int N = 0
@@ -25,14 +25,13 @@ reduce (String key, Iterator values):
     for each v in values
 	N++
 	sum += v
-    Emit(key, sum/N)
+    Emit(key, (sum, N))
 
 ##################################################################
-# Desviación estándar
+# Desviación estándar (por grupo)
 
-map (String key, String value):
-    for each v in value
-	Emit(1, v)
+map (String key, Float value):
+    Emit(key, value)
 
 reduce (String key, Iterator values):
     int N = 0
@@ -41,31 +40,25 @@ reduce (String key, Iterator values):
 	N++
 	sum += v
 	sum2 += v^2
-    Emit(key, (sum2 - sum)/N)
+    Emit(key, (sum, sum2, N)) # Dividiendo sum2 - sum entre N se obtiene la varianza. Si lo damos en este formato es mejor que dar directamente (sum2 - sum)/N porque se puede aplicar el truco del combinador, de una vez se hacen conteos, etc
 
 ##################################################################
-# Top 10
+# Top 10 (por grupo)
 # INCOMPLETO!!
 map (String key, String value):
-    for each v in value
-	Emit(1, 1)
+    Emit(key, value)
 
 reduce (String key, Iterator values):
-    int wordcount = 0
-    for each v in values
-	wordcount += v
-    Emit(key, wordcount)
+    sorted = sort(values, desc=T)
+    Emit(key, sorted[1:10])
 
 ##################################################################
-# Contar por grupo (entra al map value = group)
+# Contar por grupo 
 
 map (String key, String value):
-    for each v in value
-	Emit(v, 1)
+    Emit(key, 1)
 
 reduce (String key, Iterator values):
-    int N = 0
-    for each v in values
-	N++
+    N = length(values) # Values es un vector de 1s, así que sum y length dan el mismo resultado, pero probablemente length sea más rápido
     Emit(key, N)
 

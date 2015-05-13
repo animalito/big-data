@@ -76,6 +76,7 @@ pig -useHCatalog
 ### Hive
 beeline -u jdbc:hive2://localhost:10000
 show tables;
+select Date_Time, City, State, Shape from ufos limit 10;
 select * from ufos limit 5;
 select count(distinct State) from ufos;
 explain select count(distinct State) from ufos; # Usa un solo paso de MapReduce

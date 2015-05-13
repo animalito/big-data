@@ -67,7 +67,7 @@ INTO output.conteos_gdelt_full
 FROM clean.gdelt_full; -- (SELECT * FROM clean.gdelt_full LIMIT 100000) t;
 --INTO output.conteos_gdelt_full
 
--- COMPARAR VS OTROS PAISES
+-- COMPARAR VS OTROS PAISES (VERSION 1)
 -----------------------------------
 
 EXPLAIN ANALYZE SELECT
@@ -93,6 +93,31 @@ GROUP BY monthyear, actor1name --, actor1geo_fullname;
 --, actor2name, actor2geo_fullname
 ORDER BY monthyear, actor1name; --, actor1geo_fullname; --, actor1geo_fullname, actor2name, actor2geo_fullname;
 
+
+-- COMPARAR VS OTROS PAISES (VERSION 2)
+-----------------------------------
+
+EXPLAIN ANALYZE SELECT
+    monthyear,
+    actor1countrycode,
+    count(*) as numevents,
+    avg(goldsteinscale) as goldsteinscale,
+    min(goldsteinscale) as min_goldsteinscale,
+    max(goldsteinscale) as max_goldsteinscale,
+    sum(nummentions) as nummentions,
+    sum(numsources) as numsources,
+    avg(avgtone) as mean_avgtone,
+    stddev(avgtone) as sd_avgtone,
+    min(avgtone) as min_avgtone,
+    max(avgtone) as max_avgtone
+INTO output.monthyear_actor1countrycode_stats_full
+FROM clean.gdelt_full
+WHERE actor1countrycode != ''
+GROUP BY monthyear, actor1countrycode
+ORDER BY monthyear, actor1countrycode;
+
+
+
 -- PRIMER EVENTO POR PAIS (ACTOR1NAME EN ESTE CASO)
 ---------------------------------------------------
 drop table playground.prueba;
@@ -115,6 +140,21 @@ EXPLAIN ANALYZE WITH grouped as (
     FROM grouped
     WHERE row_num = 1
 );
+
+-- Estadísitcas mensuales de número eventos por país
+-------------------------------------------
+-- Usaremos output.monthyear_actors_count_full que ya está por mes para ahorrar tiempo
+
+EXPLAIN ANALYZE SELECT
+    actor1name,
+    sum(numevents) as tot_numevents,
+    avg(numevents) as avg_numevents,
+    min(numevents) as min_numevents,
+    max(numevents) as max_numevents
+INTO output.month_actor1name_event_stats
+FROM output.monthyear_actors_count_full
+GROUP BY actor1name
+ORDER BY actor1name;
 
 
 
