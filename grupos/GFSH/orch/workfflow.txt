@@ -1,0 +1,29 @@
+Sergio Haro , Gabriela Flores
+Flujo de trabajo para procesamiento de fuentes de información.
+
+
+1. Recuperar
+	1.1 Verificar el formato de datos.
+	1.2 Preparar repositorio de informacion
+	1.3 Obtencion de informacion
+2. Limpieza
+	2.1 Analisis exploratorio de los datos
+	2.2 Definir el metodo de limpieza y normalizacion de datos
+	2.3 Realizar limpieza de datos
+	2.4 Persistir resultados en nuevo repositorio
+3. Carga 
+	3.1 Definir estructuras procesamientor lineas de operacion
+	3.1 Diseñar estructura de DWH's
+	3.2 Procesar informacion
+		3.2.1 re-procesamiento definido de acuerdo a cada necesidades de actualizacion de la informacion
+	3.3 Cargar informacion a DWH's
+4. Anlitica y ML
+	4.1 Ejecucion de algoritmos para  analitica
+		4.1.1 Sube informacion en nuevos repositorios
+	4.2 Ejecucion de algoritmos de ML
+		4.2.1 Sube informacion en nuevos repositorios
+5. Presentacion de resultado
+	* Shiny
+	* Gephi 
+	* los de UX hacen sumagia mercadera
+
