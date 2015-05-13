@@ -1,0 +1,94 @@
+docker start -ai hadoop-pseudo
+
+sudo -u hdfs hadoop fs -ls /
+
+sudo -u hdfs hadoop fs -mkdir /user/jared27 
+sudo -u hdfs hadoop fs -mkdir /etl
+#sudo -u hdfs hadoop fs -mkdir /tmp       esta carpeta ya existe
+sudo -u hdfs hadoop fs -mkdir /data
+sudo -u hdfs hadoop fs -mkdir /app
+
+sudo -u hdfs hadoop fs -mkdir /user/jared27/experimentos 
+sudo -u hdfs hadoop fs -mkdir /user/jared27/datasets
+sudo -u hdfs hadoop fs -mkdir /user/jared27/datasets/ufos
+sudo -u hdfs hadoop fs -mkdir /user/jared27/datasets/gdelt
+
+sudo -u hdfs hadoop fs -copyFromLocal /home/itam/data/data/UFO-Dic-2014.tsv /user/jared27/experimentos
+sudo -u hdfs hadoop fs -copyFromLocal /home/itam/data/data/UFO-Nov-2014.tsv /user/jared27/experimentos
+
+sudo -u hdfs hadoop fs -cat /user/jared27/experimentos/UFO-Dic-2014.tsv | wc -l
+sudo -u hdfs hadoop fs -cat /user/jared27/experimentos/UFO-Nov-2014.tsv | head
+
+➜  ~  kite-dataset csv-schema data/data/UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
+Unknown error: Bad header for field, should start with a character or _ and can contain only alphanumerics and _ 0: "Date / Time"
+
+sed -i 's@Date / Time@Date_Time@g' data/data/UFO-Nov-2014.tsv
+
+kite-dataset csv-schema data/data/UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
+
+cat ufos.avsc
+
+kite-dataset create dataset:hdfs:/user/jared27/datasets/ufos --schema ufos.avsc
+
+kite-dataset schema dataset:hdfs:/user/jared27/datasets/ufos
+
+kite-dataset csv-import data/data/UFO-Nov-2014.tsv dataset:hdfs:/user/jared27/datasets/ufos --delimiter "\t"
+kite-dataset csv-import data/data/UFO-Dic-2014.tsv dataset:hdfs:/user/jared27/datasets/ufos --delimiter "\t"
+
+kite-dataset show dataset:hdfs:/user/jared27/datasets/ufos 
+
+kite-dataset create dataset:hive:/user/jared27/datasets/ufos --schema ufos.avsc
+kite-dataset schema dataset:hivr:/user/jared27/datasets/ufos
+kite-dataset csv-import data/data/UFO-Nov-2014.tsv dataset:hive:/user/jared27/datasets/ufos --delimiter "\t"
+kite-dataset csv-import data/data/UFO-Dic-2014.tsv dataset:hive:/user/jared27/datasets/ufos --delimiter "\t"
+
+kite-dataset show dataset:hive:/user/jared27/datasets/ufos
+
+
+##SPARK
+
+pyspark
+ufos_nov = sc.textFile("hdfs://localhost/user/itam/experimentos/UFO-Nov-2014.tsv")
+
+ufos_nov.count()
+
+ufos_nov.take(5)
+
+ufos_nov.first()
+
+import csv
+from io import StringIO
+
+ufos_nov.map(lambda line: (line.split('\t')[2])).distinct().count()
+
+def load_tsv(archivo):
+    return csv.reader(StringIO(archivo[1]), delimiter='\t')
+
+ufos_nov = sc.textFile("hdfs://localhost/user/jared27/experimentos/UFO-Nov-2014.tsv").flatMap(load_tsv)
+
+ufos_nov.take(3)[2]
+
+sudo -u hdfs hadoop fs -mkdir /user/jared27/lib
+
+sudo -u hdfs hadoop fs -copyFromLocal /usr/lib/pig/datafu-1.1.0-cdh5.4.0.jar /user/jared27/lib/
+sudo -u hdfs hadoop fs -copyFromLocal /usr/lib/pig/piggybank.jar /user/jared27/lib/
+sudo -u hdfs hadoop fs -copyFromLocal /usr/lib/pig/lib/avro-1.7.6-cdh5.4.0.jar /user/jared27/lib
+sudo -u hdfs hadoop fs -copyFromLocal /usr/lib/pig/lib/snappy-java-1.0.5.jar /user/jared27/lib
+sudo -u hdfs hadoop fs -copyFromLocal /usr/lib/pig/lib/json-simple-1.1.jar /user/jared27/lib
+
+ufos_dic = LOAD 'experimentos/UFO-Dic-2014_TEMP.tsv' using PigStorage('\t') AS (Timestamp:chararray, City:chararray, State:chararray, Shape:chararray, Duration:chararray, Summary:chararray, Posted:chararray);
+
+DESCRIBE ufos_dic;
+head = LIMIT ufos_dic 5;
+DUMP head;
+
+states = DISTINCT (FOREACH ufos GENERATE State);
+DUMP states;
+
+
+beeline -u jdbc:hive2://localhost:10000
+show tables;
+select * from ufos limit 5;
+select count(distinct State) from ufos;
+explain select count(distinct State) from ufos;
+explain select count(*) from (select distinct State from ufos) as t;
