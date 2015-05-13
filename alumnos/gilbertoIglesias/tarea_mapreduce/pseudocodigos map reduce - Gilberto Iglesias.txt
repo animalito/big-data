@@ -1,0 +1,88 @@
+Ejercicios:
+    
+Escribir pseudocodigo para resolver problemas con map-reduce
+
+1)Encontrar el máximo de un conjunto de datos.
+
+map (String key, String value)
+   max = -1
+   for each num  in value
+      if num > max
+		max = num
+	Emit(max, 1)
+
+reduce (String key, Iterator values)
+   max = -1 
+   for each v in values
+		if v > max
+			max = v
+      Emit(key, v)
+
+2)Encontrar el promedio y desviación estándar de unos datos.
+
+map (String key, String value)
+	sum = 0
+	con = 0
+	for each num in value
+		cum += num
+		con++
+	Emit(w, (sum, con) )
+
+reduce (String key, Iterator values)
+   sum = 0
+   con = 0
+   for each v in values
+		sum += v[sum]
+		con += v[con]
+	prom = sum / con
+	Emit(key, prom)
+
+
+3)Encontrar el top 10 de una cantidad.
+
+map (String key, String value)
+	maximos = array()
+	for each num in value
+		maximos = sort(maximos) //Ordena del menos al mayor
+		num_max = count(maximos) //Cuenta el numero de elementos del arreglo con cantidades maximas
+		if num_max < 10
+			maximos = push(num, maximos)
+		else
+			if num > maximos[0]
+				maximos[0] = num
+	Emit(maximos, 1)
+
+reduce (String key, Iterator values)
+	todos_numeros = array()
+	for each v in values
+		todos_numeros = push(v, todos_numeros)
+	maximos= array()
+	for each num in todos_numeros
+		maximos = sort(maximos) //Ordena del menos al mayor
+		num_max = count(maximos) //Cuenta el numero de elementos del arreglo con cantidades maximas
+		if num_max < 10
+			maximos = push(num, maximos)
+		else
+			if num > maximos[0]
+				maximos[0] = num
+    Emit(key, maximos)
+
+4)Contar por grupo
+
+map (String key, String value)
+	conteo_grupo = array()
+	for each num in value
+		if exists(conteo_grupo[num])
+			conteo_grupo[num] ++
+		else
+			conteo_grupo[num]=1
+	Emit(conteo_grupo, 1)
+
+reduce (String key, Iterator values)
+	conteo_grupo = array()
+	for each v in values
+		if exists(conteo_grupo[v])
+			conteo_grupo[v] += v
+		else
+			conteo_grupo[v] = v
+	Emit(key, conteo_grupo)
