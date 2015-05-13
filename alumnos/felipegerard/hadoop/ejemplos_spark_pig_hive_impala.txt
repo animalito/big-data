@@ -1,4 +1,27 @@
 ############################################################################
+# Kite
+
+# En el HDFS
+kite-dataset csv-schema data/UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
+kite-dataset create dataset:hdfs:/user/itam/datasets/ufos --schema ufos.avsc
+kite-dataset schema dataset:hdfs:/user/itam/datasets/ufos
+kite-dataset csv-import data/UFO-Nov-2014.tsv dataset:hdfs:/user/itam/datasets/ufos --delimiter "\t"
+kite-dataset csv-import data/UFO-Dic-2014.tsv dataset:hdfs:/user/itam/datasets/ufos --delimiter "\t"
+kite-dataset show dataset:hdfs:/user/itam/datasets/ufos
+# kite-dataset delete dataset:hdfs:/user/itam/datasets/ufos
+
+# En el HIVE Metastore
+kite-dataset csv-schema data/UFO-Nov-2014.tsv --class UFO -o ufos.avsc  --delimiter "\t"
+kite-dataset create dataset:hive:/user/itam/datasets/ufos --schema ufos.avsc
+kite-dataset schema dataset:hive:/user/itam/datasets/ufos
+kite-dataset csv-import data/UFO-Nov-2014.tsv dataset:hive:/user/itam/datasets/ufos --delimiter "\t"
+kite-dataset csv-import data/UFO-Dic-2014.tsv dataset:hive:/user/itam/datasets/ufos --delimiter "\t"
+kite-dataset show dataset:hive:/user/itam/datasets/ufos
+# kite-dataset delete dataset:hive:/user/itam/datasets/ufos
+
+
+
+############################################################################
 ### (py)Spark
 # ufo
 pyspark
