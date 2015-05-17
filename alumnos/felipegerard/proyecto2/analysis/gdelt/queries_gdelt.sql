@@ -124,6 +124,7 @@ drop table playground.prueba;
 SELECT globaleventid, actor1name, sqldate INTO playground.prueba FROM clean.gdelt_full LIMIT 100000;
 --EXPLAIN SELECT globaleventid, actor1name, sqldate FROM clean.gdelt_full LIMIT 10000;
 
+-- OPCION 1: ORDENAR Y QUEDARNOS CON EL PRIMERO
 EXPLAIN ANALYZE WITH grouped as (
     SELECT
 	globaleventid,
@@ -140,6 +141,67 @@ EXPLAIN ANALYZE WITH grouped as (
     FROM grouped
     WHERE row_num = 1
 );
+
+-- OPCION 2: ORDENAR Y QUEDARNOS CON EL PRIMERO DEL OUTPUT MENSUAL. PEGAR A LA TABLA GRANDE Y FILTRAR.
+
+-- a. Primeros meses
+EXPLAIN ANALYZE WITH grouped as (
+    SELECT
+	actor1countrycode,
+	actor1countryname,
+	monthyear,
+	row_number() OVER (PARTITION BY actor1countrycode ORDER BY monthyear) AS row_num
+    FROM output.monthyear_actor1countrycode_stats_full_countryname --playground.prueba --clean.gdelt_full
+)
+(
+    SELECT
+	actor1countrycode,
+	actor1countryname,
+	monthyear
+    INTO playground.first_months
+    FROM grouped
+    WHERE row_num = 1
+);
+
+-- b. Filtramos la base grande
+drop table playground.gdelt_part;
+select * into playground.gdelt_part from clean.gdelt_full limit 1000000;
+EXPLAIN ANALYZE WITH
+months AS (
+    SELECT distinct monthyear
+    FROM playground.first_months
+    ORDER BY monthyear
+),
+filtered AS(
+    SELECT
+	a.globaleventid,
+	a.sqldate,
+	a.actor1countrycode
+    FROM clean.gdelt_full a INNER JOIN months b
+    ON a.monthyear = b.monthyear
+),
+grouped as (
+    SELECT
+	*,
+	row_number() OVER (PARTITION BY actor1countrycode ORDER BY sqldate) AS row_num
+    FROM filtered
+)
+(
+    SELECT *
+    INTO output.first_event_per_actor1countrycode_full
+    FROM grouped
+    WHERE row_num = 1
+);
+
+EXPLAIN ANALYZE SELECT *
+INTO output.first_event_per_actor1countrycode_full
+FROM clean.gdelt_full
+WHERE globaleventid in ('59','74','78','108','137','146','176','183','184','195','255','257','267','268','277','280','287','323','340','359','369','387','391','394','395','396','399','423','426','438','441','444','447','448','449','515','541','548','554','568','674','677','678','679','680','682','683','704','773','802','830','839','848','882','1003','1014','1059','1072','1175','1197','1211','1268','1269','1279','1282','1300','1321','1326','1477','1501','1610','1623','1628','1632','1634','1638','1753','1842','1873','1983','1998','2002','2012','2018','2019','2156','2157','2163','2165','2235','2244','2245','2267','2271','2327','2332','2337','2663','2682','2796','2811','2962','3026','3043','3176','3188','3799','3939','4065','4125','4132','4146','4166','4242','4524','4868','5297','5984','5987','6219','6657','6658','6732','6873','7074','7228','7357','7411','7711','7868','7870','8048','8058','8460','8461','8464','8847','9656','9863','9928','9979','10013','10353','10584','11106','11185','11306','12076','12681','13487','13649','13835','14834','15503','17301','18415','21156','21755','24556','27420','30014','30209','30949','31753','32595','33536','33546','34336','38606','40682','52256','52635','54749','63134','65147','76289','82277','98959','107161','112742','131039','134733','145512','151920','191729','204809','244016','329880','355098','374721','396871','493889','571647','580229','2546139','2837629','3348143','5351018','8376729','17602012','18618212','23249148','47719459','179990792','230362055','230362059','230362076','230362089','230362108','230362120','230362124','230362140','230362141','230362143','230362160','230362208','230362368','230362492','230363108','230363603','230363683','230364208','230366693','273501446','305640553')
+LIMIT 225;
+
+
+\copy output.first_event_per_actor1countrycode_full to '/Users/Felipe/big-data/alumnos/felipegerard/proyecto2/output/first_event_per_actor1countrycode_full.psv' CSV HEADER DELIMITER '|';
+
 
 -- Estadísitcas mensuales de número eventos por país
 -------------------------------------------

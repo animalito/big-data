@@ -83,8 +83,7 @@ monthly_sightings <- ufo %>%
   arrange(month)
 monthly_sightings
 ggplot(monthly_sightings, aes(month, count)) +
-  geom_line() +
-  geom_point()
+  geom_bar(stat='identity')
 
 # Promedio anual de avistamientos
 ufo %>%

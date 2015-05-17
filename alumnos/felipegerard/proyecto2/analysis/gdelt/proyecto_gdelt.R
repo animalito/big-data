@@ -12,10 +12,10 @@ library(ggmap)
 # Primer/último evento de cada país
 #####################################################
 
-# Evento con máxima/mínima escala de Goldstein por país?
+# Mes con máxima/mínima escala de Goldstein por país?
 #####################################################
 
-# Promedio mensual de eventos
+# Promedio mensual de eventos CHECK
 #####################################################
 
 
@@ -24,9 +24,12 @@ library(ggmap)
 # Clusters de países: Temporal
 #####################################################
 
-gdelt_1 <- read.csv('output/monthyear_actors_count_full.psv', header = T, sep = '|')
+gdelt_1 <- read.csv('output/monthyear_actor1countrycode_stats_full_countryname.psv', header = T, sep = '|')
+countrynames <- read.csv('etc/countrycodes.psv', header = F, sep = '|')
+names(countrynames) <- c('actor1countrycode','actor1countryname')
 dim(gdelt_1)
 head(gdelt_1)
+sort(unique(gdelt_1$actor1countrycode))
 
 # Filtramos y construimos la fecha
 x1 <- gdelt_1 %>%
@@ -34,27 +37,52 @@ x1 <- gdelt_1 %>%
          year = substr(aux,1,4),
          month = substr(aux,5,6),
          date = as.Date(paste(year, month, '01'), format = '%Y %m %d')) %>%
-  group_by(actor1name) %>%
+  group_by(actor1countrycode) %>%
   filter(sum(numevents) > 200000) %>% # Mexico tenía como 700,000
   ungroup
 
-# Ejemplo: Gráficas de ts
-x2 <- filter(x1, actor1name %in% c('MEXICO','BRAZIL','VENEZUELA','HAITI'))
-ggplot(x2, aes(date, numevents)) +
-  geom_line() +
-  facet_wrap(~ actor1name)
-
-# Correlaciones? --> Mejor K Means
+# Correlaciones --> Países parecidos a México
 gdelt_ts <- x1 %>%
-  dplyr::select(actor1name, actor1name, date, numevents) %>%
-  mutate(actor1name = gsub(' ', '_', actor1name)) %>%
-  spread(actor1name, numevents)
+  dplyr::select(actor1countrycode, actor1countrycode, date, numevents) %>%
+  mutate(actor1countrycode = gsub(' ', '_', actor1countrycode)) %>%
+  spread(actor1countrycode, numevents)
 gdelt_ts[is.na(gdelt_ts)] <- 0 # No hubo noticias
 dim(gdelt_ts)
 
-x <- cor(gdelt_ts[-1])[,'MEXICO']
+x <- cor(gdelt_ts[-1])[,'MEX']
+#x <- factor(x, levels = levels(x)[order(x)])
 cor_mex <- data.frame(country = names(x), cor_mex = as.numeric(x)) %>%
-  arrange(desc(cor_mex))
+  arrange(desc(cor_mex)) %>%
+  left_join(countrynames, by = c('country'='actor1countrycode'))
+cor_mex$country <- factor(factor(cor_mex$country),
+                          levels = cor_mex$country[order(cor_mex$cor_mex)],
+                          ordered = T)
+ggplot(cor_mex, aes(country, cor_mex)) +
+  geom_bar(stat='identity') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# Ejemplo: Gráficas de ts
+x2 <- filter(x1, actor1countrycode %in% c('MEX','USA','IRQ','HRV')) %>%
+  group_by(actor1countrycode) %>%
+  mutate(numevents_norm = numevents / max(numevents))
+ggplot(x2, aes(date, numevents_norm)) +
+  geom_line() +
+  facet_wrap(~ actor1countryname)
+
+#############
+# JERÁRQUICO
+#############
+
+dist_ts <- as.dist(1 - cor(gdelt_ts[-1]))
+hclus_1 <- hclust(dist_ts, method = 'complete')
+plot(hclus_1)
+hclus_2 <- rect.hclust(hclus_1, k=5)
+plot(hclus_1)
+hclus_2 <- rect.hclust(hclus_1, k=10)
+plot(hclus_1)
+hclus_2 <- rect.hclust(hclus_1, k=30)
+
+# ==> No se ven clusters bien definidos. Siempre hay unos con una mix muy heterogéneo
 
 #############
 # KMEANS
@@ -105,20 +133,19 @@ cor_mex <- data.frame(country = names(x), cor_mex = as.numeric(x)) %>%
     # [13] "MINIST"      "MINISTRY"
 
 gdelt_clu <- x1 %>%
-  dplyr::select(actor1name, actor1name, date, goldsteinscale) %>%
-  mutate(actor1name = gsub(' ', '_', actor1name)) %>%
+  dplyr::select(actor1countrycode, actor1countryname, date, goldsteinscale) %>%
   spread(date, goldsteinscale)
 gdelt_clu[is.na(gdelt_clu)] <- 0 # No hubo noticias
-gdelt_clu[-1] <- apply(gdelt_clu[-1], 1, function(x) x/sqrt(sum(x*x))) # Normalizamos
+gdelt_clu[-(1:2)] <- apply(gdelt_clu[-(1:2)], 1, function(x) x/sqrt(sum(x*x))) # Normalizamos
 
 dim(gdelt_clu)
 
 kms <- list()
-for(i in 2:30){
-  kms[[i]] <- kmeans(gdelt_clu[-1], centers = i, trace = T)
+for(i in 2:100){
+  kms[[i]] <- kmeans(gdelt_clu[-(1:2)], centers = i, trace = T)
 }
 x <- unlist(lapply(kms, function(x) x$tot.withinss/x$totss))
-qplot(2:30, x, geom='line')
+qplot(2:(length(x)+1), x, geom='line')
 # Cuantos clusters usar?
 nclu <- 20
 km1 <- kms[[nclu]]
@@ -127,9 +154,9 @@ head(gdelt_clu)
 
 clu_mex <- gdelt_clu %>%
   group_by(cluster) %>%
-  filter('MEXICO' %in% actor1name)
-clu_mex$actor1name
-clmx <- clu_mex$cluster[clu_mex$actor1name == 'MEXICO']
+  filter('MEX' %in% actor1countrycode)
+clu_mex$actor1countryname
+clmx <- clu_mex$cluster[clu_mex$actor1countrycode == 'MEX']
 km1_df1 <- data.frame(cluster = 1:nclu,
                       size = km1$size,
                       perc_within = (km1$withinss/km1$tot.withinss), 
@@ -146,8 +173,8 @@ ggplot(filter(km1_df2, key %in% c('size', 'perc_within')), aes(cluster, value, f
 # K Means esférico temporal: Por número de menciones
 library(skmeans)
 gdelt_clu <- x1 %>%
-  dplyr::select(actor1name, actor1name, date, nummentions) %>%
-  mutate(actor1name = gsub(' ', '_', actor1name)) %>%
+  dplyr::select(actor1countrycode, actor1countrycode, date, nummentions) %>%
+  mutate(actor1countrycode = gsub(' ', '_', actor1countrycode)) %>%
   spread(date, nummentions)
 gdelt_clu[is.na(gdelt_clu)] <- 0 # No hubo noticias
 gdelt_clu[-1] <- apply(gdelt_clu[-1], 1, function(x) x/sqrt(sum(x*x))) # Normalizamos
@@ -170,9 +197,9 @@ head(gdelt_clu)
 
 clu_mex <- gdelt_clu %>%
   group_by(cluster) %>%
-  filter('MEXICO' %in% actor1name)
-clu_mex$actor1name
-clmx <- clu_mex$cluster[clu_mex$actor1name == 'MEXICO']
+  filter('MEX' %in% actor1countrycode)
+clu_mex$actor1countrycode
+clmx <- clu_mex$cluster[clu_mex$actor1countrycode == 'MEXICO']
 # km1_df1 <- data.frame(cluster = 1:nclu,
 #                       size = km1$size,
 #                       perc_within = (km1$withinss/km1$tot.withinss), 
@@ -187,44 +214,6 @@ clmx <- clu_mex$cluster[clu_mex$actor1name == 'MEXICO']
 # ggplot(km1_df1, aes(size, perc_within)) +
 #   geom_point()
 
-
-
-#####################################################
-# Análisis temporal
-#####################################################
-
-gdelt_temp <- read.csv('output/gdelt_date_count.psv', header = T, sep = '|')
-dim(gdelt_temp)
-head(gdelt_temp)
-
-gdelt_year <- gdelt_temp %>%
-  filter(year < 2015) %>%
-  group_by(year) %>%
-  summarise(count = sum(count)) %>%
-  mutate(dif1 = count - lag(count))
-
-ggplot(gdelt_year, aes(year, count)) +
-  stat_smooth(method='loess') +
-  geom_line() +
-  geom_point() +
-  geom_vline(aes(xintercept=2006), color='red', linetype='dashed', size=1)
-
-ggplot(gdelt_year, aes(year, dif1)) +
-  geom_line() +
-  geom_point() +
-  geom_hline(aes(yintercept=0), linetype='dashed') +
-  geom_vline(aes(xintercept=2006), color='red', linetype='dashed', size=1)
-
-#####################################################
-# Análisis expacio-temporal
-#####################################################
-
-gdelt_sp <- read.csv('output/gdelt_state_year_count.psv', header = T, sep = '|')
-dim(gdelt_sp)
-head(gdelt_sp)
-
-mex <- get_map(location='Mexico', zoom=4, maptype='toner')
-ggmap(mex)
 
 
 
