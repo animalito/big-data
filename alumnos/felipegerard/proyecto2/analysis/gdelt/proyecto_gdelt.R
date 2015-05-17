@@ -12,7 +12,7 @@ library(ggmap)
 # Primer/último evento de cada país
 #####################################################
 
-# Mes con máxima/mínima escala de Goldstein por país?
+# Estadísticas básicas mensuales por país
 #####################################################
 
 # Promedio mensual de eventos CHECK
