@@ -126,20 +126,20 @@ ufo %>%
   summarise(yearly_mean = mean(count))
 
 ## ----, message=FALSE, warning=FALSE, echo=FALSE--------------------------
-monthly_sightings <- ufo %>%
+monthly_sightings1 <- ufo %>%
   filter(date_time != '', year < 2015) %>%
   group_by(year, month) %>%
   summarise(count = n()) %>%
   group_by(month) %>%
   summarise(avg_sightings = mean(count)) %>%
   arrange(month)
-monthly_sightings$month_name <- factor(month.abb, levels = month.abb)
-ggplot(monthly_sightings, aes(month_name, avg_sightings)) +
+monthly_sightings1$month_name <- factor(month.abb, levels = month.abb)
+ggplot(monthly_sightings1, aes(month_name, avg_sightings)) +
   geom_bar(stat='identity') +
   labs(x='', y='', title='Promedio de avistamientos por mes')
 
 ## ----, message=FALSE, warning=FALSE, echo=FALSE--------------------------
-monthly_sightings <- ufo %>%
+monthly_sightings2 <- ufo %>%
   filter(state != '', date_time != '', year < 2015) %>%
   group_by(state, year, month) %>%
   summarise(count = n()) %>%
@@ -147,7 +147,7 @@ monthly_sightings <- ufo %>%
   summarise(avg_sightings = mean(count)) %>%
   arrange(avg_sightings) %>%
   mutate(state_ordered = factor(state, levels = state))
-ggplot(monthly_sightings, aes(state_ordered, avg_sightings)) +
+ggplot(monthly_sightings2, aes(state_ordered, avg_sightings)) +
   geom_bar(stat='identity') +
   labs(x='', y='', title='Promedio de avistamientos por mes') +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -335,18 +335,23 @@ ggplot(mapping=aes(long,lat)) +
   theme_nothing(legend = T) +
   coord_quickmap()
 
+#############################################################################
+# GDELT
+#############################################################################
+
 ## ----, message=FALSE, warning=FALSE--------------------------------------
-gdelt_conteos <- read.csv('../output/conteos_gdelt_full.psv', header = T, sep = '|')
+gdelt_conteos <- read.csv('output/conteos_gdelt_full.psv', header = T, sep = '|')
 x <- data.frame(t(gdelt_conteos)) %>%
   format(scientific = F)
 names(x) <- 'valor'
 x$valor <- ifelse(x$valor == as.integer(x$valor), as.integer(x$valor), round(as.numeric(x$valor), 2))
-kable(x)
+gdelt_nulls <- x
+kable(gdelt_nulls)
 
 ## ----, message=FALSE, warning=FALSE, echo=FALSE--------------------------
-countrynames <- read.table('../etc/countrycodes.psv', header = F, quote = '', sep = '|',
+countrynames <- read.table('gdelt/etc/countrycodes.psv', header = F, quote = '', sep = '|',
                            col.names = c('actor1countrycode','country'))
-gdelt_first <- read.csv('../output/first_event_per_actor1countrycode_full.psv', header = T, sep = '|') %>%
+gdelt_first <- read.csv('output/first_event_per_actor1countrycode_full.psv', header = T, sep = '|') %>%
   left_join(countrynames)
 
 gdelt_first %>%
@@ -356,7 +361,7 @@ gdelt_first %>%
   kable
 
 ## ----, message=FALSE, warning=FALSE, echo=FALSE--------------------------
-gdelt_monthyear <- read.csv('../output/monthyear_actor1countrycode_stats_full_countryname.psv', header = T, sep = '|')
+gdelt_monthyear <- read.csv('output/monthyear_actor1countrycode_stats_full_countryname.psv', header = T, sep = '|')
 
 gdelt_monthyear %>%
   rename(country = actor1countryname) %>%
@@ -429,3 +434,8 @@ hclus_2 <- rect.hclust(hclus_1, k=10)
 plot(hclus_1, main='30 grupos', xlab='')
 hclus_2 <- rect.hclust(hclus_1, k=30)
 
+#############################################################################
+# GUARDAR INFO
+#############################################################################
+
+#save.image('entregable/datos_reporte.Rdata')

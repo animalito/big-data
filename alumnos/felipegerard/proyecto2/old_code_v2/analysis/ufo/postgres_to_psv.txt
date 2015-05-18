@@ -1,0 +1,5 @@
+# En postgres:
+\copy (select * from clean.ufo_usa)  to '/home/felipe/localhost/output/ufo_usa_quotes.psv' delimiter '|' NULL '' CSV HEADER;
+
+# En la línea de comandos:
+< ufo_usa_quotes.psv | sed 's/""//g' > ufo_usa.psv
