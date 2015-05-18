@@ -1870,7 +1870,81 @@ wordcount.take(10)
 
 ** Orquestación
 
-- En proceso...
+- Regularmente existen varios pasos de procesamiento para preparar los datos.
+  - Extraer los datosw (desde una carpeta, el internet, una base de
+    datos) e importarlos al =hdfs=.
+  - Validar los datos.
+  - Trasnformarlos a un formato más adecuado.
+  - Ejecutar agregaciones y generación de variables.
+
+- Además estos pasos se empiezan a ejecutar cuando:
+  - A un tiempo dado
+    - e.g. Cada medianoche
+  - Un evento ocurre
+    - e.g. Se agregó un nuevo archivo
+
+- Coordinar los pasos
+  - Un paso se sigue al otro, sólo si el anterior terminó
+    exitosamente.
+  - Repetir el paso
+
+- Tomar acciones de gestión
+  - Mandar correos
+  - Tomar tiempos de ejecución
+
+** Orquestación
+
+- Al concepto de coordinación, gestión, programación se les conoce
+  como /orquestación/.
+
+- La /orquestación/ (como muchas cosas en este curso) se representa
+  por un grafo dirigido acíclico (=DAG=).
+
+- A un =DAG= se le conoce como /workflow/ y a la administración de los
+  /worflows/ se le conoce commo *orquestación de workflows*.
+
+- En esta clase veremos a =Luigi= como /orquestador/.
+
+** Ejercicio
+
+- Reúnanse con su equipo y diseñen los pasos que tendría que tener un
+  /workflow/ para =ufos= y para =gdelt=.
+
+- el objetivo del /workflow/ es dual, dejarlos preparados para nueva
+  explotación analítica y prepararlos para mostrarlos en un =shiny=.
+
+- Recuerde usar la estructura de directorios discutida.
+
+- Indica las posibles excepciones.
+
+- Describa los pasos en un documento y súbalo a =github= en la carpeta
+  del equipo.
+
+
+
+
+** "Orquestando" la  Ingesta
+
+- ¿Cada cuándo se ingestan?
+  - /super batch/, /batch/, toma de decisiones /near real time/, proceso de eventos /near real time/, /real time/.
+
+- ¿Incremental o /full/?
+  - Recuerda que =hdfs= es casi /read-only/...
+
+- Consideraciones
+  - Del sistema de entrada
+    - Velocidad de los discos
+    - Tipo del archivo de entrada
+    - Base de datos relacional
+    - /Streaming/
+
+  - Transformaciones, Particionado, División
+  - ¿ /On-the-fly/ ?
+  - Cuellos de botella
+  - ¿Push o Pull?
+  - Casos de excepción.
+
+
 
 ** Apache Flume
 
@@ -1905,6 +1979,7 @@ wordcount.take(10)
 - Apache Flume es un sistema de alto desempeño para la ingesta de datos.
 - Es escalable horizontalmente y muy configurable.
 
+- Una posible alternativa es *Apache Kafka*.
 
 *** Apache Flume
 
@@ -2071,6 +2146,9 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 - Documentación de Apache Sqoop
 - Apache Sqoop Cookbook
 
+
+** Small Files Problem
+
 ** Hive Metastore: HCatalog
 :PROPERTIES:
   :CUSTOM_ID: hive-metastore
@@ -2179,6 +2257,12 @@ group by col1;
 
 - En proceso...
 
+
+* Modo distribuido
+
+** Modo distribuido
+
+- En proceso...
 
 * Proyecto Final
 :PROPERTIES:
