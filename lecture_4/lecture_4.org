@@ -2101,7 +2101,209 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 - Y manda mensajes, observa como =Flume= reacciona.
 
 
-*** Ejercicio
+*** Ejercicio I
+
+- En este ejercicio, veremos como mover datos desde una carpeta hacia
+  =hadoop= usando =flume=.
+  - Lo haremos de manera incremental.
+
+
+
+- Primero, Conectaremos el archivo al log en pantalla.
+
+- Crea la carpeta =/opt/ufos=
+
+- Guarda lo siguiente en =ingestion/ufo-agent1.conf=.
+
+#+begin_html
+<pre><code data-trim>
+# Componentes
+UFOAgent.sources = UFODir
+UFOAgent.channels = c1
+UFOAgent.sinks = UFOLogger
+
+# Canal
+UFOAgent.channels.c1.type = memory
+
+# Fuente e Interceptores
+UFOAgent.sources.UFODir.type = spooldir
+UFOAgent.sources.UFODir.channels = c1
+UFOAgent.sources.UFODir.spoolDir = /opt/ufos
+UFOAgent.sources.UFODir.fileHeader = true
+UFOAgent.sources.UFODir.channels = c1
+
+# Sumidero
+UFOAgent.sinks.UFOLogger.type=logger
+UFOAgent.sinks.UFOLogger.channel=c1
+</code></pre>
+#+end_html
+
+- Para ejecutar el agente:
+
+#+begin_html
+<pre><code data-trim>
+flume-ng agent -n UFOAgent --conf ingestion -f ingestion/ufo_agent1.conf
+</code></pre>
+#+end_html
+
+- Para terminar =Ctrl+C=.
+
+*** Ejercicio I
+
+- Antes de iniciar el siguiente ejercicio:
+  - Limpia la carpeta  =/opt/ufos=.
+  - Borra la carpeta en el =hdfs= =/ufos_flume/=
+
+- Haz esto mismo entre cada ejercicio de esta sección.
+
+
+*** Ejercicio II
+
+- Ahora lo mandaremos al HDFS, como no queremos perder datos (y no es
+  tan rápido la generación de datos) usaremos un canal de archivo.
+
+
+- Guarda la configuración siguiente en =ingestion/ufo-agent2.conf=.
+
+#+begin_html
+<pre><code data-trim>
+# Componentes
+UFOAgent.sources = UFODir
+UFOAgent.channels = archivo
+UFOAgent.sinks = UFOHDFS
+
+# Canal
+UFOAgent.channels.archivo.type = file
+UFOAgent.channels.archivo.checkpointDir = /opt/ufos/log/checkpoint/
+UFOAgent.channels.archivo.dataDirs = /opt/ufos/log/data/
+
+# Fuente e Interceptores
+UFOAgent.sources.UFODir.type = spooldir
+UFOAgent.sources.UFODir.channels = archivo
+UFOAgent.sources.UFODir.spoolDir = /opt/ufos
+UFOAgent.sources.UFODir.fileHeader = true
+
+# Sumidero
+UFOAgent.sinks.UFOHDFS.type=hdfs
+UFOAgent.sinks.UFOHDFS.channel=archivo
+UFOAgent.sinks.UFOHDFS.hdfs.path = /user/itam/ufos_flume/
+UFOAgent.sinks.UFOHDFS.hdfs.fileType = DataStream
+UFOAgent.sinks.UFOHDFS.hdfs.filePrefix = UFOData
+UFOAgent.sinks.UFOHDFS.hdfs.writeFormat = Text
+UFOAgent.sinks.UFOHDFS.hdfs.batchSize = 200000
+UFOAgent.sinks.UFOHDFS.hdfs.rollSize = 0
+UFOAgent.sinks.UFOHDFS.hdfs.rollCount = 2000000
+</code></pre>
+#+end_html
+
+
+- Para ejecutar el agente:
+
+#+begin_html
+<pre><code data-trim>
+flume-ng agent -n UFOAgent --conf ingestion -f ingestion/ufo_agent2.conf
+</code></pre>
+#+end_html
+
+*** Ejercicio II
+
+- Espera a que salga algo parecido a esto:
+
+#+begin_html
+<pre><code data-trim>
+...
+15/05/20 06:01:12 INFO file.EventQueueBackingStoreFile: Start checkpoint for /opt/ufos/log/checkpoint/checkpoint, elements to sync = 530
+15/05/20 06:01:12 INFO file.EventQueueBackingStoreFile: Updating checkpoint metadata: logWriteOrderID: 1432101643755, queueSize: 0, queueHead: 528
+15/05/20 06:01:12 INFO file.Log: Updated checkpoint for file: /opt/ufos/log/data/log-1 position: 141088 logWriteOrderID: 1432101643755
+15/05/20 06:01:20 INFO hdfs.BucketWriter: Closing /user/itam/ufos_flume//UFOData.1432101649049.tmp
+15/05/20 06:01:20 INFO hdfs.BucketWriter: Renaming /user/itam/ufos_flume/UFOData.1432101649049.tmp to /user/itam/ufos_flume/UFOData.1432101649049
+15/05/20 06:01:20 INFO hdfs.HDFSEventSink: Writer callback called
+</code></pre>
+#+end_html
+
+
+/NOTA:/ Otra manera de saber que ya terminó, es esperando a que
+desaparezca el archivo con terminación =.tmp= en el =hdfs=.
+
+*** Ejercicio III
+
+- Incorporaremos Avro y el esquema generado por =kite=.
+
+- Antes es necesario hacer lo siguiente
+  - Esto es necesario debido a como está instalado el modo
+    pseudodistribuido de *Cloudera*.
+
+
+#+begin_html
+<pre><code data-trim>
+sudo ln -s ../../kite/kite-morphlines-* /usr/lib/flume-ng/lib
+sudo ln -s ../../kite/lib/metrics* /usr/lib/flume-ng/lib
+sudo ln -s ../../kite/lib/config-1.0.2.jar /usr/lib/flume-ng/lib
+sudo ln -s ../../kite/lib/Saxon-HE-9.5.1-5.jar /usr/lib/flume-ng/lib
+sudo ln -s ../../kite/lib/tika-* /usr/lib/flume-ng/lib
+</code></pre>
+#+end_html
+
+
+
+*** Ejercicio III
+
+- Guarda lo que sigue en =ingestion/ufo_agent3.conf=
+
+#+begin_html
+<pre><code data-trim>
+# Componentes
+UFOAgent.sources = UFODir
+UFOAgent.channels = archivo
+UFOAgent.sinks = UFOKiteDS
+
+# Canal
+UFOAgent.channels.archivo.type = file
+UFOAgent.channels.archivo.checkpointDir = /opt/ufos/log/checkpoint/
+UFOAgent.channels.archivo.dataDirs = /opt/ufos/log/data/
+
+# Fuente
+UFOAgent.sources.UFODir.type = spooldir
+UFOAgent.sources.UFODir.channels = archivo
+UFOAgent.sources.UFODir.spoolDir = /opt/ufos
+UFOAgent.sources.UFODir.fileHeader = true
+UFOAgent.sources.UFODir.deletePolicy = immediate
+
+# Interceptor
+UFOAgent.sources.UFODir.interceptors = attach-schema morphline
+
+UFOAgent.sources.UFODir.interceptors.attach-schema.type = static
+UFOAgent.sources.UFODir.interceptors.attach-schema.key = flume.avro.schema.url
+UFOAgent.sources.UFODir.interceptors.attach-schema.value = file:/home/itam/schemas/ufos.avsc
+
+UFOAgent.sources.UFODir.interceptors.morphline.type = org.apache.flume.sink.solr.morphline.MorphlineInterceptor$Builder
+UFOAgent.sources.UFODir.interceptors.morphline.morphlineFile = /home/itam/ingestion/morphline.conf
+UFOAgent.sources.UFODir.interceptors.morphline.morphlineId = convertUFOFileToAvro
+
+
+# Sumidero
+UFOAgent.sinks.UFOKiteDS.type = org.apache.flume.sink.kite.DatasetSink
+UFOAgent.sinks.UFOKiteDS.channel = archivo
+UFOAgent.sinks.UFOKiteDS.kite.repo.uri = dataset:hive
+UFOAgent.sinks.UFOKiteDS.kite.dataset.name = ufos
+UFOAgent.sinks.UFOKiteDS.kite.batchSize = 10
+</code></pre>
+#+end_html
+
+*** Ejercicio III
+
+Esta configuración consume más memoria de la que está asignada por
+/default/, observa el parámetro =-Xmx100m=
+  - Quítalo, para que veas el error que sale (te puede salir en tu
+    proyecto final)
+#+begin_html
+<pre><code data-trim>
+ flume-ng agent -n UFOAgent -Xmx100m --conf ingestion -f ingestion/spooldir_example.conf
+</code></pre>
+#+end_html
+
+/Nota:/ Esto está marcando un error que no aparecía en la versión
+anterior de =flume=, ya la reporté [[https://github.com/kite-sdk/kite-examples/issues/27][aquí]].
 
 
 *** Bibliografía
@@ -2115,8 +2317,16 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 
 - Herramienta para importar eficientemente /data/ desde =RDBMS= a Hadoop (=HDFS,
   Hive, Hbase=) y viceversa.
+
 - Soporta cualquier =RDBMS= que tenga conexión =JDBC= (=PostgreSQL, MySQL, Oracle, Teradata=, etc.).
+
 - Tiene soporte nativo para =MySQL= y =PostgreSQL=.
+
+- =Sqoop= genera varios trabajos =MapReduce=, en los cuales, en cada
+  =Mapper= se conecta a la base de datos usando =JDBC=, selecciona un
+  pedazo de la tabla a copiar y escribe al =hdfs=.
+
+
 
 *** Apache Sqoop
 
@@ -2126,28 +2336,242 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 
 - Soporta carga /incremental/.
 
+- Es importante notar que =sqoop= no maneja los datos en el formato
+  esperado, por lo que  será necesario tener procesamiento posterior
+  para transformar los datos.
+
 
 *** Apache Sqoop
 
 [[file:./imagenes/sqoop.png]]
 
 
+*** Importar datos desde el RDBM a HDFS
+
+- Una tabla
+#+begin_html
+<pre><code data-trim>
+sqoop import --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--input-fields-terminated-by "\t"
+--table <tabla> --target-dir <directorio>
+</code></pre>
+#+end_html
+
+/NOTA:/ El parámetro de =--input-fiedls-terminated-by= indica como
+separar los campos en el =hdfs=.
+
+/NOTA:/ Si no quieres escribir la contraseña puedes usar la bandera =-P=.
+
+*** Importar datos desde el RDBM a HDFS
+
+- /Query/: Join
+#+begin_html
+<pre><code data-trim>
+sqoop import --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--query 'select tabla_1.*, tabla_2.* from tabla_1 join tabla_2 on (tabla_1.id = tabla_2.id) where $CONDITIONS' \
+--split-by tabla_1.id --target-dir <directorio>
+</code></pre>
+#+end_html
+
+/NOTA:/ El parámetro de =--split-by= indica que columna se usará para
+dividir los datos en varias tareas paralelas. (Por /default/, =sqoop=
+usa cuatro =mappers= y usará la columna de =id= para dividir el trabajo).
+
+/NOTA:/ =$CONDITIONS= será reemplazado por =sqoop= para particionar
+los /queries/.
+
+*** Importar datos desde el RDBM a Hive
+
+- Tabla de =RDBMS= a Tabla de =Hive=
+
+#+begin_html
+<pre><code data-trim>
+sqoop import --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--table <tabla> --hive-import  \
+--hive-overwrite --split-by <columna>
+</code></pre>
+#+end_html
+
+/NOTA:/ Si no usas =--hive-overwrite= se agregarán los datos a la
+tabla de =hive=.
+
+Ahora puedes checarlo con =beeline=.
+
+#+begin_html
+<pre><code data-trim>
+show tables;
+</code></pre>
+#+end_html
+
+/NOTA:/ También soporta importar hacia =Hbase=, ver la documentación.
+
+*** Exportar
+
+- Muchas veces deseamos mover datos a un =RDBMS= luego de procesarlos
+  o analizarlos, quizá para conectarlos con un sistema de /BI/, o una
+  aplicación web.
+
+- Se debe de crear la tabla primero donde depositaremos los datos
+(se puede hacer con =sqoop= o con =psql=)
+
+#+begin_html
+<pre><code data-trim>
+sqoop eval --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--query "CREATE TABLE ..."
+</code></pre>
+#+end_html
+
+- Luego exportar
+
+#+begin_html
+<pre><code data-trim>
+sqoop eval --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--export-dir directorio_hdfs  --table tabla \
+--columns lista_de_columnas \
+--input-fields-terminated-by "\t" \
+</code></pre>
+#+end_html
+
+
+*** Jobs
+
+- Algunas importaciones/exportaciones deberán de repetirse, en lugar
+  de escribirlas una y otra vez, es posible guardarlas como =jobs=
+
+- Listar los =jobs=
+#+begin_html
+<pre><code data-trim>
+sqoop job --list
+</code></pre>
+#+end_html
+
+- Crear un =job=
+#+begin_html
+<pre><code data-trim>
+sqoop job --create nombre_job -- ...
+</code></pre>
+#+end_html
+
+- Ejecutarlo
+
+#+begin_html
+<pre><code data-trim>
+sqoop job --exec nombre_job
+</code></pre>
+#+end_html
+
+*** Carga incremental
+
+- Si la tabla es más o menos pequeña y tarda muy poco en cargarse a
+  =Hadoop=, no vale la pena molestarse, con reescribir todo es más que
+  suficiente.
+-
+ Si es necesario hacerlo incremental, hay dos opciones por =ID= y por
+  =Timestamp=.
+  - Cuando cada renglón tiene su propio =id= y nuevos renglones tienen
+    =ids= más grandes que el último guardado en =hadoop=, se debe de
+    crear un =job=
+
+#+begin_html
+<pre><code data-trim>
+sqoop job --create <nombre_job> --import \
+--connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--table tabla --check-column columna-regularmente-id \
+--incremental append
+</code></pre>
+#+end_html
+
+y luego ejecutarlo cuando se necesite:
+
+#+begin_html
+<pre><code data-trim>
+sqoop job --exec <nombre_job>
+</code></pre>
+#+end_html
+
 *** Ejercicio
 
-- ¿Cuál serían los comandos para la Copia la tabla de transacciones de tarjeta bancaria que hiciste
-  hacia Hadoop, colócalo en una tabla de =Hive= y en una carpeta
-  dentro de tu usuario.
+- Es posible /linkear/ dos contenedores de =docker=. En este
+  ejercicio, veremos como.
 
-- ¿Y para extraer las tablas de tus análisis con =Impala=? ¿Cómo los
-  copias a una base de datos?
+- Inicializa el =container= de =hadoop-pseudo=
+
+#+begin_html
+<pre><code data-trim>
+docker start -ai hadoop-pseudo
+</code></pre>
+#+end_html
+
+- Instala (como el usuario =itam=) el cliente de =postgresql=, =psql=
+
+#+begin_html
+<pre><code data-trim>
+sudo apt-get install postgresql-client
+</code></pre>
+#+end_html
+
+- Descarga, si no lo has hecho,  la imagen de =docker-postgresql=
+
+#+begin_html
+<pre><code data-trim>
+docker pull nanounanue/docker-postgresql
+</code></pre>
+#+end_html
+
+- Crea un contenedor de =postgresql= y /linkealo/ a =hadoop-pseudo=
+
+#+begin_html
+<pre><code data-trim>
+docker run --link hadoop-pseudo:hadoop-pseudo --name pg_server nanounanue/docker-postgresql
+</code></pre>
+#+end_html
+
+
+- Averigua la dirección IP de cada contenedor
+
+#+begin_html
+<pre><code data-trim>
+# Visto en https://github.com/docker/docker/issues/8786
+docker ps -q | xargs docker inspect --format '{{ .Id }} - {{ .Name }} - {{ .NetworkSettings.IPAddress }}'
+</code></pre>
+#+end_html
+
+
+- Desde el contenedor de =hadoop-pseudo= conéctate con =psql=
+
+#+begin_html
+<pre><code data-trim>
+psql -h direccion_ip_de_pg-server -U itam
+</code></pre>
+#+end_html
+
+/NOTA:/ La base de datos es =itam= y la contraseña es =itam=.
+
+
+*** Ejercicio
+
+- Ahora realiza lo siguiente:
+
+  - ¿Cuál serían los comandos para la copia la tabla de transacciones
+    de tarjeta bancaria (que hiciste en la sección de =postgresql=)
+    hacia Hadoop, colócalo en una tabla de =Hive= y en una carpeta
+    dentro de tu usuario.
+
+  - ¿Y para extraer las tablas de tus análisis recientes con =Impala=? ¿Cómo los
+     copias a una base de datos?
+
 
 *** Bibliografía
 
 - Documentación de Apache Sqoop
 - Apache Sqoop Cookbook
 
-
-** Small Files Problem
 
 ** Hive Metastore: HCatalog
 :PROPERTIES:
@@ -2212,6 +2636,13 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 - Usa la línea de comandos para manejar la definición de los datos y
   metadatos.
   - Llamada imaginativamente =hcat=.
+  - Por ejemplo, para ver el esquema de una tabla:
+    #+begin_html
+    <pre><code data-trim>
+    hcat -e "desc tabla"
+    </code></pre>
+    #+end_html
+
 - =HCatalog= presenta los datos de manera relacional.
 - Los datos son guardados en tablas y las tablas en bases de datos.
 
@@ -2229,12 +2660,12 @@ hcat "alter table books add partition (ds='20140430') location 'hdfs://data/2014
 
 - Usuario 2 usa =Pig= para limpiar y preparar los datos.
   - =HCatalog= mandará al =JMS= un mensaje de que la información está disponible.
-
+  - /NOTA:/ Revisa la sección de =pig= para poder ver los =classpath= completos.
 
 #+begin_html
 <pre><code data-trim>
 A = load 'books' using HCatLoader();
-B = filter A by date = '20140430';
+B = filter A by date = '20150430';
 ...
 store Z into 'procesados' using HCatStorer("date=20140430");
 </code></pre>
@@ -2246,28 +2677,147 @@ store Z into 'procesados' using HCatStorer("date=20140430");
 <pre><code data-trim>
 select col1, count(col3)
 from procesados
-where date  = '201340430'
+where date  = '20150430'
 group by col1;
 </code></pre>
 #+end_html
+
 
 ** Luigi
 
 *** Luigi
 
-- En proceso...
+- Orquestador de *Spotify*
+
+- Escrito en =python=.
+  - Cualquier cosa funcionará entonces: =scikit=, =pyspark=, etc.
+
+- Integrado con =Hdfs=.
+
+- Soporta /out-of-the-box/ =postgresql=
+  - Interesante: ¿Dónde queda =sqoop=?
+
+- Tiene algunas decisiones raras de diseño ...
+  - Ver los [[http://luigi.readthedocs.org/en/latest/api/luigi.contrib.html][contribs]] sobre todo los de =hive=, =sqla=, etc.
+
+*** Ejemplo
+
+- Lo mejor es ver un ejemplo sencillo
+
+
+- Este es el =workflow=
+
+#+begin_html
+<pre><code data-trim>
+import luigi
+
+class SimpleTask(luigi.Task):
+    def output(self):
+        return MockFile("SimpleTask", mirror_on_stderr=True)
+
+    def run(self):
+        _out = self.output().open('w')
+        _out.write(u"Hello World!")
+        _out.close()
+
+
+class DecoratedTask(luigi.Task):
+    def output(self):
+        return MockFile("DecoratedTask", mirror_on_stderr=True)
+
+    def requires(self):
+        return SimpleTask()
+
+    def run(self):
+        _in = self.input().open("r")
+        _out = self.output().open("w")
+        for line in _in:
+            outval = u"Decorated " + line + u"\n"
+            _out.write(outval)
+
+        _out.close()
+        _in.close()
+
+
+if __name__ == '__main__':
+    from luigi.mock import MockFile
+    luigi.run(main_task_cls=DecoratedTask)
+
+</code></pre>
+#+end_html
+
+*** Ejemplo
+
+- Levanta el =scheduler=
+  - (Ajusta acordemente)
+
+#+begin_html
+<pre><code data-trim>
+luigid --port 8000 --background  --logdir=/home/itam/workflows/log
+</code></pre>
+#+end_html
+
+- [[127.0.0.1:8000][Abre tu navegador ]]
+
+- Ejecuta el =workflow
+
+#+begin_html
+<pre><code data-trim>
+python linked_luigi.py --scheduler-port 8000
+</code></pre>
+#+end_html
+
+
+*** Luigi
+
+- Y ahora ver las siguientes presentaciones:
+
+- [[https://vimeo.com/63435580][Luigi - Batch Data Processing in Python]]
+  - El [[http://cdn.oreillystatic.com/en/assets/1/event/95/Luigi%20-%20Batch%20Data%20Processing%20at%20Large%20Scale%20Presentation.pdf][pdf]]
+
+- Los [[http://luigi-td.readthedocs.org/en/latest/gettingstarted.html][docs]]
+
+
 
 
 * Modo distribuido
 
+
+
 ** Modo distribuido
 
-- En proceso...
+- Sigue las instrucciones de [[http://www.cloudera.com/content/cloudera/en/documentation/cloudera-manager/v5-0-0/Cloudera-Manager-Installation-Guide/cm5ig_install_on_ec2.html][aquí]] para levantar un cluster.
+
+/NOTA:/ Requerirás una cuenta en =AWS=.
+
 
 * Proyecto Final
 :PROPERTIES:
    :reveal_data_state: alert
 :END:
+
+** Proyecto Final
+
+- Implementar el flujo propuesto por el equipo.
+
+- Utilizar al menos:
+  - =Sqoop=
+  - =Flume=
+  - =Luigi=
+  - =Hive= o =Impala= para hacer un ejemplo de analítica
+    - Probablemente fuera del *ETL*.
+  - =Pig= o =PySpark= para hacer al menos un paso del *ETL*
+  - El sistema de carpetas.
+
+- Para la base de datos de =gdelt=.
+
+- Reporte de trabajo escrito, más presentación ejecutiva.
+  - /NOTA:/ Recuerda que son para dos fines diferentes.
+  - Describa todo lo que querían hacer, junto con el caso de
+    negocio.
+  - Y luego lo implementado.
+
+- *Fecha de entrega:* Viernes 5 de junio, a las 23:59.
 
 * Disclaimer
 :PROPERTIES:

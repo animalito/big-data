@@ -3166,12 +3166,254 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 
 </section>
 <section id="slide-sec-11-5-15">
-<h4 id="sec-11-5-15">Ejercicio</h4>
+<h4 id="sec-11-5-15">Ejercicio I</h4>
+<ul>
+<li>En este ejercicio, veremos como mover datos desde una carpeta hacia
+<code>hadoop</code> usando <code>flume</code>.
+<ul>
+<li>Lo haremos de manera incremental.</li>
 
+</ul></li>
+
+</ul>
+
+
+
+<ul>
+<li>Primero, Conectaremos el archivo al log en pantalla.</li>
+
+<li>Crea la carpeta <code>/opt/ufos</code></li>
+
+<li>Guarda lo siguiente en <code>ingestion/ufo-agent1.conf</code>.</li>
+
+</ul>
+
+<pre><code data-trim>
+# Componentes
+UFOAgent.sources = UFODir
+UFOAgent.channels = c1
+UFOAgent.sinks = UFOLogger
+
+# Canal
+UFOAgent.channels.c1.type = memory
+
+# Fuente e Interceptores
+UFOAgent.sources.UFODir.type = spooldir
+UFOAgent.sources.UFODir.channels = c1
+UFOAgent.sources.UFODir.spoolDir = /opt/ufos
+UFOAgent.sources.UFODir.fileHeader = true
+UFOAgent.sources.UFODir.channels = c1
+
+# Sumidero
+UFOAgent.sinks.UFOLogger.type=logger
+UFOAgent.sinks.UFOLogger.channel=c1
+</code></pre>
+
+<ul>
+<li>Para ejecutar el agente:</li>
+
+</ul>
+
+<pre><code data-trim>
+flume-ng agent -n UFOAgent --conf ingestion -f ingestion/ufo_agent1.conf
+</code></pre>
+
+<ul>
+<li>Para terminar <code>Ctrl+C</code>.</li>
+
+</ul>
 
 </section>
 <section id="slide-sec-11-5-16">
-<h4 id="sec-11-5-16">Bibliografía</h4>
+<h4 id="sec-11-5-16">Ejercicio I</h4>
+<ul>
+<li>Antes de iniciar el siguiente ejercicio:
+<ul>
+<li>Limpia la carpeta  <code>/opt/ufos</code>.</li>
+<li>Borra la carpeta en el <code>hdfs</code> <code>/ufos_flume/</code></li>
+
+</ul></li>
+
+<li>Haz esto mismo entre cada ejercicio de esta sección.</li>
+
+</ul>
+
+
+</section>
+<section id="slide-sec-11-5-17">
+<h4 id="sec-11-5-17">Ejercicio II</h4>
+<ul>
+<li>Ahora lo mandaremos al HDFS, como no queremos perder datos (y no es
+tan rápido la generación de datos) usaremos un canal de archivo.</li>
+
+</ul>
+
+
+<ul>
+<li>Guarda la configuración siguiente en <code>ingestion/ufo-agent2.conf</code>.</li>
+
+</ul>
+
+<pre><code data-trim>
+# Componentes
+UFOAgent.sources = UFODir
+UFOAgent.channels = archivo
+UFOAgent.sinks = UFOHDFS
+
+# Canal
+UFOAgent.channels.archivo.type = file
+UFOAgent.channels.archivo.checkpointDir = /opt/ufos/log/checkpoint/
+UFOAgent.channels.archivo.dataDirs = /opt/ufos/log/data/
+
+# Fuente e Interceptores
+UFOAgent.sources.UFODir.type = spooldir
+UFOAgent.sources.UFODir.channels = archivo
+UFOAgent.sources.UFODir.spoolDir = /opt/ufos
+UFOAgent.sources.UFODir.fileHeader = true
+
+# Sumidero
+UFOAgent.sinks.UFOHDFS.type=hdfs
+UFOAgent.sinks.UFOHDFS.channel=archivo
+UFOAgent.sinks.UFOHDFS.hdfs.path = /user/itam/ufos_flume/
+UFOAgent.sinks.UFOHDFS.hdfs.fileType = DataStream
+UFOAgent.sinks.UFOHDFS.hdfs.filePrefix = UFOData
+UFOAgent.sinks.UFOHDFS.hdfs.writeFormat = Text
+UFOAgent.sinks.UFOHDFS.hdfs.batchSize = 200000
+UFOAgent.sinks.UFOHDFS.hdfs.rollSize = 0
+UFOAgent.sinks.UFOHDFS.hdfs.rollCount = 2000000
+</code></pre>
+
+
+<ul>
+<li>Para ejecutar el agente:</li>
+
+</ul>
+
+<pre><code data-trim>
+flume-ng agent -n UFOAgent --conf ingestion -f ingestion/ufo_agent2.conf
+</code></pre>
+
+</section>
+<section id="slide-sec-11-5-18">
+<h4 id="sec-11-5-18">Ejercicio II</h4>
+<ul>
+<li>Espera a que salga algo parecido a esto:</li>
+
+</ul>
+
+<pre><code data-trim>
+...
+15/05/20 06:01:12 INFO file.EventQueueBackingStoreFile: Start checkpoint for /opt/ufos/log/checkpoint/checkpoint, elements to sync = 530
+15/05/20 06:01:12 INFO file.EventQueueBackingStoreFile: Updating checkpoint metadata: logWriteOrderID: 1432101643755, queueSize: 0, queueHead: 528
+15/05/20 06:01:12 INFO file.Log: Updated checkpoint for file: /opt/ufos/log/data/log-1 position: 141088 logWriteOrderID: 1432101643755
+15/05/20 06:01:20 INFO hdfs.BucketWriter: Closing /user/itam/ufos_flume//UFOData.1432101649049.tmp
+15/05/20 06:01:20 INFO hdfs.BucketWriter: Renaming /user/itam/ufos_flume/UFOData.1432101649049.tmp to /user/itam/ufos_flume/UFOData.1432101649049
+15/05/20 06:01:20 INFO hdfs.HDFSEventSink: Writer callback called
+</code></pre>
+
+
+<p>
+<i>NOTA:</i> Otra manera de saber que ya terminó, es esperando a que
+desaparezca el archivo con terminación <code>.tmp</code> en el <code>hdfs</code>.
+</p>
+
+</section>
+<section id="slide-sec-11-5-19">
+<h4 id="sec-11-5-19">Ejercicio III</h4>
+<ul>
+<li>Incorporaremos Avro y el esquema generado por <code>kite</code>.</li>
+
+<li>Antes es necesario hacer lo siguiente
+<ul>
+<li>Esto es necesario debido a como está instalado el modo
+pseudodistribuido de <b>Cloudera</b>.</li>
+
+</ul></li>
+
+</ul>
+
+
+<pre><code data-trim>
+sudo ln -s ../../kite/kite-morphlines-* /usr/lib/flume-ng/lib
+sudo ln -s ../../kite/lib/metrics* /usr/lib/flume-ng/lib
+sudo ln -s ../../kite/lib/config-1.0.2.jar /usr/lib/flume-ng/lib
+sudo ln -s ../../kite/lib/Saxon-HE-9.5.1-5.jar /usr/lib/flume-ng/lib
+sudo ln -s ../../kite/lib/tika-* /usr/lib/flume-ng/lib
+</code></pre>
+
+
+
+</section>
+<section id="slide-sec-11-5-20">
+<h4 id="sec-11-5-20">Ejercicio III</h4>
+<ul>
+<li>Guarda lo que sigue en <code>ingestion/ufo_agent3.conf</code></li>
+
+</ul>
+
+<pre><code data-trim>
+# Componentes
+UFOAgent.sources = UFODir
+UFOAgent.channels = archivo
+UFOAgent.sinks = UFOKiteDS
+
+# Canal
+UFOAgent.channels.archivo.type = file
+UFOAgent.channels.archivo.checkpointDir = /opt/ufos/log/checkpoint/
+UFOAgent.channels.archivo.dataDirs = /opt/ufos/log/data/
+
+# Fuente
+UFOAgent.sources.UFODir.type = spooldir
+UFOAgent.sources.UFODir.channels = archivo
+UFOAgent.sources.UFODir.spoolDir = /opt/ufos
+UFOAgent.sources.UFODir.fileHeader = true
+UFOAgent.sources.UFODir.deletePolicy = immediate
+
+# Interceptor
+UFOAgent.sources.UFODir.interceptors = attach-schema morphline
+
+UFOAgent.sources.UFODir.interceptors.attach-schema.type = static
+UFOAgent.sources.UFODir.interceptors.attach-schema.key = flume.avro.schema.url
+UFOAgent.sources.UFODir.interceptors.attach-schema.value = file:/home/itam/schemas/ufos.avsc
+
+UFOAgent.sources.UFODir.interceptors.morphline.type = org.apache.flume.sink.solr.morphline.MorphlineInterceptor$Builder
+UFOAgent.sources.UFODir.interceptors.morphline.morphlineFile = /home/itam/ingestion/morphline.conf
+UFOAgent.sources.UFODir.interceptors.morphline.morphlineId = convertUFOFileToAvro
+
+
+# Sumidero
+UFOAgent.sinks.UFOKiteDS.type = org.apache.flume.sink.kite.DatasetSink
+UFOAgent.sinks.UFOKiteDS.channel = archivo
+UFOAgent.sinks.UFOKiteDS.kite.repo.uri = dataset:hive
+UFOAgent.sinks.UFOKiteDS.kite.dataset.name = ufos
+UFOAgent.sinks.UFOKiteDS.kite.batchSize = 10
+</code></pre>
+
+</section>
+<section id="slide-sec-11-5-21">
+<h4 id="sec-11-5-21">Ejercicio III</h4>
+<p>
+Esta configuración consume más memoria de la que está asignada por
+<i>default</i>, observa el parámetro <code>-Xmx100m</code>
+</p>
+<ul>
+<li>Quítalo, para que veas el error que sale (te puede salir en tu
+proyecto final)</li>
+
+</ul>
+<pre><code data-trim>
+ flume-ng agent -n UFOAgent -Xmx100m --conf ingestion -f ingestion/spooldir_example.conf
+</code></pre>
+
+<p>
+<i>Nota:</i> Esto está marcando un error que no aparecía en la versión
+anterior de <code>flume</code>, ya la reporté <a href="https://github.com/kite-sdk/kite-examples/issues/27">aquí</a>.
+</p>
+
+
+</section>
+<section id="slide-sec-11-5-22">
+<h4 id="sec-11-5-22">Bibliografía</h4>
 <ul>
 <li>Documentación de Flume</li>
 <li>Using Flume</li>
@@ -3188,10 +3430,18 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 <ul>
 <li>Herramienta para importar eficientemente <i>data</i> desde <code>RDBMS</code> a Hadoop (<code>HDFS,
   Hive, Hbase</code>) y viceversa.</li>
+
 <li>Soporta cualquier <code>RDBMS</code> que tenga conexión <code>JDBC</code> (<code>PostgreSQL, MySQL, Oracle, Teradata</code>, etc.).</li>
+
 <li>Tiene soporte nativo para <code>MySQL</code> y <code>PostgreSQL</code>.</li>
 
+<li><code>Sqoop</code> genera varios trabajos <code>MapReduce</code>, en los cuales, en cada
+<code>Mapper</code> se conecta a la base de datos usando <code>JDBC</code>, selecciona un
+pedazo de la tabla a copiar y escribe al <code>hdfs</code>.</li>
+
 </ul>
+
+
 
 </section>
 <section id="slide-sec-11-6-2">
@@ -3202,6 +3452,10 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 <li>Puede ejecutar <i>queries</i> (y así filtrar la tabla, o hacer <code>joins</code>).</li>
 
 <li>Soporta carga <i>incremental</i>.</li>
+
+<li>Es importante notar que <code>sqoop</code> no maneja los datos en el formato
+esperado, por lo que  será necesario tener procesamiento posterior
+para transformar los datos.</li>
 
 </ul>
 
@@ -3218,20 +3472,275 @@ flume-ng agent -n agent -c . -f ingesta/hola_mundo.conf -Dflume.root.logger=INFO
 
 </section>
 <section id="slide-sec-11-6-4">
-<h4 id="sec-11-6-4">Ejercicio</h4>
+<h4 id="sec-11-6-4">Importar datos desde el RDBM a HDFS</h4>
 <ul>
-<li>¿Cuál serían los comandos para la Copia la tabla de transacciones de tarjeta bancaria que hiciste
-hacia Hadoop, colócalo en una tabla de <code>Hive</code> y en una carpeta
-dentro de tu usuario.</li>
-
-<li>¿Y para extraer las tablas de tus análisis con <code>Impala</code>? ¿Cómo los
-copias a una base de datos?</li>
+<li>Una tabla</li>
 
 </ul>
+<pre><code data-trim>
+sqoop import --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--input-fields-terminated-by "\t"
+--table <tabla> --target-dir <directorio>
+</code></pre>
+
+<p>
+<i>NOTA:</i> El parámetro de <code>--input-fiedls-terminated-by</code> indica como
+separar los campos en el <code>hdfs</code>.
+</p>
+
+<p>
+<i>NOTA:</i> Si no quieres escribir la contraseña puedes usar la bandera <code>-P</code>.
+</p>
 
 </section>
 <section id="slide-sec-11-6-5">
-<h4 id="sec-11-6-5">Bibliografía</h4>
+<h4 id="sec-11-6-5">Importar datos desde el RDBM a HDFS</h4>
+<ul>
+<li><i>Query</i>: Join</li>
+
+</ul>
+<pre><code data-trim>
+sqoop import --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--query 'select tabla_1.*, tabla_2.* from tabla_1 join tabla_2 on (tabla_1.id = tabla_2.id) where $CONDITIONS' \
+--split-by tabla_1.id --target-dir <directorio>
+</code></pre>
+
+<p>
+<i>NOTA:</i> El parámetro de <code>--split-by</code> indica que columna se usará para
+dividir los datos en varias tareas paralelas. (Por <i>default</i>, <code>sqoop</code>
+usa cuatro <code>mappers</code> y usará la columna de <code>id</code> para dividir el trabajo).
+</p>
+
+<p>
+<i>NOTA:</i> <code>$CONDITIONS</code> será reemplazado por <code>sqoop</code> para particionar
+los <i>queries</i>.
+</p>
+
+</section>
+<section id="slide-sec-11-6-6">
+<h4 id="sec-11-6-6">Importar datos desde el RDBM a Hive</h4>
+<ul>
+<li>Tabla de <code>RDBMS</code> a Tabla de <code>Hive</code></li>
+
+</ul>
+
+<pre><code data-trim>
+sqoop import --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--table <tabla> --hive-import  \
+--hive-overwrite --split-by <columna>
+</code></pre>
+
+<p>
+<i>NOTA:</i> Si no usas <code>--hive-overwrite</code> se agregarán los datos a la
+tabla de <code>hive</code>.
+</p>
+
+<p>
+Ahora puedes checarlo con <code>beeline</code>.
+</p>
+
+<pre><code data-trim>
+show tables;
+</code></pre>
+
+<p>
+<i>NOTA:</i> También soporta importar hacia <code>Hbase</code>, ver la documentación.
+</p>
+
+</section>
+<section id="slide-sec-11-6-7">
+<h4 id="sec-11-6-7">Exportar</h4>
+<ul>
+<li>Muchas veces deseamos mover datos a un <code>RDBMS</code> luego de procesarlos
+o analizarlos, quizá para conectarlos con un sistema de <i>BI</i>, o una
+aplicación web.</li>
+
+<li>Se debe de crear la tabla primero donde depositaremos los datos</li>
+
+</ul>
+<p>
+(se puede hacer con <code>sqoop</code> o con <code>psql</code>)
+</p>
+
+<pre><code data-trim>
+sqoop eval --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--query "CREATE TABLE ..."
+</code></pre>
+
+<ul>
+<li>Luego exportar</li>
+
+</ul>
+
+<pre><code data-trim>
+sqoop eval --connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--export-dir directorio_hdfs  --table tabla \
+--columns lista_de_columnas \
+--input-fields-terminated-by "\t" \
+</code></pre>
+
+
+</section>
+<section id="slide-sec-11-6-8">
+<h4 id="sec-11-6-8">Jobs</h4>
+<ul>
+<li>Algunas importaciones/exportaciones deberán de repetirse, en lugar
+de escribirlas una y otra vez, es posible guardarlas como <code>jobs</code></li>
+
+<li>Listar los <code>jobs</code></li>
+
+</ul>
+<pre><code data-trim>
+sqoop job --list
+</code></pre>
+
+<ul>
+<li>Crear un <code>job</code></li>
+
+</ul>
+<pre><code data-trim>
+sqoop job --create nombre_job -- ...
+</code></pre>
+
+<ul>
+<li>Ejecutarlo</li>
+
+</ul>
+
+<pre><code data-trim>
+sqoop job --exec nombre_job
+</code></pre>
+
+</section>
+<section id="slide-sec-11-6-9">
+<h4 id="sec-11-6-9">Carga incremental</h4>
+<ul>
+<li>Si la tabla es más o menos pequeña y tarda muy poco en cargarse a
+<code>Hadoop</code>, no vale la pena molestarse, con reescribir todo es más que
+suficiente.</li>
+<li>Si es necesario hacerlo incremental, hay dos opciones por <code>ID</code> y por
+<code>Timestamp</code>.
+<ul>
+<li>Cuando cada renglón tiene su propio <code>id</code> y nuevos renglones tienen
+<code>ids</code> más grandes que el último guardado en <code>hadoop</code>, se debe de
+crear un <code>job</code></li>
+
+</ul></li>
+
+</ul>
+
+<pre><code data-trim>
+sqoop job --create <nombre_job> --import \
+--connect jdbc:postgresql://host/database \
+--username usuario --password contraseña  \
+--table tabla --check-column columna-regularmente-id \
+--incremental append
+</code></pre>
+
+<p>
+y luego ejecutarlo cuando se necesite:
+</p>
+
+<pre><code data-trim>
+sqoop job --exec <nombre_job>
+</code></pre>
+
+</section>
+<section id="slide-sec-11-6-10">
+<h4 id="sec-11-6-10">Ejercicio</h4>
+<ul>
+<li>Es posible <i>linkear</i> dos contenedores de <code>docker</code>. En este
+ejercicio, veremos como.</li>
+
+<li>Inicializa el <code>container</code> de <code>hadoop-pseudo</code></li>
+
+</ul>
+
+<pre><code data-trim>
+docker start -ai hadoop-pseudo
+</code></pre>
+
+<ul>
+<li>Instala (como el usuario <code>itam</code>) el cliente de <code>postgresql</code>, <code>psql</code></li>
+
+</ul>
+
+<pre><code data-trim>
+sudo apt-get install postgresql-client
+</code></pre>
+
+<ul>
+<li>Descarga, si no lo has hecho,  la imagen de <code>docker-postgresql</code></li>
+
+</ul>
+
+<pre><code data-trim>
+docker pull nanounanue/docker-postgresql
+</code></pre>
+
+<ul>
+<li>Crea un contenedor de <code>postgresql</code> y <i>linkealo</i> a <code>hadoop-pseudo</code></li>
+
+</ul>
+
+<pre><code data-trim>
+docker run --link hadoop-pseudo:hadoop-pseudo --name pg_server nanounanue/docker-postgresql
+</code></pre>
+
+
+<ul>
+<li>Averigua la dirección IP de cada contenedor</li>
+
+</ul>
+
+<pre><code data-trim>
+# Visto en https://github.com/docker/docker/issues/8786
+docker ps -q | xargs docker inspect --format '{{ .Id }} - {{ .Name }} - {{ .NetworkSettings.IPAddress }}'
+</code></pre>
+
+
+<ul>
+<li>Desde el contenedor de <code>hadoop-pseudo</code> conéctate con <code>psql</code></li>
+
+</ul>
+
+<pre><code data-trim>
+psql -h direccion_ip_de_pg-server -U itam
+</code></pre>
+
+<p>
+<i>NOTA:</i> La base de datos es <code>itam</code> y la contraseña es <code>itam</code>.
+</p>
+
+
+</section>
+<section id="slide-sec-11-6-11">
+<h4 id="sec-11-6-11">Ejercicio</h4>
+<ul>
+<li>Ahora realiza lo siguiente:
+
+<ul>
+<li>¿Cuál serían los comandos para la copia la tabla de transacciones
+de tarjeta bancaria (que hiciste en la sección de <code>postgresql</code>)
+hacia Hadoop, colócalo en una tabla de <code>Hive</code> y en una carpeta
+dentro de tu usuario.</li>
+
+<li>¿Y para extraer las tablas de tus análisis recientes con <code>Impala</code>? ¿Cómo los
+copias a una base de datos?</li>
+
+</ul></li>
+
+</ul>
+
+
+</section>
+<section id="slide-sec-11-6-12">
+<h4 id="sec-11-6-12">Bibliografía</h4>
 <ul>
 <li>Documentación de Apache Sqoop</li>
 <li>Apache Sqoop Cookbook</li>
@@ -3240,16 +3749,12 @@ copias a una base de datos?</li>
 
 
 </section>
-<section id="slide-sec-11-7">
-<h3 id="sec-11-7">Small Files Problem</h3>
-
-</section>
 <section id="slide-hive-metastore">
-<h3 id="hive-metastore"><a id="sec-11-8" name="sec-11-8"></a>Hive Metastore: HCatalog</h3>
+<h3 id="hive-metastore"><a id="sec-11-7" name="sec-11-7"></a>Hive Metastore: HCatalog</h3>
 
 </section>
-<section id="slide-sec-11-8-1">
-<h4 id="sec-11-8-1">¿Por qué?</h4>
+<section id="slide-sec-11-7-1">
+<h4 id="sec-11-7-1">¿Por qué?</h4>
 <ul>
 <li>Como vimos hay varias herramientas para analizar los datos:
 <code>MapReduce</code>, <code>Hive</code>, <code>Pig</code>, <code>Impala</code> y los varios sabores de
@@ -3271,8 +3776,8 @@ procesándolas necesitamos:
 </ul>
 
 </section>
-<section id="slide-sec-11-8-2">
-<h4 id="sec-11-8-2">¿Por qué?</h4>
+<section id="slide-sec-11-7-2">
+<h4 id="sec-11-7-2">¿Por qué?</h4>
 <ul>
 <li>Estos problemas no los tiene <code>hive</code>, ya que el <i>lee</i> el lugar,
 formato y esquema del <code>hive metastore</code>.</li>
@@ -3291,8 +3796,8 @@ locación, formato y esquema de nuestros <code>datasets</code>.</li>
 </ul>
 
 </section>
-<section id="slide-sec-11-8-3">
-<h4 id="sec-11-8-3">HCatalog</h4>
+<section id="slide-sec-11-7-3">
+<h4 id="sec-11-7-3">HCatalog</h4>
 <ul>
 <li>Está incorporado a <code>Hive</code> desde la versión <code>0.11</code>.</li>
 
@@ -3306,8 +3811,8 @@ preocupen dónde o en que formato están almacenados los datos.</li>
 </ul>
 
 </section>
-<section id="slide-sec-11-8-4">
-<h4 id="sec-11-8-4">HCatalog</h4>
+<section id="slide-sec-11-7-4">
+<h4 id="sec-11-7-4">HCatalog</h4>
 <ul>
 <li>Provee una abstracción sobre los <code>datasets</code> guardados en el <code>hdfs</code>.</li>
 <li>Permite realizar <i>data discovery</i>.</li>
@@ -3323,8 +3828,8 @@ tablas de <code>Hive</code>.</li>
 </ul>
 
 </section>
-<section id="slide-sec-11-8-5">
-<h4 id="sec-11-8-5">HCatalog</h4>
+<section id="slide-sec-11-7-5">
+<h4 id="sec-11-7-5">HCatalog</h4>
 <ul>
 <li>Utiliza el <code>DDL</code> de <code>Hive</code>.</li>
 <li>Provee interfaces de escritura y lectura para <code>Pig</code>, <code>MapReduce</code> y
@@ -3333,8 +3838,13 @@ tablas de <code>Hive</code>.</li>
 metadatos.
 <ul>
 <li>Llamada imaginativamente <code>hcat</code>.</li>
+<li>Por ejemplo, para ver el esquema de una tabla:
+<pre><code data-trim>
+hcat -e "desc tabla"
+</code></pre></li>
 
 </ul></li>
+
 <li><code>HCatalog</code> presenta los datos de manera relacional.</li>
 <li>Los datos son guardados en tablas y las tablas en bases de datos.</li>
 
@@ -3343,8 +3853,8 @@ metadatos.
 </ul>
 
 </section>
-<section id="slide-sec-11-8-6">
-<h4 id="sec-11-8-6">HCatalog: Flujo de datos</h4>
+<section id="slide-sec-11-7-6">
+<h4 id="sec-11-7-6">HCatalog: Flujo de datos</h4>
 <ul>
 <li>Usuario 1 copia datos al HDFS</li>
 
@@ -3358,15 +3868,15 @@ hcat "alter table books add partition (ds='20140430') location 'hdfs://data/2014
 <li>Usuario 2 usa <code>Pig</code> para limpiar y preparar los datos.
 <ul>
 <li><code>HCatalog</code> mandará al <code>JMS</code> un mensaje de que la información está disponible.</li>
+<li><i>NOTA:</i> Revisa la sección de <code>pig</code> para poder ver los <code>classpath</code> completos.</li>
 
 </ul></li>
 
 </ul>
 
-
 <pre><code data-trim>
 A = load 'books' using HCatLoader();
-B = filter A by date = '20140430';
+B = filter A by date = '20150430';
 ...
 store Z into 'procesados' using HCatStorer("date=20140430");
 </code></pre>
@@ -3379,21 +3889,139 @@ store Z into 'procesados' using HCatStorer("date=20140430");
 <pre><code data-trim>
 select col1, count(col3)
 from procesados
-where date  = '201340430'
+where date  = '20150430'
 group by col1;
 </code></pre>
 
+
 </section>
-<section id="slide-sec-11-9">
-<h3 id="sec-11-9">Luigi</h3>
-<div class="outline-text-3" id="text-11-9">
+<section id="slide-sec-11-8">
+<h3 id="sec-11-8">Luigi</h3>
+<div class="outline-text-3" id="text-11-8">
 </div></section>
-<section id="slide-sec-11-9-1">
-<h4 id="sec-11-9-1">Luigi</h4>
+<section id="slide-sec-11-8-1">
+<h4 id="sec-11-8-1">Luigi</h4>
 <ul>
-<li>En proceso&#x2026;</li>
+<li>Orquestador de <b>Spotify</b></li>
+
+<li>Escrito en <code>python</code>.
+<ul>
+<li>Cualquier cosa funcionará entonces: <code>scikit</code>, <code>pyspark</code>, etc.</li>
+
+</ul></li>
+
+<li>Integrado con <code>Hdfs</code>.</li>
+
+<li>Soporta <i>out-of-the-box</i> <code>postgresql</code>
+<ul>
+<li>Interesante: ¿Dónde queda <code>sqoop</code>?</li>
+
+</ul></li>
+
+<li>Tiene algunas decisiones raras de diseño &#x2026;
+<ul>
+<li>Ver los <a href="http://luigi.readthedocs.org/en/latest/api/luigi.contrib.html">contribs</a> sobre todo los de <code>hive</code>, <code>sqla</code>, etc.</li>
+
+</ul></li>
 
 </ul>
+
+</section>
+<section id="slide-sec-11-8-2">
+<h4 id="sec-11-8-2">Ejemplo</h4>
+<ul>
+<li>Lo mejor es ver un ejemplo sencillo</li>
+
+</ul>
+
+
+<ul>
+<li>Este es el <code>workflow</code></li>
+
+</ul>
+
+<pre><code data-trim>
+import luigi
+
+class SimpleTask(luigi.Task):
+    def output(self):
+        return MockFile("SimpleTask", mirror_on_stderr=True)
+
+    def run(self):
+        _out = self.output().open('w')
+        _out.write(u"Hello World!")
+        _out.close()
+
+
+class DecoratedTask(luigi.Task):
+    def output(self):
+        return MockFile("DecoratedTask", mirror_on_stderr=True)
+
+    def requires(self):
+        return SimpleTask()
+
+    def run(self):
+        _in = self.input().open("r")
+        _out = self.output().open("w")
+        for line in _in:
+            outval = u"Decorated " + line + u"\n"
+            _out.write(outval)
+
+        _out.close()
+        _in.close()
+
+
+if __name__ == '__main__':
+    from luigi.mock import MockFile
+    luigi.run(main_task_cls=DecoratedTask)
+
+</code></pre>
+
+</section>
+<section id="slide-sec-11-8-3">
+<h4 id="sec-11-8-3">Ejemplo</h4>
+<ul>
+<li>Levanta el <code>scheduler</code>
+<ul>
+<li>(Ajusta acordemente)</li>
+
+</ul></li>
+
+</ul>
+
+<pre><code data-trim>
+luigid --port 8000 --background  --logdir=/home/itam/workflows/log
+</code></pre>
+
+<ul>
+<li><i>Abre tu navegador </i></li>
+
+<li>Ejecuta el =workflow</li>
+
+</ul>
+
+<pre><code data-trim>
+python linked_luigi.py --scheduler-port 8000
+</code></pre>
+
+
+</section>
+<section id="slide-sec-11-8-4">
+<h4 id="sec-11-8-4">Luigi</h4>
+<ul>
+<li>Y ahora ver las siguientes presentaciones:</li>
+
+<li><a href="https://vimeo.com/63435580">Luigi - Batch Data Processing in Python</a>
+<ul>
+<li>El <a href="http://cdn.oreillystatic.com/en/assets/1/event/95/Luigi%20-%20Batch%20Data%20Processing%20at%20Large%20Scale%20Presentation.pdf">pdf</a></li>
+
+</ul></li>
+
+<li>Los <a href="http://luigi-td.readthedocs.org/en/latest/gettingstarted.html">docs</a></li>
+
+</ul>
+
+
 
 
 </section>
@@ -3406,15 +4034,56 @@ group by col1;
 <section id="slide-sec-12-1">
 <h3 id="sec-12-1">Modo distribuido</h3>
 <ul>
-<li>En proceso&#x2026;</li>
+<li>Sigue las instrucciones de <a href="http://www.cloudera.com/content/cloudera/en/documentation/cloudera-manager/v5-0-0/Cloudera-Manager-Installation-Guide/cm5ig_install_on_ec2.html">aquí</a> para levantar un cluster.</li>
 
 </ul>
+
+<p>
+<i>NOTA:</i> Requerirás una cuenta en <code>AWS</code>.
+</p>
+
 
 </section>
 </section>
 <section>
 <section id="slide-sec-13" data-state="alert">
 <h2 id="sec-13">Proyecto Final</h2>
+
+</section>
+<section id="slide-sec-13-1">
+<h3 id="sec-13-1">Proyecto Final</h3>
+<ul>
+<li>Implementar el flujo propuesto por el equipo.</li>
+
+<li>Utilizar al menos:
+<ul>
+<li><code>Sqoop</code></li>
+<li><code>Flume</code></li>
+<li><code>Luigi</code></li>
+<li><code>Hive</code> o <code>Impala</code> para hacer un ejemplo de analítica
+<ul>
+<li>Probablemente fuera del <b>ETL</b>.</li>
+
+</ul></li>
+<li><code>Pig</code> o <code>PySpark</code> para hacer al menos un paso del <b>ETL</b></li>
+<li>El sistema de carpetas.</li>
+
+</ul></li>
+
+<li>Para la base de datos de <code>gdelt</code>.</li>
+
+<li>Reporte de trabajo escrito, más presentación ejecutiva.
+<ul>
+<li><i>NOTA:</i> Recuerda que son para dos fines diferentes.</li>
+<li>Describa todo lo que querían hacer, junto con el caso de
+negocio.</li>
+<li>Y luego lo implementado.</li>
+
+</ul></li>
+
+<li><b>Fecha de entrega:</b> Viernes 5 de junio, a las 23:59.</li>
+
+</ul>
 
 </section>
 </section>
