@@ -3481,7 +3481,7 @@ para transformar los datos.</li>
 sqoop import --connect jdbc:postgresql://host/database \
 --username usuario --password contraseña  \
 --input-fields-terminated-by "\t"
---table <tabla> --target-dir <directorio>
+--table tabla --target-dir directorio
 </code></pre>
 
 <p>
@@ -3504,7 +3504,7 @@ separar los campos en el <code>hdfs</code>.
 sqoop import --connect jdbc:postgresql://host/database \
 --username usuario --password contraseña  \
 --query 'select tabla_1.*, tabla_2.* from tabla_1 join tabla_2 on (tabla_1.id = tabla_2.id) where $CONDITIONS' \
---split-by tabla_1.id --target-dir <directorio>
+--split-by tabla_1.id --target-dir directorio
 </code></pre>
 
 <p>
@@ -3529,8 +3529,8 @@ los <i>queries</i>.
 <pre><code data-trim>
 sqoop import --connect jdbc:postgresql://host/database \
 --username usuario --password contraseña  \
---table <tabla> --hive-import  \
---hive-overwrite --split-by <columna>
+--table tabla --hive-import  \
+--hive-overwrite --split-by columna
 </code></pre>
 
 <p>
@@ -3581,7 +3581,7 @@ sqoop eval --connect jdbc:postgresql://host/database \
 --username usuario --password contraseña  \
 --export-dir directorio_hdfs  --table tabla \
 --columns lista_de_columnas \
---input-fields-terminated-by "\t" \
+--input-fields-terminated-by "\t"
 </code></pre>
 
 
@@ -3635,7 +3635,7 @@ crear un <code>job</code></li>
 </ul>
 
 <pre><code data-trim>
-sqoop job --create <nombre_job> --import \
+sqoop job --create nombre_job --import \
 --connect jdbc:postgresql://host/database \
 --username usuario --password contraseña  \
 --table tabla --check-column columna-regularmente-id \
@@ -3647,7 +3647,7 @@ y luego ejecutarlo cuando se necesite:
 </p>
 
 <pre><code data-trim>
-sqoop job --exec <nombre_job>
+sqoop job --exec nombre_job
 </code></pre>
 
 </section>
