@@ -2292,7 +2292,62 @@ UFOAgent.sinks.UFOKiteDS.kite.batchSize = 10
 
 *** Ejercicio III
 
-Esta configuración consume más memoria de la que está asignada por
+- [[http://kitesdk.org/docs/current/morphlines/][Morphline]] es parte de =kite= y permite modificar los /streams/ de datos hacia los /sumideros/.
+   - El archivo =morphline.conf= (que está incluido en =github=) debe de ser colocado acordemente.
+#+begin_html
+<pre><code data-trim>
+morphlines: [
+{
+    id: convertUFOFileToAvro
+    importCommands: ["com.cloudera.**", "org.kitesdk.**" ]
+    commands: [
+    { tryRules {
+    catchExceptions : false
+    throwExceptionIfAllRulesFailed : true
+    rules : [
+    {
+     commands : [
+     { readCSV: {
+     separator : "\t"
+     columns : [Timestamp, City, State, Shape, Duration, Summary, Posted]
+     trim: true
+     charset : UTF-8
+     quoteChar : "\""
+     }
+    }
+
+    {
+     toAvro {
+      schemaFile: /home/itam/schemas/ufos.avsc
+     }
+
+    }
+    {
+     writeAvroToByteArray: {
+      format: containerlessBinary
+     }
+
+    }
+   ]
+   }
+   {
+     commands : [
+    { dropRecord {} }
+     ]
+   }
+
+  ]
+    }
+  }
+  { logTrace { format : "output record: {}", args : ["@{}"] } }
+    ]
+  }
+]
+</code></pre>
+#+end_html
+
+
+- Esta configuración consume más memoria de la que está asignada por
 /default/, observa el parámetro =-Xmx100m=
   - Quítalo, para que veas el error que sale (te puede salir en tu
     proyecto final)
