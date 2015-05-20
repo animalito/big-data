@@ -3393,61 +3393,12 @@ UFOAgent.sinks.UFOKiteDS.kite.batchSize = 10
 <section id="slide-sec-11-5-21">
 <h4 id="sec-11-5-21">Ejercicio III</h4>
 <ul>
-<li><a href="http://kitesdk.org/docs/current/morphlines/">Morphline</a> es parte de <code>kite</code> y permite modificar los <i>streams</i> de datos hacia los <i>sumideros</i>. El archivo <code>morphline.conf</code> es el siguiente:</li>
-
-</ul>
-<pre><code data-trim>
-morphlines: [
-{
-    id: convertUFOFileToAvro
-    importCommands: ["com.cloudera.**", "org.kitesdk.**" ]
-    commands: [
-    { tryRules {
-    catchExceptions : false
-    throwExceptionIfAllRulesFailed : true
-    rules : [
-    {
-     commands : [
-     { readCSV: {
-     separator : "\t"
-     columns : [Timestamp, City, State, Shape, Duration, Summary, Posted]
-     trim: true
-     charset : UTF-8
-     quoteChar : "\""
-     }
-    }
-
-    {
-     toAvro {
-      schemaFile: /home/itam/schemas/ufos.avsc
-     }
-
-    }
-    {
-     writeAvroToByteArray: {
-      format: containerlessBinary
-     }
-
-    }
-   ]
-   }
-   {
-     commands : [
-    { dropRecord {} }
-     ]
-   }
-
-  ]
-    }
-  }
-  { logTrace { format : "output record: {}", args : ["@{}"] } }
-    ]
-  }
-]
-</code></pre>
-
-
+<li><a href="http://kitesdk.org/docs/current/morphlines/">Morphline</a> es parte de <code>kite</code> y permite modificar los <i>streams</i> de datos hacia los <i>sumideros</i>.
 <ul>
+<li>El archivo <code>morphline.conf</code> (que está incluido en <code>github</code>) debe de ser colocado acordemente.</li>
+
+</ul></li>
+
 <li>Esta configuración consume más memoria de la que está asignada por</li>
 
 </ul>
