@@ -2284,7 +2284,7 @@ UFOAgent.sources.UFODir.interceptors.morphline.morphlineId = convertUFOFileToAvr
 # Sumidero
 UFOAgent.sinks.UFOKiteDS.type = org.apache.flume.sink.kite.DatasetSink
 UFOAgent.sinks.UFOKiteDS.channel = archivo
-UFOAgent.sinks.UFOKiteDS.kite.repo.uri = dataset:hive
+UFOAgent.sinks.UFOKiteDS.kite.repo.uri = dataset:hive://0.0.0.0:9083/ufos
 UFOAgent.sinks.UFOKiteDS.kite.dataset.name = ufos
 UFOAgent.sinks.UFOKiteDS.kite.batchSize = 10
 </code></pre>
@@ -2296,18 +2296,22 @@ UFOAgent.sinks.UFOKiteDS.kite.batchSize = 10
    - El archivo =morphline.conf= (que está incluido en =github=) debe de ser colocado acordemente.
 
 - Esta configuración consume más memoria de la que está asignada por
-/default/, observa el parámetro =-Xmx100m=
+/default/, observa el parámetro =-Xmx300m=
   - Quítalo, para que veas el error que sale (te puede salir en tu
     proyecto final)
 #+begin_html
 <pre><code data-trim>
- flume-ng agent -n UFOAgent -Xmx100m --conf ingestion -f ingestion/spooldir_example.conf
+ flume-ng agent -n UFOAgent -Xmx300m --conf ingestion -f ingestion/spooldir_example.conf
 </code></pre>
 #+end_html
 
-/Nota:/ Esto está marcando un error que no aparecía en la versión
-anterior de =flume=, ya la reporté [[https://github.com/kite-sdk/kite-examples/issues/27][aquí]].
+- Hecho esto, conéctense a =beeline= y hagan un =select * from ufos=.
+  - Debería de haber 530 renglones.
 
+- Ahora pueden copiar el archivo de =UFO-Dic-204.tsv= a la carpeta =/opt/ufos/= y debería de agregarlo a la tabla.
+  - Salvo el error que les va a marcar (¡por fin sabremos por qué es
+    el error! de que haya menos renglones que líneas, ve el ejemplo de
+    =kite-dataset=), el =select * ...= debería de marcar 830 renglones.
 
 *** Bibliografía
 
