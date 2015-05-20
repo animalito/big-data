@@ -1,0 +1,464 @@
+---
+title: "Métodos de Gran Escala. Proyecto 2"
+author: "Felipe Gerard"
+date: "17 de mayo de 2015"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(tidyr)
+library(ggmap)
+library(RColorBrewer)
+library(knitr)
+library(geoR)
+library(sp)
+setwd("/Users/Felipe/big-data/alumnos/felipegerard/proyecto2")
+load('entregable/datos_reporte.Rdata')
+# Leemos la base que limpiamos en postgres
+```
+
+1. UFO
+----------------------------------------------------------------------------
+
+
+## 1.1 Obtención de los datos
+
+La fuente de los datos de avistamientos está [aquí](FALTA!). En un proyecto anterior habíamos utilizado principalmente _R_ para obtener la información de los avistamientos. Sin embargo, en esta estrategia no es muy efectiva porque no podemos tener más de 5 ó 10 instancias pidiendo información. En esta versión optamos por usar `curl` y `parallel` para bajar los HTMLs tanto de las tablas como de las descripciones largas.
+
+Ya con la información abajo, utilizamos el comando `pup` para ayudarnos a procesar el HTML y finalmente el paquete `rvest` de _R_ para pasarlo todo a formato tabla. Parte de este proceso fue el pegado de las descripciones largas a las tablas como una columna más, para lo que requerimos limpiar los textos de saltos de línea, etc.
+
+
+## 1.2 Limpieza
+
+Para la limpieza optamos por utilizar _PostgreSQL_. Si bien la base de UFO es pequeña y puede ser manejada en _R_ sin ningún problema, optamos por pasarla por todo el proceso como práctica para la base de GDELT. Optamos por utilizar un proceso ELT, del cuál la etapa anterior corresponde a la extracción. Después de ese proceso ya teníamos la información en valores separados por pipes. Sin embargo, la base seguía estando sumanente sucia. Entonces seguía la etapa de carga a la base de datos.
+
+Para esta parte simplemente subimos la información a una tabla de una sola columna de formato `varchar`. El objetivo era procesarla y dejarla lista para el análisis arriba en el PostgreSQL. Optamos por particionar la tabla anualmente. Para que pudiéramos utilizar la tabla como si fuera una sola, añadimos _triggers_ para controlar que las inserciones en la tabla maestra se hicieran en realidad en la del año correspondiente (o en la tabla _overflow_ en caso de no haber una tabla apropiada).
+
+Para la limpieza lo que hicimos fue _castear_ las columnas de manera segura a los tipos apropiados, por un lado, y por otro extraer la información relevante y transformarla a un formato útil. Por ejemplo, la duración no venía con un formato específico, así que tuvimos que extraer la cantidad y las unidades para transformarlo a segundos. Ya con la información lista, dado que como mencionábamos no son tantos datos, la pasamos a _R_ para el análisis. A la hora de la lectura hubo que hacer un poco más de limpieza porque había unos pocos renglones que habían llegado mal. Y entonces podemos pasar a la etapa del análisis descriptivo.
+
+
+## 1.3 Análisis descriptivo
+
+Como queríamos sacar conclusiones sobre los avistamientos en EUA, entonces filtramos la base completa únicamente tomando los registros que tuvieran un valor válido según [esta lista](http://www.50states.com/abbreviations.htm#.VVeoSs4_Hkh). En adelante nos referiremos a esta base filtrada con el nombre UFO, y sobre ella haremos todos los análisis.
+
+Dimensiones de la base:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+x <- data.frame('Número' = dim(ufo))
+rownames(x) <- c('Renglones', 'Columnas')
+x
+```
+
+Columnas y sus tipos:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+kable(cols)
+```
+
+Primeras y últimas observaciones (sin las descripciones ni la URL). Tal parece que las observaciones modernas tienen un mejor formato de duración:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+head(ufo %>% dplyr::select(-summary, -long_description, -description_url)) %>%
+  kable
+tail(ufo %>% dplyr::select(-summary, -long_description, -description_url)) %>%
+  kable
+```
+
+Ejemplos de descripción corta (`summary`) y descripción larga (`long_description`). Los `<n>` son saltos de línea.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ufo$summary[1]
+ufo$long_description[1]
+```
+
+Resumen estadístico (primero variables numéricas y luego variables de texto):
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+x <- summary(ufo[cols_num])
+rownames(x) <- c('Min', '1st Q', 'Median', 'Mean', '3rd Q', 'Max', 'NAs')
+x[1,] <- gsub('Min. *: *', '', x[1,]) %>% as.numeric
+x[2,] <- gsub('1st Qu. *: *', '', x[2,]) %>% as.numeric
+x[3,] <- gsub('Median *: *', '', x[3,]) %>% as.numeric
+x[4,] <- gsub('Mean *: *', '', x[4,]) %>% as.numeric
+x[5,] <- gsub('3rd Qu. *: *', '', x[5,]) %>% as.numeric
+x[6,] <- gsub('Max. *: *', '', x[6,]) %>% as.numeric
+x[7,] <- gsub('NA\'s *: *', '', x[7,]) %>% as.numeric
+x[7, is.na(x[7,])] <- 0
+kable(x)
+apply(ufo[cols_char], 2, function(x) c('length'=length(x),
+                                       '# empty'=sum(x == ''),
+                                       '% empty'=mean(x == ''))) %>%
+  round(2) %>%
+  format(scientific = F) %>%
+  kable
+```
+
+
+## 1.4 Análisis
+
+En esta sección responderemos varias preguntas simples y haremos análisis estadísticos de la base. Para obtener la información social y algunos datos de apoyo para los nombres de los estados, utilizamos las tablas `state.abb`, `state.center`, `state.name` y `state.x77` del paquete `datasets` de _R_ (se carga por defecto al iniciar _R_). De ahí obtuvimos por ejemplo las tasas de analfabetismo, los nombres completos de los estados y los centros geográficos de los estados.
+
+### 1.4.1 Preguntas cerradas
+
+**Primer avistamiento por estado**
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+x <- ufo %>%
+  filter(!is.na(year), state != '') %>%
+  group_by(state) %>%
+  arrange(state, year) %>%
+  filter(row_number() == 1) %>%
+  dplyr::select(state, date_time, city, shape, duration, seconds, posted)
+names(x) <- c('Estado','Fecha y hora','Ciudad','Forma','Duración','Segundos','Fecha agregado')
+kable(x)
+```
+
+
+**Primer avistamiento por forma**
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+x <- ufo %>%
+  filter(shape != '') %>%
+  group_by(shape) %>%
+  arrange(shape, year) %>%
+  filter(row_number() == 1) %>%
+  dplyr::select(shape, date_time, state, city, shape, duration, seconds, posted)
+names(x) <- c('Forma','Fecha y hora','Estado','Ciudad','Duración','Segundos','Fecha agregado')
+kable(x)
+```
+
+**Número de avistamientos por año**
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(yearly_sightings, aes(year,count)) +
+  geom_line() +
+  geom_point() +
+  labs(x='Año', y='Avistamientos')
+```
+
+**Promedio mensual de avistamientos**
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ufo %>%
+  filter(date_time != '') %>%
+  group_by(year, month) %>%
+  summarise(count = n()) %>%
+  ungroup %>%
+  summarise(monthly_mean = mean(count)) %>%
+  as.numeric
+```
+
+**Promedio anual de avistamientos**
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ufo %>%
+  filter(date_time != '') %>%
+  group_by(year) %>%
+  summarise(count = n()) %>%
+  ungroup %>%
+  summarise(yearly_mean = mean(count)) %>%
+  as.numeric
+```
+
+**Promedio de avistamientos por mes**
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(monthly_sightings1, aes(month_name, avg_sightings)) +
+  geom_bar(stat='identity') +
+  labs(x='', y='', title='Promedio de avistamientos')
+```
+
+**Promedio de avistamientos mensuales por estado**
+
+Como vemos en los mapas, hay una gran diferencia entre el número de avistamientos totales y el per cápita. Al parecer la población afecta mucho los avistamientos. Es de esperarse que Nevada saliera con muchos avistamientos por persona, puesto que el desierto ahí es famoso por los UFOs.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+x <- monthly_sightings2
+x$state_ordered2 <- factor(x$state_ordered, levels=rev(levels(x$state_ordered)))
+ggplot(x, aes(state_ordered2, avg_sightings)) +
+  geom_bar(stat='identity') +
+  labs(x='', y='', title='Promedio de avistamientos por mes') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# Mapas
+ggplot(states_df) +
+  geom_polygon(aes(long,lat,group=group, fill=avg_sightings)) +
+  geom_text(data=centers, aes(long, lat, label=state), color='grey') +
+  labs(x='Longitud',y='Latitud',title='Avistamientos mensuales promedio') +
+  coord_quickmap() +
+  scale_fill_continuous(name='Número')
+
+ggplot(states_df) +
+  geom_polygon(aes(long,lat,group=group, fill=avg_sightings_per_capita)) +
+  geom_text(data=centers, aes(long, lat, label=state), color='grey') +
+  labs(title = 'Avistamientos mensuales promedio per cápita') +
+  coord_quickmap() +
+  scale_fill_continuous(name='Número')
+```
+
+**Varianza de avistamientos mensuales por estado**
+
+Hay que notar que en este caso los estados con mayor cantidad de avistamientos (debido a mayor población por ejemplo) tenderán a tener una mayor varianza. La segunda gráfica muestra los estados en el mismo orden, pero ahora la estadística es $\sigma/\mu$, la desviación normalizada con la media, en lugar de $\sigma$:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(monthly_state_var, aes(state_ordered, monthly_sd)) +
+  geom_bar(stat='identity') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x='Estado', y='Desviación estándar', title='Desviación estándar mensual')
+
+ggplot(monthly_state_var, aes(state_ordered, monthly_sd_mean_ratio)) +
+  geom_bar(stat='identity') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x='Estado', y='sigma/mu', title='Desviación estándar entre media mensual')
+```
+
+**Olas temporales**
+
+En la escala logarítmica podemos ver con claridad que antes de 1940 casi no había avistamientos. En esa década los avistamientos empezaron a tener un crecimiento exponencial, con un bache en los 80s. El crecimiento fue retomado después y sigue la misma tendencia exponencial que antes.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+aux <- yearly_sightings %>%
+  mutate(group = ifelse(year < 1940, '< 1940', '1940+'))
+ggplot(aux, aes(year, count, color=group)) +
+  geom_line() +
+  geom_point() +
+  scale_y_log10() +
+  scale_color_discrete(name='Período') +
+  geom_smooth(method = 'lm') +
+  labs(x='Año', y='log(avistamientos)', title='Avistamientos en escala logarítmica')
+```
+
+**Olas espaciales**
+
+Para las olas espacio-temporales veremos la información agregada por década. Hasta 1950 juntamos la información por ser muy poca. Como vemos, aunque el lugar con más avistamientos cambia si hacemos el análisis per cápita o no, lo que es consistente es que hubo muchos avistamientos en la década del 2000. Habría que conseguir información poblacional más precisa para hacer este análisis más finamente.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(states_df_block) +
+  geom_polygon(aes(long,lat,group=group, fill=sightings)) +
+  geom_text(data=centers, aes(long, lat, label=state), color='grey', size = 3) +
+  facet_wrap(~ block) +
+  theme(legend.position='none') +
+  coord_quickmap() +
+  labs(x = 'Longitud', y = 'Latitud', title='Avistamientos mensuales')
+
+ggplot(states_df_block) +
+  geom_polygon(aes(long,lat,group=group, fill=sightings_per_capita)) +
+  geom_text(data=centers, aes(long, lat, label=state), color='grey', size = 3) +
+  facet_wrap(~ block) +
+  theme(legend.position='none') +
+  coord_quickmap() +
+  labs(x = 'Longitud', y = 'Latitud', title = 'Avistamientos mensuales por persona (pob. 1975)')
+```
+
+**Narrativas parecidas**
+
+Para las narrativas parecidas consideraremos la longitud promedio de las descripciones largas. Queremos ver si hay alguna diferencia entre los diferentes estados en este sentido. Y de hecho vemos algunos datos interesantes. Por ejemplo, parece ser que en Dakota del Norte las descripciones son las más largas, mientras que las de Dakota del Sur se encuentran entre las más cortas. Al parecer en Kansas e Idaho tampoco describen mucho lo que ven. En el bloque sureste también hay descripciones más cortas. Esto podría deberse por ejemplo a temas religiosos.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(states_df_narr) +
+  geom_polygon(aes(long,lat,group=group, fill=mean_long_desc_len)) +
+  geom_text(data=centers, aes(long, lat, label=state), color='white') +
+  theme(legend.position='none') +
+  coord_quickmap() +
+  labs(x = 'Longitud', y = 'Latitud', title = 'Longitud promedio de las descripciones largas')
+```
+
+
+**Características sociales**
+
+Para ver si las características sociales tienen algún efecto sobre la cantidad de avistamientos, graficaremos algunas de ellas contra el promedio mensual de avistamientos. En particular graficaremos la tasa de analfabetismo, la de asesinatos, la esperanza de vida y la tasa de graduación de la univarsidad. Para graficarlas juntas más fácilmente normalizamos cada una a su máximo. Interesantemente, no parece haber mucha relación entre estas variables sociales y los avistamientos.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+x <- states_social_plot
+levels(x$id) <- c('Analfabetismo','Homicidios','Esperanza de vida','Graduación de preparatoria')
+ggplot(x, aes(avg_sightings, y)) +
+  geom_text(aes(label=state)) +
+  geom_smooth(method='loess') +
+  facet_wrap(~ id) +
+  labs(x = 'Avistamientos mensuales', y = 'Tasa normalizada por el máximo', title = 'Efecto de características sociales')
+```
+
+
+### 1.4.2 Modelo predictivo: Kriging sobre la cantidad de avistamientos
+
+Con el siguiente modelo intentaremos predecir espacialmente la cantidad de avistamientos que esperamos ver. Utilizaremos la información de 2014 con el fin de predecir en 2015. Sumaremos los avistamientos de un estado y supondremos que fueron vistos desde el punto medio del estado. Entonces los centros de los estados son puntos fijos en los que observamos una cantidad aleatoria de avistamientos. Haremos Krigging ordinario para tener una predicción continua de los avistamientos para 2015. Primero veamos un mapa con los avistamientos en el centro, denotados por el tamaño de los puntos:
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(mapping=aes(long,lat)) +
+  geom_polygon(data=states_df, aes(group=group), fill='grey') +
+  geom_point(data=parcial, aes(size=avistamientos)) +
+  theme_nothing(legend=TRUE) +
+  coord_quickmap() +
+  scale_size_continuous(name='Avistamientos')
+```
+
+Ahora graficamos el variograma empírico:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(v_emp_df, aes(dist, gamma)) +
+  geom_point() +
+  geom_line() +
+  geom_text(aes(label=np), vjust=-0.5) +
+  ylim(0,64000) +
+  labs(title='Variograma empírico (los números son la población)',
+       x = 'Distancia', y = 'Variograma (gamma)')
+```
+
+Y finalmente mostramos nuestras predicciones continuas para 2015 en la escala de color. Los puntos nuevamente representan 
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(mapping=aes(long,lat)) +
+  geom_raster(data=krig_df[idx_in,], aes(fill=pred)) +
+  geom_path(data=states_df2, aes(group=group)) +
+  geom_text(data=parcial, aes(size=avistamientos, label=state)) +
+  scale_fill_gradientn(colours = (brewer.pal(7,'YlOrRd')), name = 'Predicción') +
+  scale_size_continuous(range = c(1,10), name = 'Avistamientos') +
+  theme_nothing(legend = T) +
+  coord_quickmap() +
+  labs(title = 'Predicciones del Krigging')
+```
+
+
+
+2. GDELT
+----------------------------------------------------------------------------
+
+## 2.1 Obtención de los datos
+
+Obtuvimos los datos de [GDELT](http://gdeltproject.org) en un proyecto anterior, utilizando _bash_ y _R_ para scrappear la página.
+
+## 2.2 Limpieza
+
+Para esta base también decidimos utilizar una estrategia ELT. Dado que la extracción ya había sido llevada a cabo, pasamos directamente a la carga. La base de eventos de GDELT pesa alrededor de 12GB cuando está comprimida. Cuando se descomprime pesa cerca de 100GB. Debido a eso, nos fue imposible descomprimirla antes de subirla. Lo que hicimos fue descomprimirla directamente al stdout y subirla directamente con `\COPY` a PostgreSQL. En esta ocasión la información era de mucho mejor calidad que en la base de UFO, así que la base sucia de subida sí tenía ya las columnas definitivas, pero en formato de texto. Dado que la base es enorme, tardó varias horas en descomprimirse y subirse, pero quedó en menos de una noche. Una forma de haber acelerado el proceso a costa de menor seguridad de los datos habría sido crear esta tabla como _unlogged_, aunque el comando `\COPY` no sufre tanto como `INSERT`.
+
+Para crear la base limpia, creamos la tabla maestra y luego creamos la partición de acuerdo a los archivos originales. Lo que esto implica es que hay algunas tablas que están por año, otras por mes y otras por día, pero como las que corresponden a intervalos de tiempo más cortos son más nuevas, también tienen más información. Optamos por este esquema porque si no la partición consistiría de pocas tablas muy grandes, en especial las recientes. En este caso también generamos los _triggers_ apropiados para que la tabla se comportara como una sola. Y ya con la estructura construida, insertamos desde la tabla sucia pero poniendo los tipos, formatos y nulos apropiados. También hicimos un índice por algunas columnas relevantes, aunque debido a que hicimos pocos _queries_ de diversos tipos, no los utilizamos mucho. El proceso tardó alrededor de dos días con pausas, trabajando toda la noche y buena parte del día. Creemos que una buena parte se debe a que al momento de hacer este paso no habíamos optimizado la configuración del PostgreSQL.
+
+
+## 2.3 Optimización del PostgreSQL
+
+Para que los queries terminaran en tiempo finito, tuvimos que configurar correctamente el PostgreSQL. A continuación enlistamos lo que cambiamos:
+
+* Redujimos el número máximo de conexiones (`max_connections`) de 100 a 5. En realidad no las usamos, pero ocasionalmente querremos abrir más de una sesión.
+* Aumentamos el caché para tener datos (`shared_buffers`) de 128MB a 1GB
+* Duplicamos `temp_buffers` de 8MB a 16MB
+* Aumentamos la memoria para ordenar y hacer _joins_ (`work_mem`) de 4MB a 1GB. Este parámetro nos ayudó _muchísimo_. Con la configuración inicial ordenar casi cualquier tabla tomaba demasiado tiempo.
+* Aumentamos la memoria destinada al mantenimiento (`maintenance_work_mem`) de 64MB a 512MB.
+* Aumentamos `wal_buffers` a 16MB.
+* Aumentamos `effective_cache_size` de 4GB a 5GB.
+* Apagamos `autovacuum`.
+
+Después de hacer estos cambios, los queries simples como sumarizaciones tomaban alrededor de 40 ó 50 minutos.
+
+
+## 2.4 Análisis descriptivo
+
+Dado que la tabla de GDELT tiene aproximadamente 300,000,000 de renglones y 58 columnas, resulta imposible analizarla directamente en _R_. A continuación presentamos estadísticas descriptivas de las columnas más relevantes a los análisis que haremos:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+x <- gdelt_nulls
+names(x) <- 'Valor'
+kable(x)
+```
+
+Estos datos confirman nuestra afirmación anterior de que la base de GDELT está en mucho mejor estado que la de UFO: hay mucho menos nulos en los campos relevantes.
+
+
+## 2.5 Análisis
+
+### 2.5.1 Preguntas cerradas
+
+Para el análisis responderemos algunas preguntas similares a las que respondimos para UFO. Antes que nada, hicimos una tabla agregada por mes de de la base completa. El objetivo de hacerlo es que muchos de los queries sólo requieren información mensual, por lo que 
+
+**Primer evento de cada país**
+
+Dado que la base original venía ordenada por fecha de los eventos y no por país, tuvimos que hacer el query de manera inteligente. La forma _naive_ habría sido ordenar por país y luego por fecha y tomar la primera observación de cada grupo. Sin embargo, ordenar la base completa de 300M de renglones es impráctico en una computadora pequeña (según nuestros cálculos se requerirían al menos unos 30GB de RAM para que el ordenamiento fuera razonablemente rápido). Por lo tanto, tuvimos que usar otro enfoque:
+
+1. De la base sumarizada por mes, ordenar por país (`actor1countrycode`) y por fecha (no incluye el día) y tomar la primera observación de cada grupo. Luego, tomar las combinaciones distintas de mes y año (`monthyear`).
+2. Dado que la tabla de GDELT está ordenada por fecha, hacer un _inner join_ con el resultado del paso (1) con la variable `monthyear` es relativamente barato. El resultado de ese _join_ es igual la tabla original pero sólo incluye los meses en los que algún país apareció por primera vez. Dado que muchos países comparten primer mes de aparición, esta tabla es mucho más pequeña que la completa.
+3. Aplicar el procedimiento _naive_ a la tabla resultante del paso (2).
+
+A continuación mostramos los resultados del query anterior:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+x <- gdelt_first %>%
+  group_by(sqldate) %>%
+  summarise(country = paste(sort(country), collapse = ', ')) %>%
+  filter(country != '') %>%
+  mutate(Fecha = as.Date(as.character(sqldate), format = '%Y%m%d'))
+names(x)[2] <- 'País'
+kable(x[3:2])
+```
+
+**Estadísticas mensuales simples por país**
+
+A continuación mostramos estadísticas simples por país. Fueron sacadas resumiendo la base mensual en _R_.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+gdelt_monthyear %>%
+  rename(country = actor1countryname) %>%
+  filter(country != '') %>%
+  group_by(country) %>%
+  summarise(tot_numevents = sum(numevents),
+            avg_numevents = mean(numevents),
+            avg_goldsteinscale = mean(goldsteinscale),
+            tot_nummentions = sum(nummentions),
+            avg_nummentions = mean(nummentions),
+            tot_numsources = sum(numsources),
+            avg_numsources = mean(numsources),
+            avg_avgtone = mean(mean_avgtone)
+            ) %>%
+  format(digits = 2, scientific = F) %>%
+  rename(País=country) %>%
+  kable
+```
+
+
+### 2.5.2 Análisis de conglomerados
+
+Ahora haremos un análisis de conglomerados para ver si descubrimos países similares a México. El enfoque que tomaremos será utilizar como observaciones a los países y como variables el número de eventos registrados en ese mes cuyo actor principal sea ese país. El criterio de distancia que utilizaremos será la correlación entre las series de tiempo. Una de las ventajas de esta medida es que es invariante a escala, de modo que no importa si un país tiene muchos más eventos que otro, si se aglomeran en los mismos momentos del tiempo, igual la correlación será alta.
+
+Estamos interesados particularmente en analizar el caso de México. A continuación presentamos una gráfica que ilustra las correlaciones de los países con México. Por practicidad sólo mostramos la mitad de los países.
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE, fig.width=8}
+x <- cor_mex
+x$countryname <- factor(as.character(x$country.y), levels = as.character(x$country.y), ordered=T)
+ggplot(x[1:round(nrow(x)/2),], aes(countryname, cor_mex)) +
+  geom_bar(stat='identity') +
+  theme(axis.text.x = element_text(angle = 70, hjust = 1)) +
+  labs(x = 'País', y = 'Correlación', title = 'Correlación de series de tiempo con la de México')
+```
+
+Ahora graficaremos dos países muy distintos a México y uno similar:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+ggplot(x2, aes(date, numevents_norm)) +
+  geom_line() +
+  facet_wrap(~ actor1countryname) +
+  labs(x = 'Fecha', y = 'Número de eventos (normalizado)', title = 'Ejemplos de series de tiempo')
+```
+
+Después de hacer el análisis de aglomerado jerárquico, concluimos que no hay un grupo muy claro al que pertenezca México. Esto se debe a que en el dendrograma, no importa si tomamos pocos o muchos grupos, de todos modos México está en uno grande:
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE, fig.width=9}
+plot(hclus_1, main='5 grupos', xlab='')
+rect.hclust(hclus_1, k=5)
+
+plot(hclus_1, main='10 grupos', xlab='')
+rect.hclust(hclus_1, k=10)
+
+plot(hclus_1, main='30 grupos', xlab='')
+rect.hclust(hclus_1, k=30)
+```
+
+El hecho anterior es confirmado por la primera gráfica en la que mostramos las correlaciones, porque no hay un grupo pequeño de países muy parecidos a México, sino que la correlación disminuye lentamente con el ordenamiento. También hicimos un análisis de K-Medias (aunque no está diseñado para la distancia coseno) y uno de K-Medias esférico (paquete `skmeans`), pero llegamos a la misma conclusión: la varianza dentro de los grupos es grande en relación a la varianza entre grupos, de modo que no vale la pena aglomerar.
+
+
+## 6. Extensiones
+
+Creemos que es perfectamente posible construir modelos predictivos a partir de estos datos, pero hay que hacerlo de forma inteligente. Por ejemplo, se puede analizar la serie de tiempo diaria por país o por alguna otra columna agrupadora. Si se agrega datos geolocalizados también se puede hacer algún tipo de modelo espacial, utilizando por ejemplo Krigging o modelos de procesos puntuales.
+
+Otro tipo de información que se podría agregar sería por ejemplo datos económicos del Banco Mundial o datos sociales de la ONU. El pegado podría ser algo pesado y probablemente no sería lo mejor hacerlo en una computadora de escritorio. Además, seguramente requerirá algo de trabajo homologar las columnas apropiadas para permitir el cruce, pero seguramente algo se puede hacer.
+
+Una última idea que se nos ocurre es explotar las ligas a internet que vienen en la última columna a partir del 1^o^ de abril de 2013. Podríamos analizar el tipo de páginas a las que nos lleva y explotar el contenido y los metadatos para obtener más información.
