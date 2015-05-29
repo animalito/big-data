@@ -1,0 +1,30 @@
+-- Limpiamos el ambiente
+DROP TABLE IF EXISTS shakespeare;
+DROP TABLE IF EXISTS wordcount;
+
+-- Creamos la tabla que contendrá las obras de Shakespeare y cargamos los datos
+CREATE EXTERNAL TABLE shakespeare (linea string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+LOCATION '/user/itam/books/pg100.txt';
+
+-- Verificamos
+show tables;
+
+-- Quereamos y guardamos en una tabla
+-- OJO: No jala con subconsulta porque no entiende que son muchos renglones, pero creando una tabla temporal sí entiende los '\n' como nuevos renglones!!
+-- Tenemos que hacerlo vía una tabla temporal
+
+DROP TABLE IF EXISTS temp;
+CREATE TABLE temp AS
+SELECT regexp_replace(regexp_replace(group_concat(regexp_replace(lcase(regexp_replace(trim(linea),'[^a-zA-Z0-9 ]', '')), ' ', '|')), '(, )+', '|'), '\\|+', '\n') as palabra
+FROM shakespeare;
+
+CREATE TABLE wordcount AS
+SELECT palabra, count(palabra) as conteo
+FROM temp
+GROUP BY palabra;
+
+SELECT *
+FROM wordcount
+ORDER BY conteo desc
+LIMIT 20;

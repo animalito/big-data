@@ -1,5 +1,5 @@
 -- Inicializamos HIVE
-beeline -u jdbc:hive2://localhost:10000
+beeline -n itam -u jdbc:hive2://localhost:10000
 
 -- Limpiamos el ambiente
 delete table shakespeare;

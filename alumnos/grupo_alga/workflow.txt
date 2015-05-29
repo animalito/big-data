@@ -1,0 +1,40 @@
+*** GDELT ***
+
+Obtención:
+  · Crawler
+  · Identificar si hay nueva información
+  · Bajar a zip
+  · Guardar en disco
+  · Descomprimir
+
+Limpieza: 
+  · Revisar columnas
+  · Quitar columnas no requeridas
+  · Estructurar las columnas en un orden apropiado
+  · Realizar proceso de normalización de datos  (e.g. fechas a UTC)
+  · Enviar a un archivo de texto
+
+Manipulación:
+  · Detectar que se escribió un archivo de texto y triggerear la subida al HDFS
+  · Realizar un proceso de analítica que actualice la información
+  · Tener una base de datos para shiny actualizada
+
+ 
+*** UFO ***
+
+Obtención:
+  · Crawler
+  · Identificar si hay nueva información
+  · Bajar las bases nuevas
+
+Limpieza: 
+  · Revisar columnas
+  · Quitar columnas no requeridas
+  · Estructurar las columnas en un orden apropiado
+  · Realizar proceso de normalización de datos  (e.g. fechas a UTC)
+  · Enviar a un archivo de texto
+
+Manipulación:
+  · Detectar que se escribió un archivo de texto y triggerear la subida al HDFS
+  · Realizar un proceso de analítica que actualice la información
+  · Tener una base de datos para shiny actualizada

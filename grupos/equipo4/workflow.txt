@@ -1,0 +1,11 @@
+Workflow
+
+1. Bajar y almacenar. La primera vez full, posteriormente incremental.
+2. Cargar la base en esquema dirty
+3. Limpiar
+	Quitar todo lo que no es de USA para UFO y Mexico para Gdelt
+	Remover datos faltantes
+	Guardar el dataset filtrado en otro esquema. Por ejemplo Clean
+4. Importar Avro
+5. Parque
+6. Guardar los datos agregados en otra base solo para visualizar (por ejemplo con shiny)

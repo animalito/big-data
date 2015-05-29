@@ -1,0 +1,22 @@
+Instrucciones para bajar y pegar nombres de países al código de países
+=========================================================================
+
+# countrycode --> country
+curl http://gdeltproject.org/data/lookups/CAMEO.country.txt | grep -v "CODE|LABEL" | tr '\t' '|' | sort
+create table clean.countrycodes (code varchar, label varchar);
+\copy clean.countrycodes FROM 'etc/countrycode.psv' WITH DELIMITER '|';
+
+# Pegamos el pais a la tabla de salida
+SELECT
+    a.*,
+    b.label as actor1countryname
+INTO output.monthyear_actor1countrycode_stats_full_countryname
+FROM output.monthyear_actor1countrycode_stats_full as a
+    LEFT JOIN
+    clean.countrycodes as b
+    ON
+    a.actor1countrycode = b.code;
+
+# Guardamos la nueva tabla al sistema local
+
+\copy output.monthyear_actor1countrycode_stats_full_countryname to '/Users/Felipe/big-data/alumnos/felipegerard/proyecto2/output/monthyear_actor1countrycode_stats_full_countryname.psv' CSV HEADER DELIMITER '|';
