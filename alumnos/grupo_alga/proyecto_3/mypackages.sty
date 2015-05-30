@@ -1,0 +1,61 @@
+\usepackage{float}
+\usepackage{morefloats}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{rotating}
+\usepackage{longtable}
+\usepackage{colortbl}
+%\usepackage{natbib}
+%\newenvironment{scaleb}{ \scalebox{0.4}{} {} }
+%\newenvironment{scaleb}{ \tiny{} }
+% biber
+\usepackage[autostyle]{csquotes}
+
+\usepackage[
+    backend=biber,
+    style=authoryear-icomp,
+    sortlocale=de_DE,
+    natbib=true,
+    url=false,
+    doi=true,
+    eprint=false
+]{biblatex}
+\addbibresource{bibliografia.bib}
+
+\usepackage[]{hyperref}
+\hypersetup{
+% Turn on this if you prefer to have links colored instead of marked with squares
+colorlinks = true,
+linkcolor = black,
+urlcolor = blue,
+citecolor = black,
+% pdfpagemode = UseNone
+}
+
+\renewcommand\figurename{Figura}
+\renewcommand\tablename{Tabla}
+
+\newenvironment{myexampleblock}[1]{%
+    \tcolorbox[beamer,%
+    noparskip,breakable,
+    colback=LightGreen,colframe=DarkGreen,%
+    colbacklower=LimeGreen!75!LightGreen,%
+    title=#1]}%
+    {\endtcolorbox}
+
+\newenvironment{myalertblock}[1]{%
+    \tcolorbox[beamer,%
+    noparskip,breakable,
+    colback=LightCoral,colframe=DarkRed,%
+    colbacklower=Tomato!75!LightCoral,%
+    title=#1]}%
+    {\endtcolorbox}
+
+\newenvironment{myblock}[1]{%
+    \tcolorbox[beamer,%
+    noparskip,breakable,
+    colback=LightBlue,colframe=DarkBlue,%
+    colbacklower=DarkBlue!75!LightBlue,%
+    title=#1]}%
+    {\endtcolorbox}

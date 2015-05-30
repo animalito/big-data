@@ -1,0 +1,107 @@
+---
+title: "Proyecto 3: Orquestación"
+author: "Andrea Fernández"
+date: "30/05/2015"
+output:
+  pdf_document:
+    fig_caption: yes
+    includes:
+      in_header: mypackages.sty
+    keep_tex: yes
+    latex_engine: xelatex
+    number_sections: yes
+    toc: yes
+    toc_depth: 3
+---
+
+```{r, echo=F, message=F, error=F, warning=F}
+# bibliografia
+library(knitr)
+library(knitcitations)
+library(bibtex)
+library("RefManageR")
+
+cleanbib()
+cite_options(hyperlink=T)
+bib <- read.bibtex("bibliografia.bib")
+```
+
+# Introducción
+
+# Objetivo
+
+Implementar el flujo:
+
+**GDELT**
+- Obtención:
+    - Crawler
+    - Identificar si hay nueva información
+    - Bajar a zip
+    - Guardar en disco
+    - Descomprimir
+- Limpieza:
+    - Revisar columnas
+    - Quitar columnas no requeridas
+    - Estructurar las columnas en un orden apropiado
+    - Realizar proceso de normalización de datos (e.g. fechas a UTC)
+    - Enviar a un archivo de texto
+- Manipulación:
+    - Detectar que se escribió un archivo de texto y triggerear la subida al HDFS
+    - Realizar un proceso de analítica que actualice la información
+    - Tener una base de datos para shiny actualizada
+
+# Herramientas a utilizar
+
+1. Sistema de carpetas / configuración / docker
+2. Flume
+3. Luigi
+4. Pyspark
+5. Sqoop
+6. Hive/Impala
+
+# Configuración
+
+# Apache Flume
+
+## ¿Qué es?
+## ¿Para qué se utiliza?
+## Ventajas y desventajas
+## Implementación
+
+```
+esto es codigo
+```
+
+# pyspark
+
+## ¿Qué es?
+## ¿Para qué se utiliza?
+## Ventajas y desventajas
+## Implementación
+
+
+# Orquestación vía Luigi
+
+`r citep(bib["karau2015learning"], before="Vease el ejemplo de ", after=", p. 345")`
+`r citet(bib["karau2015learning"], before="Vease el ejemplo de ", after=", p. 345")`
+
+## ¿Qué es?
+## ¿Para qué se utiliza?
+## Ventajas y desventajas
+## Implementación
+
+# Hive
+
+## ¿Qué es?
+## ¿Para qué se utiliza?
+## Ventajas y desventajas
+## Implementación
+
+# Conclusiones
+
+# Bibliografía
+
+```{r, echo=F, message=F, error=F, warning=F, results='asis'}
+bibliography()
+```
+

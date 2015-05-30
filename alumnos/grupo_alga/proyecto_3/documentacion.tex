@@ -1,0 +1,232 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+    \usepackage{xltxtra,xunicode}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+  \newcommand{\euro}{€}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\ifxetex
+  \usepackage[setpagesize=false, % page size defined by xetex
+              unicode=false, % unicode breaks when used with xetex
+              xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Andrea Fernández},
+            pdftitle={Proyecto 3: Orquestación},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=blue,
+            linkcolor=magenta,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\setcounter{secnumdepth}{5}
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+\setlength{\droptitle}{-2em}
+  \title{Proyecto 3: Orquestación}
+  \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+  \author{Andrea Fernández}
+  \preauthor{\centering\large\emph}
+  \postauthor{\par}
+  \predate{\centering\large\emph}
+  \postdate{\par}
+  \date{30/05/2015}
+
+
+\usepackage{float}
+\usepackage{morefloats}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\usepackage{rotating}
+\usepackage{longtable}
+\usepackage{colortbl}
+%\usepackage{natbib}
+%\newenvironment{scaleb}{ \scalebox{0.4}{} {} }
+%\newenvironment{scaleb}{ \tiny{} }
+% biber
+\usepackage[autostyle]{csquotes}
+
+\usepackage[
+    backend=biber,
+    style=authoryear-icomp,
+    sortlocale=de_DE,
+    natbib=true,
+    url=false,
+    doi=true,
+    eprint=false
+]{biblatex}
+\addbibresource{bibliografia.bib}
+
+\usepackage[]{hyperref}
+\hypersetup{
+% Turn on this if you prefer to have links colored instead of marked with squares
+colorlinks = true,
+linkcolor = black,
+urlcolor = blue,
+citecolor = black,
+% pdfpagemode = UseNone
+}
+
+\renewcommand\figurename{Figura}
+\renewcommand\tablename{Tabla}
+
+\newenvironment{myexampleblock}[1]{%
+    \tcolorbox[beamer,%
+    noparskip,breakable,
+    colback=LightGreen,colframe=DarkGreen,%
+    colbacklower=LimeGreen!75!LightGreen,%
+    title=#1]}%
+    {\endtcolorbox}
+
+\newenvironment{myalertblock}[1]{%
+    \tcolorbox[beamer,%
+    noparskip,breakable,
+    colback=LightCoral,colframe=DarkRed,%
+    colbacklower=Tomato!75!LightCoral,%
+    title=#1]}%
+    {\endtcolorbox}
+
+\newenvironment{myblock}[1]{%
+    \tcolorbox[beamer,%
+    noparskip,breakable,
+    colback=LightBlue,colframe=DarkBlue,%
+    colbacklower=DarkBlue!75!LightBlue,%
+    title=#1]}%
+    {\endtcolorbox}
+
+
+\begin{document}
+
+\maketitle
+
+
+{
+\hypersetup{linkcolor=black}
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\section{Introducción}\label{introduccion}
+
+\section{Objetivo}\label{objetivo}
+
+Implementar el flujo:
+
+\textbf{GDELT} - Obtención: - Crawler - Identificar si hay nueva
+información - Bajar a zip - Guardar en disco - Descomprimir - Limpieza:
+- Revisar columnas - Quitar columnas no requeridas - Estructurar las
+columnas en un orden apropiado - Realizar proceso de normalización de
+datos (e.g.~fechas a UTC) - Enviar a un archivo de texto - Manipulación:
+- Detectar que se escribió un archivo de texto y triggerear la subida al
+HDFS - Realizar un proceso de analítica que actualice la información -
+Tener una base de datos para shiny actualizada
+
+\section{Herramientas a utilizar}\label{herramientas-a-utilizar}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Sistema de carpetas / configuración / docker
+\item
+  Flume
+\item
+  Luigi
+\item
+  Pyspark
+\item
+  Sqoop
+\item
+  Hive/Impala
+\end{enumerate}
+
+\section{Configuración}\label{configuracion}
+
+\section{Apache Flume}\label{apache-flume}
+
+\subsection{¿Qué es?}\label{que-es}
+
+\subsection{¿Para qué se utiliza?}\label{para-que-se-utiliza}
+
+\subsection{Ventajas y desventajas}\label{ventajas-y-desventajas}
+
+\subsection{Implementación}\label{implementacion}
+
+\begin{verbatim}
+esto es codigo
+\end{verbatim}
+
+\section{pyspark}\label{pyspark}
+
+\subsection{¿Qué es?}\label{que-es-1}
+
+\subsection{¿Para qué se utiliza?}\label{para-que-se-utiliza-1}
+
+\subsection{Ventajas y desventajas}\label{ventajas-y-desventajas-1}
+
+\subsection{Implementación}\label{implementacion-1}
+
+\section{Orquestación vía Luigi}\label{orquestacion-via-luigi}
+
+(Vease el ejemplo de Karau, Konwinski, Wendell, and Zaharia, 2015,
+p.~345) Karau, Konwinski, Wendell, and Zaharia (Vease el ejemplo de
+2015, p.~345)
+
+\subsection{¿Qué es?}\label{que-es-2}
+
+\subsection{¿Para qué se utiliza?}\label{para-que-se-utiliza-2}
+
+\subsection{Ventajas y desventajas}\label{ventajas-y-desventajas-2}
+
+\subsection{Implementación}\label{implementacion-2}
+
+\section{Hive}\label{hive}
+
+\subsection{¿Qué es?}\label{que-es-3}
+
+\subsection{¿Para qué se utiliza?}\label{para-que-se-utiliza-3}
+
+\subsection{Ventajas y desventajas}\label{ventajas-y-desventajas-3}
+
+\subsection{Implementación}\label{implementacion-3}
+
+\section{Conclusiones}\label{conclusiones}
+
+\section{Bibliografía}\label{bibliografia}
+
+{[}1{]} H. Karau, A. Konwinski, P. Wendell and M. Zaharia.
+\emph{Learning Spark: Lightning-Fast Big Data Analysis}. " O'Reilly
+Media, Inc.``, 2015.
+
+\end{document}
