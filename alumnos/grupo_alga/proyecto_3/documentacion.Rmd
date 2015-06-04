@@ -26,17 +26,21 @@ cite_options(hyperlink=T)
 bib <- read.bibtex("bibliografia.bib")
 ```
 
+\pagebreak
+
 # Introducción
+
 Generalmente se dice que el procesamiento a gran escala debe cumplir las tres V's: Volumen, Velocidad y Variedad.
 La necesidad de procesar información a gran escala de forma muy rápida ha llevado a la creación de una gran variedad de soluciones con diferentes características, lo anterior ha permitido que en la actualidad se pueda disponer de diversas herramientas para la implementación de procesos que impliquen el análisis de grandes cantidades de datos.
 Cada una de las herramientas desarrolladas hasta la actualidad cuentan con ventajas y desventajas que deben ser analizadas dependiendo el tipo de proyecto y análisis que se quiera desarrollar, lo anterior permitirá identificar la herramienta que mejor se adapte a las necesidades del proyecto a desarrollar. 
 A continuación se describen las características de cada una de las herramientas utilizadas en el desarrollo de nuestro proyectos y la implementación que se realizó.
 
-# Objetivo
+# Pipeline de datos
 
-Implementar el flujo:
+## Objetivo
 
-**GDELT**
+Implementar el flujo para la base de datos de **GDELT**:
+
 - Obtención:
     - Crawler
     - Identificar si hay nueva información
@@ -54,7 +58,7 @@ Implementar el flujo:
     - Realizar un proceso de analítica que actualice la información
     - Tener una base de datos para shiny actualizada
 
-# Herramientas a utilizar
+## Herramientas a utilizar
 
 1. Sistema de carpetas / configuración / docker
 2. Flume
@@ -63,12 +67,22 @@ Implementar el flujo:
 5. Sqoop
 6. Hive/Impala
 
+## Implementación
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8 \textwidth]{img/arquitectura.jpg}
+\caption{Flujo de datos implementado.}
+\end{figure}
+
 # Configuración
+
 
 # Apache Flume
 
 ## ¿Qué es?
-`Fume` es un sistema distribuido y seguro para recoger, agregar y mover grandes volúmenes de datos provenientes de logs desde distintas fuentes a un almacén de datos centralizado.
+
+`Flume` es un sistema distribuido y seguro para recoger, agregar y mover grandes volúmenes de datos provenientes de logs desde distintas fuentes a un almacén de datos centralizado.
 La arquitectura de `Flume` se puede dividir en seis partes:
 - Fuente externa. Se trata de la aplicación o mecanismo, como un servidor web o una consola de comandos desde la cual se generan eventos de datos que van a ser recogidos por la fuente.
 - Fuente. Una fuente es un componente que se encarga de recoger eventos desde la fuente externa y pasárselos transaccionalmente al canal.
@@ -78,17 +92,23 @@ La arquitectura de `Flume` se puede dividir en seis partes:
 - Interceptores. Serán una parte transversal de la arquitectura y podrán ser relacionados cuando ocurran distintos tipos de eventos en el flujo. Los interceptores podrán procesar los datos y añadirles la lógica que se necesite.
 
 ## ¿Para qué se utiliza?
+
 El uso de `Flume` no sólo se limita a la agregación de datos desde logs. Debido a que las fuentes de datos son configurables, `Flume` permite ser usado para recoger datos desde eventos ligados al tráfico de red, redes sociales, mensajes de correo electrónico a casi cualquier tipo de fuente de datos posibles.
 Flume soporta cuatro tipos de protocolos para leer datos:
+
 - Avro
 - Thrift
 - Syslog
 - Netcat
+
 Los distintos componentes de un flujo de eventos en Flume deberán implementar algún tipo de cliente o servidor que sea compatible con alguno de los cuatro protocolos anteriores. 
+
 Al tratarse de una arquitectura modular podemos concatenar distintos flujos para hacer un sistema más complejo como puede verse en la siguiente imagen:
 
 ## Ventajas y desventajas
+
 Sus principales ventajas:
+
 - Permite mover, de manera agregada y eficiente, grandes cantidades de datos de resgistro de muchas fuentes diferentes a Hadoop.
 - Permite usar como entrada de datos un gran número de fuentes de eventos.
 - Flume está pensado para procesos en streaming (intentando llegar a algo cercano a Real-time).
@@ -99,24 +119,33 @@ Sus principales desventajas:
 
 ## Implementación
 
-```
-esto es codigo
-```
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8 \textwidth]{img/flume.jpg}
+\caption{Fuente, canales y sumideros definidos en \emph{gdelt\_flume\_agent.conf}.}
+\end{figure}
 
 # Spark
 
 ## ¿Qué es?
+
 `Spark` es una plataforma de computación de código abierto para análisis y procesos avanzados. Desde su principio `Spark` fue diseñado para soportar en memoria algoritmos iterativos que se pudieran desarrollar sin escribir un conjunto de resultados cada vez que procesaba un dato. Esta habilidad para mantener todo en memoria es una técnica de computación de alto rendimiento aplicado al análisis avanzado.
+
 ## ¿Para qué se utiliza?
+
 `Spark` es utilizado para implementar análisis avanzados, cuenta con un `framework` que incluye:
+
 - La librería Mlib para implementar funciones para Machine Learning.
 - El motor de gráficos GraphX.
 - `Spark Streaming` para procesar en tiempo real grandes cantidades de datos.
 - `Sparck SQL` para procesar consultas en `SQL`.
+
 Esta plataforma asegura a los usuarios la consistencia en los resultados a través de distintos tipos de análisis.
 
 ## Ventajas y desventajas
+
 Sus principales ventajas:
+
 - Capacidad de procesamiento en memoria, `Spark` tiene velocidades de procesamiento hasta 100 veces más rápidas que las conseguidas utilizando `MapReduce`.
 - Esquema de computación más flexible que `MapReduce`.
 - Se puede descargar y ejecutar desde un ordenador personal.
@@ -124,23 +153,35 @@ Sus principales ventajas:
 - Se pueden desarrollar aplicaciones en `Spark` utilizando `Java`, `Scala`, `Phyton` y `R`.
 - Unificación del streaming en tiempo real.
 - Permite integrarse con una gran cantidad de fuentes y repositorios de datos.
- Sus principales desventajas:
+
+Sus principales desventajas:
+
 - Consume mucha memoria
 - Solo soporta los sistemas de archivo a través de `HDFS`
+
 ## Implementación
 
 # Sqoop
+
 ## ¿Qué es?
+
 `Sqoop` es una librería que permite importar datos desde un almacenamiento de datos estructurado, como una base de datos relacional, a `Hadoop`. `Sqoop` también permite importar datos a otras bases de datos como `Hive` o `HBase`.
+
 ## ¿Para qué se utiliza?
+
 `Sqoop` suministra una herramienta desde línea de comando a través de la cual se puede realizar todo el proceso de importación y exportación de datos desde una base de datos relacional a un sistema de ficheros distribuidos y viceversa.
+
 ## Ventajas y desventajas
+
 Sus principales ventajas:
+
 - Agiliza y facilita el movimiento de datos dentro y fuera de Hadoop.
 - Sqoop está enfocado a bases de datos relacionales.
 - Sqoop utiliza durante su ejecucción el paradigma MapReduce. Lo que permite procesar la información de manera paralela en procesos batch.
 - Lanza directamente  una o varias tareas MapReduce para procesar los datos.
+
 Sus principales desventajas:
+
 - Solamente realiza la validación a los datos copiados de una sola tabla en `HDFS`.
 
 
@@ -148,26 +189,36 @@ Sus principales desventajas:
 
 # Orquestación vía Luigi
 
-`r citep(bib["karau2015learning"], before="Vease el ejemplo de ", after=", p. 345")`
-`r citet(bib["karau2015learning"], before="Vease el ejemplo de ", after=", p. 345")`
-
 ## ¿Qué es?
+
 `Luigi` es una herramienta de generación de `workflows` y `pipelines` de trabajo. Permite definir distintos tipos de tareas, así como las dependencias de ejecución entre ellas, además de disponer de una interfaz de visualización para comprobar el estado de la ejecución y de la finalización del `workflow` completo. Está escrito en `Python`, y tiene plantillas predefinidas para varios tipos de tareas.
+
 ## ¿Para qué se utiliza?
+
 Permite gestionar la dependencia entre tareas mediante una serie de funciones que se deben reescribir. Las más importantes son las siguiente:
+
 - Run. Esta función contendrá el código principal de la tarea que se desea ejecutar.
 - Requires. La función requires establece la relación de dependencia entre dos tareas.
 - Output. La función output especifica la referencia al contenido que la tarea genera. Si se lanza varias veces el mismo `workflow`, antes de ejecutar cada una de las tareas, `Luigi` comprobará que no exista la referencia marcada en el `output`. En caso de que exista, la tarea se marcará como completada y pasará a la siguiente.
+
 ## Ventajas y desventajas
 
 ## Implementación
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8 \textwidth]{img/luigi.jpg}
+\caption{Esquema de las tareas implementadas en \emph{orquestador\_gdelt.py}.}
+\end{figure}
+
 # Hive
 
 ## ¿Qué es?
+
 `Hive` es un sistema de almacén de datos que facilita el manejo sencillo de datos, consultas ad-hoc, y el análisis de grandes conjuntos de datos almacenados en sistemas de ficheros compatibles con `Hadoop`.
 
 Algunas de las principales características de `Hive` y de su lenguaje `HiveQL` son las siguientes:
+
 - `HiveQL` es un lenguaje tipo `SQL` que permite realizar consultas de grandes volúmenes de datos almacenados en un sistema de ficheros compatible con `Hadoop`.
 - Las consultas realizadas desde `HiveQL` se ejecutan siguiendo el modelo `MapReduce`.
 - `Hive` necesita almacenar metadatos y los esquemas de datos mediante un servicio metastore.
@@ -179,17 +230,23 @@ Algunas de las principales características de `Hive` y de su lenguaje `HiveQL` 
 - Schema on read vs schema on write. A diferencia de las bases de datos relacionales que garantizan que el `Schema` se cumple cuando se inserta un registro, `Hive` no garantiza esto aunque intenta garantizar el esquema en las lecturas.
 
 ## ¿Para qué se utiliza?
+
 Hive provee un mecanismo para dotar de estructura en los datos y realizar consultas sobre los mismos con el lenguaje tipo SQL llamado HiveQL. Al mismo tiempo este lenguaje también permite a los programadores de `MapReduce` incluir sus propios mappers y reducers cuando no sea conveniente o eficiente expresar esta lógica con HiveQL.
 
 ## Ventajas y desventajas
+
 Se recomienda utilizar `Hive` para el procesamiento secuencial de grandes archivos de datos multi-estructurados.
 Las principales ventajas de `Hive` son:
+
 - Su capacidad de mejorar la simplicidad y la rapidez del desarrollo de `MapReduce`.
 - Hace más sencillo el procesamiento de archivos relacionados entre sí.
 - Utiliza queries similares a `SQL`.
+
 Las principales desventajas de `Hive` son:
+
 - No está completamente aislado del sistema de archivos subyacente, esto implica que con frecuencia el usuario requiere ayuda del optimizador con construcciones del lenguaje para procesar consultas más complejas.
 - No puede sustituir a la funcionalidad, facilidad de uso, el rendimiento y la madurez de un `DBMS`.
+
 ## Implementación
 
 # Conclusiones
