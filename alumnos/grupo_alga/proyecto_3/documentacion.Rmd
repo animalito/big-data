@@ -83,6 +83,8 @@ Se utiliza el docker de clase disponible en \url{https://registry.hub.docker.com
 
 # Apache Flume
 
+imagen (flume1)
+
 ## ¿Qué es?
 
 `Flume` es un sistema distribuido y seguro para recoger, agregar y mover grandes volúmenes de datos provenientes de logs desde distintas fuentes a un almacén de datos centralizado.
@@ -93,6 +95,8 @@ La arquitectura de `Flume` se puede dividir en seis partes:
 - Sumidero. Este componente será el encargado de recoger los datos desde el canal intermedio dentro de una transacción y de moverlos a un repositorio externo.
 - Repositorio externo. Nos sirve para almacenar en un sistema de ficheros como puede ser HDFS.
 - Interceptores. Serán una parte transversal de la arquitectura y podrán ser relacionados cuando ocurran distintos tipos de eventos en el flujo. Los interceptores podrán procesar los datos y añadirles la lógica que se necesite.
+
+imagen (flume2)
 
 ## ¿Para qué se utiliza?
 
@@ -107,6 +111,8 @@ Flume soporta cuatro tipos de protocolos para leer datos:
 Los distintos componentes de un flujo de eventos en Flume deberán implementar algún tipo de cliente o servidor que sea compatible con alguno de los cuatro protocolos anteriores. 
 
 Al tratarse de una arquitectura modular podemos concatenar distintos flujos para hacer un sistema más complejo como puede verse en la siguiente imagen:
+
+imagen (flume3)
 
 ## Ventajas y desventajas
 
@@ -130,6 +136,8 @@ Sus principales desventajas:
 
 # Spark
 
+imagen (spark1)
+
 ## ¿Qué es?
 
 `Spark` es una plataforma de computación de código abierto para análisis y procesos avanzados. Desde su principio `Spark` fue diseñado para soportar en memoria algoritmos iterativos que se pudieran desarrollar sin escribir un conjunto de resultados cada vez que procesaba un dato. Esta habilidad para mantener todo en memoria es una técnica de computación de alto rendimiento aplicado al análisis avanzado.
@@ -143,6 +151,8 @@ Sus principales desventajas:
 - `Spark Streaming` para procesar en tiempo real grandes cantidades de datos.
 - `Sparck SQL` para procesar consultas en `SQL`.
 
+imagen (spark2)
+
 Esta plataforma asegura a los usuarios la consistencia en los resultados a través de distintos tipos de análisis.
 
 ## Ventajas y desventajas
@@ -155,7 +165,12 @@ Sus principales ventajas:
 - Actualmente `Spark` es apoyado comercialmente por `Cloudera`, `Hortonworks` y `DataBricks`.
 - Se pueden desarrollar aplicaciones en `Spark` utilizando `Java`, `Scala`, `Phyton` y `R`.
 - Unificación del streaming en tiempo real.
+
+imagen (spark3)
+
 - Permite integrarse con una gran cantidad de fuentes y repositorios de datos.
+
+imagen (spark4)
 
 Sus principales desventajas:
 
@@ -165,6 +180,8 @@ Sus principales desventajas:
 ## Implementación
 
 # Sqoop
+
+imagen (sqoop1)
 
 ## ¿Qué es?
 
@@ -192,6 +209,8 @@ Sus principales desventajas:
 
 # Orquestación vía Luigi
 
+imagen (luigi)
+
 ## ¿Qué es?
 
 `Luigi` es una herramienta de generación de `workflows` y `pipelines` de trabajo. Permite definir distintos tipos de tareas, así como las dependencias de ejecución entre ellas, además de disponer de una interfaz de visualización para comprobar el estado de la ejecución y de la finalización del `workflow` completo. Está escrito en `Python`, y tiene plantillas predefinidas para varios tipos de tareas.
@@ -215,6 +234,8 @@ Permite gestionar la dependencia entre tareas mediante una serie de funciones qu
 \end{figure}
 
 # Hive
+
+imagen (hive1)
 
 ## ¿Qué es?
 
