@@ -1,0 +1,94 @@
+service docker start
+sudo docker start -ai hadoop-pseudo
+
+1. Flume> proceso que funciona con un archivo de configuracion. Liga el siistema de archivos local con el archivo de configuraci[on. Cando detecta el spooling directory, regrea el evento a flume y, de acuerdo al os archivos de conf, hace una multiple accion a multiples funetes.Estas fuetes pueden ser tanto locales como ya el hdfs directo. 
+
+Este hdfs es una base cuando lo pones como hbase pero no lo es propiamente. 
+
+[diagrama 1]
+
+2. Cron: dispara un proceso que se llama Luigi. Este proceso no hace mas que disparar otro proceso que se llama spark. El spark lo que hace es un etl, estadistica o lo que sea. Luigi lo arranca por pasos. Luigi va arrancando todos los procesos en el flujo.
+
+Spark puede ir al hdfs y hacer muchas cosas. El chiste es que el conjunto de scripts que jala luigi puede irse al HDFS o al RDBMS o al noSQL, hbase, local. Haces lo que quieres. 
+
+---
+
+Clase de luigi: postgres. Nos ahorra el sqoop?
+- defines input, output, run y requiere. El require te ayuda a armar la secuencia. Al archivo de Luigi le vas diciendo que paso va antes y despues. Puedes tener varias dependencias. Luigi te permite hacer el arbol de dependencias con el require.
+El input: si defines la secuencia, el requiere define su input. Pero el primer archivo requiere de un input, es decir, de donde saca la info.
+El output: donde va a escupir el resultado
+El run: 
+
+Agarras resultados, los guardas a disco. Los parametros de cada script en el proceso vienen de archivo. 
+
+---
+
+Falta montar el hbase y ya jalar con hive.
+
+
+---
+
+Cuando creas tu contenedor, le dices el mount y mapeas los puertos. Algunos son para yarn, otros para flume, etc.
+
+Al loggear con itam, lo primero que se ve son las estructuras de carpeta. Gilberto definio 3. En conf_files se ven 
+
+Flume es un asco porque un archivo, al mandarselo, lo corta en cachitos y le pone el nombre que quiere. En configuracion hace un reseteo de todo, borra todos los resultados, crea otra vez las carpetas correspondientes y borra de hadoop todo lo creado. `conf_files/command_preparation_folder`
+
+**2ndo archivo**
+`conf_files/gdelt_flume_agent.sh`
+Flume, en su diagrama, tiene una cosa que se llama canal. Flume se divide en varias cosas:
+- Fuente: entrada
+- Canal: procesamiento
+- Sumidero: salida
+
+En el archivo le pones la fuente es GDELTDir.
+La fuente, le puso 3 canales, uno que se llama archivonormal, otro asrchivoavro, archivonormaltemp
+Y sumideros tiene gdelthdfs gdeltavro o gdelthdfstemp.
+
+
+## Canales
+mUCHOS tipos de fuente, fuente avro, fuente hdfs.
+
+El spooldir: tu vas a estar viendo una carpeta. Cuando algo cae ahi, ésta es tu fuente. Le dices: los canales que tiene tu fuente. Del agente que creaste cuando corres el flume, al leer el archivo de configuracion, solo agarra las configuraciones del agente que le estas dando.
+
+El archivo gdelt agent, sus fuentes, de GDELTdir, es del tipo spooldir. De sus fuentes, tiene tres canales (puedes tener 3 archivos de configuracion y correr tres pantallitas con flume -no tiene sentido porque es la misma fuente.). Al tener 3 canaales le dices: lo que vas a hacer lo vas a mandar a tres lugares: archivohdfs, etc.
+
+/home/itam/data/datasets/gdelt/flume_spooldir *** todo lo copiado ahi, va a pasar por flume***
+
+Luego le dices, si es archivo con encabezados, lo va a leer y asi.
+
+
+Al copiar ahi, te lo manda a esos canales pero cambia el nombre. Cuando termina de ejecutar todo, le pone un .COMPLETED al final de la extension.
+
+Definicion de canales. Defines tipo. Tipo file(muy lento). Le dices, todos tus procesos, le vas poninedo checkpoints *esos son lso que deben de existir y se crean en el primer .sh*
+Defines checkpoint. El checkpoint sirve, si tengo que procesar 1000, entonces cada 100 los mando y hago un checkpoint. Es una carpeta que no estas viendo pero la tienes que definir.
+Defines la carpeta de archivos.
+
+Haces lo mismo para cada canal. Todos son del tipo file. 
+
+## Luego de las definiciones, que va a ahcer con esas cosas?
+
+Sumidero: tus resultados al ser tipo hdfs, 
+
+
+------ notas de voz
+# Puerto de hadoop
+127.0.0.1:50070=> checar las carpetas
+
+Luigi es el puerto 8000
+
+# COmando de luigi
+luigid --port 8000 --background --logdir=/home/itam/workflows/log
+
+#=> En el puerto 8000 te abre una interfaz
+
+python orquestador_2_luigi
+
+
+## crear carpeta 
+hadoop fs -mkdir -p /user/itam/datasets/gdelt/resultados
+## checo que esta en localhost:50070
+
+#luigid --port 8000 --ba...... le dices a que instancia de luigi se levanta para levantar todos los reportes
+ópython orquestador_2_gdelt.py --scheduler-port 8000
+	

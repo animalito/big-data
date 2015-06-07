@@ -33,7 +33,7 @@
 \fi
 \hypersetup{breaklinks=true,
             bookmarks=true,
-            pdfauthor={Andrea Fernández},
+            pdfauthor={Instituto Tecnológico Autónomo de México; Gilberto Iglesias; Andrea Fernández Conde; Lizbeth Contreras; Amanda Barrera},
             pdftitle={Proyecto 3: Orquestación},
             colorlinks=true,
             citecolor=blue,
@@ -56,7 +56,7 @@
   \title{Proyecto 3: Orquestación}
   \pretitle{\vspace{\droptitle}\centering\huge}
   \posttitle{\par}
-  \author{Andrea Fernández}
+  \author{Instituto Tecnológico Autónomo de México \\ Gilberto Iglesias \\ Andrea Fernández Conde \\ Lizbeth Contreras \\ Amanda Barrera}
   \preauthor{\centering\large\emph}
   \postauthor{\par}
   \predate{\centering\large\emph}
@@ -243,9 +243,96 @@ Implementar el flujo para la base de datos de \textbf{GDELT}:
 \subsection{Docker}\label{docker}
 
 Se utiliza el docker de clase disponible en
-\url{https://registry.hub.docker.com/u/nanounanue/docker-hadoop/}.
+\url{https://registry.hub.docker.com/u/nanounanue/docker-hadoop/}. Una
+vez bajada la imagen, se levanta el contenedor:
+
+\begin{verbatim}
+## Para correr el docker
+# Levantamos el contenedor
+sudo docker run -ti --name hadoop-pseudo \
+    -v /home/animalito/Documents/hadoop_data:/home/itam/data \
+    -p 2122:2122 -p 2181:2181 -p 39534:39534 -p 9000:9000 \
+    -p 50070:50070 -p 50010:50010 -p 50020:50020 -p 50075:50075 \
+    -p 50090:50090 -p 8030:8030 -p 8031:8031 -p 8032:8032 \
+    -p 8033:8033 -p 8088:8088 -p 8040:8040 -p 8042:8042 \
+    -p 13562:13562 -p 47784:47784 -p 10020:10020 -p 19888:19888 \
+    -p 8000:8000 -p 9999:9999 \
+    nanounanue/docker-hadoop
+
+# Start: prende el contenedor
+# Exec: te conecta al contenedor
+sudo docker exec -it hadoop-pseudo /bin/zsh
+\end{verbatim}
+
+Después de la ejecución del contenedor, se utiliza el usuario
+\texttt{itam} con contraseña \texttt{itam}.
+
+\subsubsection{Permisos}\label{permisos}
+
+Es muy importante dar los permisos apropiados a las carpetas. En el
+usuario \texttt{itam} en docker ejecutamos:
+
+\begin{verbatim}
+### En el docker, preparamos para el flume
+# Permisos para crear carpetitas, en itam
+hadoop fs -chown itam /user/itam/datasets/gdelt
+chmod -R 777 /opt
+sudo chown -R itam /opt/gdelt
+\end{verbatim}
+
+\subsection{Carpetas de configuración}\label{carpetas-de-configuracion}
+
+Para que todo funcione, primero se debe configurar una estructura de
+carpetas. Se corre entonces, en el docker, con usuario \texttt{itam} el
+script de bash \texttt{command\_preparation\_folders.sh}.
+
+\begin{verbatim}
+## En local (docker): borro todo
+rm -R /home/itam/data/datasets/gdelt/flume_spooldir/*
+
+rm -R /opt/gdelt/log/formato_avro/checkpoint/*
+rm -R /opt/gdelt/log/formato_avro/data/*
+
+
+rm -R /opt/gdelt/log/formato_normal/checkpoint/*
+rm -R /opt/gdelt/log/formato_normal/data/*
+
+rm -R /opt/gdelt/log/formato_normal_temp/checkpoint/*
+rm -R /opt/gdelt/log/formato_normal_temp/data/*
+
+## En local (docker): creo todos los directorios
+mkdir -p /home/itam/data/datasets/gdelt/flume_spooldir
+mkdir -p /opt/gdelt/log/formato_normal/checkpoint/
+mkdir -p /opt/gdelt/log/formato_normal/data
+mkdir -p /opt/gdelt/log/formato_normal_temp/checkpoint/
+mkdir -p /opt/gdelt/log/formato_normal_temp/data
+mkdir -p /opt/gdelt/log/formato_avro/checkpoint/
+mkdir -p /opt/gdelt/log/formato_avro/data
+
+
+## En el hadoop: borro todos los directorios
+hadoop fs -rm -R /user/itam/datasets/gdelt/normal
+hadoop fs -rm -R /user/itam/datasets/gdelt/avro
+hadoop fs -rm -R /user/itam/datasets/gdelt/temp
+hadoop fs -rm -R /user/itam/datasets/gdelt/resultados
+
+## En el hadoop: creo todos los directorios
+hadoop fs -mkdir -p /user/itam/datasets/gdelt/normal
+hadoop fs -mkdir -p /user/itam/datasets/gdelt/avro
+hadoop fs -mkdir -p /user/itam/datasets/gdelt/temp
+hadoop fs -mkdir -p /user/itam/datasets/gdelt/resultados
+
+
+## Para ver donde estan, busco la ruta en el docker para los primeros
+## hadoop fs -ls directorio para ver que esta todo en el hadoop
+\end{verbatim}
 
 \section{Apache Flume}\label{apache-flume}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4 \textwidth]{img/flume1.png}
+\end{figure}
 
 \subsection{¿Qué es?}\label{que-es}
 
@@ -268,6 +355,11 @@ de ficheros como puede ser HDFS. - Interceptores. Serán una parte
 transversal de la arquitectura y podrán ser relacionados cuando ocurran
 distintos tipos de eventos en el flujo. Los interceptores podrán
 procesar los datos y añadirles la lógica que se necesite.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8 \textwidth]{img/flume2.png}
+\end{figure}
 
 \subsection{¿Para qué se utiliza?}\label{para-que-se-utiliza}
 
@@ -297,6 +389,11 @@ alguno de los cuatro protocolos anteriores.
 Al tratarse de una arquitectura modular podemos concatenar distintos
 flujos para hacer un sistema más complejo como puede verse en la
 siguiente imagen:
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8 \textwidth]{img/flume3.png}
+\end{figure}
 
 \subsection{Ventajas y desventajas}\label{ventajas-y-desventajas}
 
@@ -333,9 +430,119 @@ Sus principales ventajas:
 \centering
 \includegraphics[width=0.8 \textwidth]{img/flume.jpg}
 \caption{Fuente, canales y sumideros definidos en \emph{gdelt\_flume\_agent.conf}.}
+\label{flume}
+\end{figure}
+
+\subsubsection{Configuración}\label{configuracion-1}
+
+Como se muestra en la figura \ref{flume}, la configuración del agente de
+flume \texttt{gdelt} necesita que se especifiquen fuente, canales y
+sumideros. Asimismo, es necesario que, para cada uno, se definan
+mínimamente los atributos en el diagrama. Existen muchos atributos
+adicionales que pueden consultarse en
+\href{https://flume.apache.org/FlumeUserGuide.html}{la documentación}.
+
+El archivo de configuración utlizado en este ejemplo, se encuentra en
+\texttt{conf\_files\textbackslash{}/gdelt\textbackslash{}\_flume\textbackslash{}\_agent.conf}
+y se ve como sigue:
+
+\begin{verbatim}
+## Los definimos: cuales son (fuente, canales, sumideros)
+GDELTAgent.sources = GDELTDir
+GDELTAgent.channels = archivonormal archivoavro archivonormaltemp
+GDELTAgent.sinks = GDELTHDFS GDELTAVRO GDELTHDFSTEMP
+
+# Fuente e Interceptores
+GDELTAgent.sources.GDELTDir.type = spooldir
+GDELTAgent.sources.GDELTDir.channels = archivonormal archivoavro archivonormaltemp
+GDELTAgent.sources.GDELTDir.spoolDir = /home/itam/data/datasets/gdelt/flume_spooldir
+GDELTAgent.sources.GDELTDir.fileHeader = true
+
+# Canales
+GDELTAgent.channels.archivonormal.type = file
+GDELTAgent.channels.archivonormal.checkpointDir = /opt/gdelt/log/formato_normal/checkpoint/
+GDELTAgent.channels.archivonormal.dataDirs = /opt/gdelt/log/formato_normal/data/
+
+GDELTAgent.channels.archivoavro.type = file
+GDELTAgent.channels.archivoavro.checkpointDir = /opt/gdelt/log/formato_avro/checkpoint/
+GDELTAgent.channels.archivoavro.dataDirs = /opt/gdelt/log/formato_avro/data/
+
+GDELTAgent.channels.archivonormaltemp.type = file
+GDELTAgent.channels.archivonormaltemp.checkpointDir = /opt/gdelt/log/formato_normal_temp/checkpoint/
+GDELTAgent.channels.archivonormaltemp.dataDirs = /opt/gdelt/log/formato_normal_temp/data/
+
+# Sumideros
+GDELTAgent.sinks.GDELTHDFSTEMP.type=hdfs
+GDELTAgent.sinks.GDELTHDFSTEMP.channel=archivonormaltemp
+GDELTAgent.sinks.GDELTHDFSTEMP.hdfs.path = /user/itam/datasets/gdelt/temp
+GDELTAgent.sinks.GDELTHDFSTEMP.hdfs.fileType = DataStream
+GDELTAgent.sinks.GDELTHDFSTEMP.hdfs.filePrefix = GDELT-Normal-Data
+GDELTAgent.sinks.GDELTHDFSTEMP.hdfs.fileSuffix = .temp
+GDELTAgent.sinks.GDELTHDFSTEMP.hdfs.writeFormat = Text
+GDELTAgent.sinks.GDELTHDFSTEMP.hdfs.batchSize = 10000
+GDELTAgent.sinks.GDELTHDFSTEMP.hdfs.rollSize =  0       
+GDELTAgent.sinks.GDELTHDFSTEMP.hdfs.rollCount = 20000000
+GDELTAgent.sinks.GDELTHDFSTEMP.hdfs.rollInterval = 180 
+
+GDELTAgent.sinks.GDELTHDFS.type=hdfs
+GDELTAgent.sinks.GDELTHDFS.channel=archivonormal
+GDELTAgent.sinks.GDELTHDFS.hdfs.path = /user/itam/datasets/gdelt/normal
+GDELTAgent.sinks.GDELTHDFS.hdfs.fileType = DataStream
+GDELTAgent.sinks.GDELTHDFS.hdfs.filePrefix = GDELT-Normal-Data
+GDELTAgent.sinks.GDELTHDFS.hdfs.writeFormat = Text
+GDELTAgent.sinks.GDELTHDFS.hdfs.batchSize = 10000
+GDELTAgent.sinks.GDELTHDFS.hdfs.rollSize =  0       
+GDELTAgent.sinks.GDELTHDFS.hdfs.rollCount = 20000000
+GDELTAgent.sinks.GDELTHDFS.hdfs.rollInterval = 180 
+
+GDELTAgent.sinks.GDELTAVRO.type=hdfs
+GDELTAgent.sinks.GDELTAVRO.channel=archivoavro
+GDELTAgent.sinks.GDELTAVRO.hdfs.path = /user/itam/datasets/gdelt/avro
+GDELTAgent.sinks.GDELTAVRO.hdfs.fileType = DataStream
+GDELTAgent.sinks.GDELTAVRO.hdfs.filePrefix = GDELT-Avro-Data
+GDELTAgent.sinks.GDELTAVRO.hdfs.fileSuffix = .avro
+GDELTAgent.sinks.GDELTAVRO.serializer = avro_event
+GDELTAgent.sinks.GDELTAVRO.hdfs.batchSize = 10000
+GDELTAgent.sinks.GDELTAVRO.hdfs.rollSize  = 0
+GDELTAgent.sinks.GDELTAVRO.hdfs.rollCount = 20000000
+GDELTAgent.sinks.GDELTAVRO.hdfs.rollInterval = 180 
+\end{verbatim}
+
+\subsubsection{Ejecución}\label{ejecucion}
+
+Estos archivos deben estar montados en una carpeta en local para el
+docker. De esta manera, con el usuario \texttt{itam}, ejecutamos el
+agente de flume de la siguiente manera:
+
+\begin{verbatim}
+### Para correr el flume:
+## Paso 1
+## Corremos flume desde docker, su itam
+flume-ng agent -n GDELTAgent --conf ingestion -f /home/itam/data/conf_files/gdelt_flume_agent.conf
+## Paso 2
+## Copias el archivo que quieres trepar a la carpeta `flume_spooldir`
+\end{verbatim}
+
+Con el agente de flume prendido, solo es necesario copiar los archivos
+en el \texttt{spoolDir} definido en la configuraciön para que el agente
+los procese e inserte en el HDFS y avro.
+
+Si todo esta apropiadamente configurado, entonces al copiar un archivo
+de \texttt{gdelt} en el \texttt{spoolDir} local (sobre el cual se monta
+el \texttt{docker}) inmediatamente se activan los procesos del agente
+gdelt.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{img/ejecucion_flume.png}
 \end{figure}
 
 \section{Spark}\label{spark}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4 \textwidth]{img/spark1.png}
+\end{figure}
 
 \subsection{¿Qué es?}\label{que-es-1}
 
@@ -365,6 +572,11 @@ con un \texttt{framework} que incluye:
   \texttt{Sparck SQL} para procesar consultas en \texttt{SQL}.
 \end{itemize}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8 \textwidth]{img/spark2.png}
+\end{figure}
+
 Esta plataforma asegura a los usuarios la consistencia en los resultados
 a través de distintos tipos de análisis.
 
@@ -390,10 +602,24 @@ Sus principales ventajas:
   \texttt{Java}, \texttt{Scala}, \texttt{Phyton} y \texttt{R}.
 \item
   Unificación del streaming en tiempo real.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8 \textwidth]{img/spark3.png}
+\end{figure}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
 \item
   Permite integrarse con una gran cantidad de fuentes y repositorios de
   datos.
 \end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8 \textwidth]{img/spark4.png}
+\end{figure}
 
 Sus principales desventajas:
 
@@ -407,7 +633,55 @@ Sus principales desventajas:
 
 \subsection{Implementación}\label{implementacion-2}
 
+En el archivo \texttt{workflows/pyspark\_script.py} se especifican las
+tareas de limpieza que debe realizar el spark y que, después, serán
+ejecutadas por el orquestador.
+
+\begin{verbatim}
+import os
+import csv
+from io import StringIO
+import sys
+from pyspark import SparkContext, SparkConf
+
+
+def load_tsv(archivo):
+    return csv.reader(StringIO(archivo[1]), delimiter="\t")
+
+def limpia_informacion(line): 
+    
+    return  [line[0], line[1], line[3], line[2].replace(line[3],""),line[1].replace(line[2],"")] + \
+        line[5:]
+
+def main_limpia_info(args):
+    try:
+        conf = (SparkConf().setMaster("local").setAppName("GdeltImportingInfo"))
+        sc = SparkContext(conf = conf)  
+        obs = sc.textFile("hdfs://localhost/user/itam/datasets/gdelt/temp/*.temp").\
+            map(lambda x: x.split("\t") ).map(limpia_informacion)
+
+        obs_mexico = obs.filter(lambda line: line[5] == "MEX" or line[15] == "MEX").map(lambda x: "\t".join(x))
+        obs = obs.map(lambda x: "\t".join(x))
+        obs_mexico.saveAsTextFile("hdfs://localhost/user/itam/datasets/gdelt/resultados/mexico")
+        obs.saveAsTextFile("hdfs://localhost/user/itam/datasets/gdelt/resultados/general")
+        #print obs_mexico.take(5)
+        print "Ejecucion exitosa de limpieza\n"
+    except: 
+        print "Ejecucion fallida de limpieza\n"
+
+if __name__ == '__main__':
+    #print "Ejecucion de PySpark"
+    if sys.argv[1] == "limpieza_datos":
+        main_limpia_info(sys.argv)
+    #print "Fin de ejecucion"
+\end{verbatim}
+
 \section{Sqoop}\label{sqoop}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8 \textwidth]{img/sqoop1.png}
+\end{figure}
 
 \subsection{¿Qué es?}\label{que-es-2}
 
@@ -452,7 +726,96 @@ Sus principales desventajas:
 
 \subsection{Implementación}\label{implementacion-3}
 
+En este caso, no se llamó a sqoop en el orquestador. Sin embargo, se
+extrae la base de datos a \texttt{hive} directo y se crean las tablas
+para realizar los queries. Los archivos de hive pueden ser llamados por
+el orquestador de manera directa y que el flujo esté completo.
+
+Los ejemplos de hive y los scripts de creación de las tablas tomandolas
+del HDFS son \texttt{load\_etled.q} para la base que ya pasó por el
+orquestador. Además, se puede cargar de manera directa la base normal o
+temporal del HDFS con \texttt{load\_original.q}. El primero, se ve como
+sigue:
+
+\begin{verbatim}
+create table gdeltetled
+(GLOBALEVENTID BIGINT, 
+SQLDATE INT, 
+Year INT, 
+Month INT, 
+Day INT,
+FractionDate DECIMAL, 
+Actor1Code STRING, 
+Actor1Name STRING, 
+Actor1CountryCode STRING, 
+Actor1KnownGroupCode STRING, 
+Actor1EthnicCode STRING, 
+Actor1Religion1Code STRING, 
+Actor1Religion2Code STRING, 
+Actor1Type1Code STRING, 
+Actor1Type2Code STRING, 
+Actor1Type3Code STRING, 
+Actor2Code STRING, 
+Actor2Name STRING, 
+Actor2CountryCode STRING, 
+Actor2KnownGroupCode STRING, 
+Actor2EthnicCode STRING, 
+Actor2Religion1Code STRING, 
+Actor2Religion2Code STRING, 
+Actor2Type1Code STRING, 
+Actor2Type2Code STRING, 
+Actor2Type3Code STRING, 
+IsRootEvent BOOLEAN, 
+EventCode STRING,
+EventBaseCode STRING, 
+EventRootCode STRING, 
+QuadClass INT, 
+GoldsteinScale DECIMAL, 
+NumMentions BIGINT, 
+NumSources BIGINT, 
+NumArticles BIGINT, 
+AvgTone DECIMAL, 
+Actor1Geo_Type BIGINT, 
+Actor1Geo_FullName STRING, 
+Actor1Geo_CountryCode STRING, 
+Actor1Geo_ADM1Code STRING, 
+Actor1Geo_Lat DECIMAL, 
+Actor1Geo_Long DECIMAL, 
+Actor1Geo_FeatureID DECIMAL, 
+Actor2Geo_Type BIGINT, 
+Actor2Geo_FullName STRING, 
+Actor2Geo_CountryCode STRING, 
+Actor2Geo_ADM1Code STRING, 
+Actor2Geo_Lat DECIMAL, 
+Actor2Geo_Long DECIMAL, 
+Actor2Geo_FeatureID DECIMAL, 
+ActionGeo_Type BIGINT, 
+ActionGeo_FullName STRING, 
+ActionGeo_CountryCode STRING, 
+ActionGeo_ADM1Code STRING, 
+ActionGeo_Lat DECIMAL, 
+ActionGeo_Long DECIMAL, 
+ActionGeo_FeatureID DECIMAL, 
+DATEADDED BIGINT, 
+SOURCEURL STRING)
+row format delimited fields terminated by '\t' stored as textfile;
+
+LOAD DATA INPATH '/user/itam/datasets/gdelt/resultados/mexico/part-00000' OVERWRITE INTO TABLE gdeltetled;
+\end{verbatim}
+
+Ejemplos de los queries de analítica que se pueden realizar son:
+
+\begin{verbatim}
+CREATE TABLE actiontypes AS
+select gdeltetled.actiongeo_type, count (DISTINCT gdeltetled.globaleventid) from gdeltetled group by gdeltetled.actiongeo_type;
+\end{verbatim}
+
 \section{Orquestación vía Luigi}\label{orquestacion-via-luigi}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.4 \textwidth]{img/luigi.jpeg}
+\end{figure}
 
 \subsection{¿Qué es?}\label{que-es-3}
 
@@ -498,6 +861,11 @@ siguiente:
 \end{figure}
 
 \section{Hive}\label{hive}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.3 \textwidth]{img/hive1.png}
+\end{figure}
 
 \subsection{¿Qué es?}\label{que-es-4}
 
@@ -587,8 +955,92 @@ Las principales desventajas de \texttt{Hive} son:
 
 \subsection{Implementación}\label{implementacion-5}
 
+Desde python, utilizando luigi, es posible que, después de la ejecución
+del agente de flume, los procesos de limpieza, transformación y carga de
+datos (a hive, pig o postgres) sean realizados de manera automática.
+Cada tarea se ejecuta si (y solo si) la tarea previa fue ejecutada de
+manera exitosa. Debido a que la tarea posterior debe leer un archivo
+generada por la tarea previa, se decidió que cada tarea regresara por un
+lado los flujos de datos y, por otro, un archivo con el log de la tarea
+previa. En caso de que ésta es exitosa, entonces se realiza la
+siguiente. El código es como sigue:
+
+\begin{verbatim}
+import luigi
+from luigi.hdfs import HdfsTarget
+import os
+from io import StringIO
+import sys
+
+class LimpiaInformacionTask(luigi.Task):
+    
+    def output(self):
+        return HdfsTarget("/user/itam/datasets/gdelt/resultados/limpieza_info.txt")
+    
+    def run(self):
+        _out = self.output().open("w")
+        try: 
+            f = os.popen('nohup spark-submit /home/itam/workflows/pyspark_script.py limpieza_datos &')
+            res_exec = f.read()
+            _out.write("Ejecucion exitosa de LimpiarInformacionTask \n")
+            _out.write(str(res_exec) + "\n")
+            #print res_exec
+        except:
+            _out.write("Ejecucion fallida")
+        _out.close()
+
+class AnalizaInformacionTask(luigi.Task):
+
+    def requires(self):
+        return LimpiaInformacionTask()
+
+    def output(self):
+        return HdfsTarget("/user/itam/datasets/gdelt/resultados/analisis_info.txt")
+
+    def run(self):
+        #print "\n\n\nInicia ejecucion de analisis de informacion\n\n\n"
+        try:
+            _in = self.input().open("r")
+            _out = self.output().open("w")
+            for line in _in:
+                _out.write(line) 
+                #print line + "\n"
+            _in.close()
+            _out.close()
+        except:
+            print "\nERROR  EN ANALISIS DE INFORMACION\n"
+
+class ExportaInformacionTask(luigi.Task):
+
+    def output(self):
+        return HdfsTarget("/user/itam/datasets/gdelt/resultados/exportacion_info.txt")
+
+    def requires(self):
+        return AnalizaInformacionTask()
+
+    def run(self):
+        _in = self.input().open("r")
+        _out = self.output().open("w")
+        for line in _in:
+            _out.write(line)
+
+        _out.close()
+        _in.close()
+
+
+if __name__ == '__main__':
+    luigi.run(main_task_cls=ExportaInformacionTask)
+\end{verbatim}
+
+Este archivo está en \texttt{workflows/orquestador\_gdelt.py}, se llama
+desde el docker con usuario \texttt{itam} y ejecuta también las tareas
+especificadas en pyspark.
+
 \section{Conclusiones}\label{conclusiones}
 
-\section{Bibliografía}\label{bibliografia}
+El flujo implementado es muy simple y se realizó de manera local. Sin
+embargo, la configuración es fácilmente extendible. Además, las tareas
+realizadas a través del orquestador pueden ser tan complicadas como un
+necesite.
 
 \end{document}

@@ -1,0 +1,15 @@
+http://data.gdeltproject.org/documentation/GDELT-Data_Format_Codebook.pdf
+
+http://127.0.0.1:50070/explorer.html#/user/itam/datasets/gdelt/resultados/
+
+http://127.0.0.1:8000/static/visualiser/index.html#ExportaInformacionTask%28%29
+
+https://flume.apache.org/FlumeUserGuide.html#flume-sinks
+
+https://media.readthedocs.org/pdf/luigi/latest/luigi.pdf
+
+https://spark.apache.org/docs/0.9.1/python-programming-guide.html
+
+https://spark.apache.org/docs/1.1.1/api/python/pyspark.rdd.RDD-class.html#saveAsNewAPIHadoopFile
+
+

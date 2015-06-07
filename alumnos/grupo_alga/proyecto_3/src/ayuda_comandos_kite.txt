@@ -1,0 +1,59 @@
+
+Usage: /usr/lib/kite/bin/kite-dataset [options] [command] [command options]
+
+  Options:
+
+    --version
+	Print Kite version and exit
+    -v, --verbose, --debug
+	Print extra debugging information
+
+  Commands:
+
+    help
+	Retrieves details on the functions of other commands
+    create
+	Create an empty dataset
+    copy
+	Copy records from one Dataset to another
+    transform
+	Transform records from one Dataset and store them in another
+    update
+	Update the metadata descriptor for dataset
+    delete
+	Delete a view or a dataset and its metadata
+    schema
+	Show the schema for a Dataset
+    info
+	Print all metadata for a Dataset
+    show
+	Print the first n records in a Dataset
+    obj-schema
+	Build a schema from a java class
+    inputformat-import
+	Import records into a Dataset using an existing InputFormat
+    csv-schema
+	Build a schema from a CSV data sample
+    csv-import
+	Copy CSV records into a Dataset
+    json-schema
+	Build a schema from a JSON data sample
+    json-import
+	Copy JSON records into a Dataset
+    partition-config
+	Builds a partition strategy for a schema
+    mapping-config
+	Builds a partition strategy for a schema
+    log4j-config
+	Build a log4j config to log events to a dataset
+    flume-config
+	Build a Flume config to log events to a dataset
+    tar-import
+	Import files in tarball into a Dataset
+
+  Examples:
+
+    # print information for create
+    /usr/lib/kite/bin/kite-dataset help create
+
+  See '/usr/lib/kite/bin/kite-dataset help <command>' for more information on a specific command.
